@@ -46,17 +46,41 @@ body.is-editing.dragover-file main::after{content:"Drop image to add it";positio
 body.is-editing #textbox-layer .text-box{cursor:move;user-select:none}
 body.is-editing #textbox-layer .text-box:hover{outline-color:rgba(99,102,241,.4)}
 body.is-editing #textbox-layer .text-box.selected{outline-color:#6366f1;outline-style:solid}
-#textbox-layer .tb-handle{position:absolute;display:none;align-items:center;justify-content:center;border:2px solid #fff;color:#fff;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:3}
+#textbox-layer .tb-handle{position:absolute;display:none;align-items:center;justify-content:center;border:2px solid #fff;color:#fff;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:4}
 body.is-editing #textbox-layer .text-box.selected .tb-handle{display:flex}
 #textbox-layer .tb-del{right:-10px;top:-10px;width:24px;height:24px;background:#ef4444;border-radius:50%;cursor:pointer}
 #textbox-layer .tb-gear{left:-10px;top:-10px;width:24px;height:24px;background:#6366f1;border-radius:50%;cursor:pointer}
-#textbox-layer .tb-resize{right:-8px;bottom:-8px;width:18px;height:18px;background:#6366f1;border-radius:50%;cursor:nwse-resize;font-size:9px}
-#textbox-layer .tb-drag{bottom:-10px;left:50%;transform:translateX(-50%);width:26px;height:22px;background:#6366f1;border-radius:11px;cursor:move;font-size:9px}
+
+/* 8 Word-style resize handles */
+#textbox-layer .tb-rz{position:absolute;width:11px;height:11px;background:#6366f1;border:1.5px solid #fff;border-radius:50%;display:none;z-index:5;box-shadow:0 1px 4px rgba(0,0,0,.55)}
+body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
+#textbox-layer .tb-rz-nw{top:-6px;left:-6px;cursor:nwse-resize}
+#textbox-layer .tb-rz-n {top:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+#textbox-layer .tb-rz-ne{top:-6px;right:-6px;cursor:nesw-resize}
+#textbox-layer .tb-rz-e {top:50%;right:-6px;transform:translateY(-50%);cursor:ew-resize}
+#textbox-layer .tb-rz-se{bottom:-6px;right:-6px;cursor:nwse-resize}
+#textbox-layer .tb-rz-s {bottom:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+#textbox-layer .tb-rz-sw{bottom:-6px;left:-6px;cursor:nesw-resize}
+#textbox-layer .tb-rz-w {top:50%;left:-6px;transform:translateY(-50%);cursor:ew-resize}
+
+/* Snap guides */
+#snap-guides{position:fixed;inset:0;pointer-events:none;z-index:23}
+#snap-guides .sg{position:absolute;background:#f0abfc;box-shadow:0 0 6px rgba(240,171,252,.75)}
+#snap-guides .sg-v{width:1px;top:0;bottom:0}
+#snap-guides .sg-h{height:1px;left:0;right:0}
+
+/* Toolbar colour tool */
+.tb-tool{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;cursor:pointer;color:#a1a1aa;transition:background .15s;font-size:11px}
+.tb-tool:hover{background:#27272a;color:#fff}
+.tb-tool input[type="color"]{width:22px;height:22px;padding:0;border:none;background:transparent;cursor:pointer;border-radius:50%;overflow:hidden}
+.tb-tool input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+.tb-tool input[type="color"]::-webkit-color-swatch{border:2px solid #52525b;border-radius:50%}
+.tb-tool input[type="color"]::-moz-color-swatch{border:2px solid #52525b;border-radius:50%}
 
 /* ===== TEXT BOX SETTINGS PANEL ===== */
 #tb-settings{position:fixed;width:300px;max-height:calc(100vh - 40px);overflow-y:auto;background:#18181b;border:1px solid #6366f1;border-radius:12px;z-index:70;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.7);display:none}
 #tb-settings.open{display:block}
-#tb-settings .tb-head{padding:8px 12px;background:#1f1f24;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;cursor:move;user-select:none;border-radius:12px 12px 0 0}
+#tb-settings .tb-head{padding:8px 12px;background:#1f1f24;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;border-radius:12px 12px 0 0}
 #tb-settings .tb-body{padding:10px 12px 14px;display:flex;flex-direction:column;gap:8px}
 #tb-settings .row{display:flex;flex-direction:column;gap:3px}
 #tb-settings .row>label{color:#a1a1aa;font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;gap:8px}
@@ -70,6 +94,12 @@ body.is-editing #textbox-layer .text-box.selected .tb-handle{display:flex}
 #tb-settings textarea:focus,#tb-settings select:focus,#tb-settings input[type="text"]:focus{outline:none;border-color:#6366f1}
 .tb-sect{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#6366f1;font-weight:700;padding-top:6px;border-top:1px solid #27272a;margin-top:2px}
 .tb-sect:first-child{border-top:none;margin-top:0;padding-top:0}
+.tb-switch-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0}
+.tb-switch-row>span{color:#a1a1aa;font-size:10.5px}
+.tb-switch{position:relative;width:32px;height:18px;background:#3f3f46;border-radius:10px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tb-switch::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
+.tb-switch.on{background:#6366f1}
+.tb-switch.on::after{transform:translateX(14px)}
 
 /* ===== STAR GUI ===== */
 #star-gui{position:fixed;top:80px;right:16px;width:430px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
@@ -143,6 +173,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 <canvas id="star-canvas"></canvas>
 <div id="bubble-editor-layer"></div>
 <div id="textbox-layer"></div>
+<div id="snap-guides"></div>
 <div id="flash-overlay"></div>
 
 <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
@@ -166,6 +197,12 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
   <button onclick="execCmd('italic')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
   <button onclick="execCmd('underline')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+  <label class="tb-tool" title="Text colour (selection or block)">
+    <i class="fa-solid fa-palette"></i>
+    <input type="color" id="text-color-input" value="#f3f4f6">
+  </label>
+  <button onclick="clearContentColor()" title="Clear colour on selection/block" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all text-xs"><i class="fa-solid fa-eraser"></i></button>
+  <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
   <button onclick="addBlock('h1')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H1</button>
   <button onclick="addBlock('h2')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H2</button>
   <button onclick="addBlock('p')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">Text</button>
@@ -187,7 +224,6 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
   <div class="gui-body" id="gui-body"></div>
 </div>
 
-<!-- TEXT BOX SETTINGS PANEL -->
 <div id="tb-settings">
   <div class="tb-head" id="tb-head">
     <span class="text-xs font-bold text-white"><i class="fa-solid fa-font text-fuchsia-400 mr-1.5"></i>Text Box Settings</span>
@@ -271,26 +307,15 @@ const starGuiBtn=document.getElementById('star-gui-btn');
 ========================================================= */
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
-  base:{
-    enabled:true,initialDelay:800,spawnInterval:400,
-    reproChance:3,tickMs:500,lifespan:5,
-    color:'#ffffff',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true,
-    randomRotation:false
-  },
-  spawned:{
-    enabled:true,reproChance:5,tickMs:200,lifespan:3,
-    color:'#a5b4fc',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true,
-    randomRotation:false
-  },
+  base:{enabled:true,initialDelay:800,spawnInterval:400,reproChance:3,tickMs:500,lifespan:5,color:'#ffffff',shape:'square',size:3,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
+  spawned:{enabled:true,reproChance:5,tickMs:200,lifespan:3,color:'#a5b4fc',shape:'square',size:3,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
   effects:[],
   activeEffectId:null
 };
 
-/* =========================================================
-   BOOTSTRAP
-========================================================= */
+/* Snapping state (global for text boxes) */
+let snapEnabled = true;
+
 window.addEventListener('DOMContentLoaded',()=>{
   const sc = localStorage.getItem('canvas_doc_content');
   if (sc) canvasEl.innerHTML = sc;
@@ -304,15 +329,24 @@ window.addEventListener('DOMContentLoaded',()=>{
     window.__EXPORTED_IMAGES__.forEach(img=>createImageElement(img));
   }
 
-  // Text boxes
   const stb = localStorage.getItem('canvas_textboxes');
   if (stb) { try{JSON.parse(stb).forEach(tb=>createTextBox(tb))}catch(e){} }
   else if (window.__EXPORTED_TEXTBOXES__ && Array.isArray(window.__EXPORTED_TEXTBOXES__)) {
     window.__EXPORTED_TEXTBOXES__.forEach(tb=>createTextBox(tb));
   }
 
+  // Snap enabled pref
+  const snapPref = localStorage.getItem('canvas_snap_enabled');
+  if (snapPref !== null) snapEnabled = snapPref === '1';
+
   disableEditing();
   initStars();
+
+  // Text colour picker
+  document.getElementById('text-color-input').addEventListener('input', e => {
+    if (!isEditing) return;
+    applyTextColor(e.target.value);
+  });
 
   // Close tb settings on outside click
   document.addEventListener('mousedown', e => {
@@ -327,18 +361,11 @@ window.addEventListener('DOMContentLoaded',()=>{
 function loadStarConfig(){
   const saved = localStorage.getItem('canvas_star_config');
   if (saved) {
-    try {
-      const p = JSON.parse(saved);
-      applyConfigObject(p);
-      cfg.global.triggerEnabled = false;
-      return;
-    } catch(e) {}
+    try { const p = JSON.parse(saved); applyConfigObject(p); cfg.global.triggerEnabled = false; return; }
+    catch(e) {}
   }
   if (window.__EXPORTED_CFG__) {
-    try {
-      applyConfigObject(window.__EXPORTED_CFG__);
-      cfg.global.triggerEnabled = false;
-    } catch(e) {}
+    try { applyConfigObject(window.__EXPORTED_CFG__); cfg.global.triggerEnabled = false; } catch(e) {}
   }
 }
 function applyConfigObject(p){
@@ -348,30 +375,16 @@ function applyConfigObject(p){
   if (p.spawned) Object.assign(cfg.spawned, p.spawned);
   if (Array.isArray(p.effects) && p.effects.length) {
     cfg.effects = p.effects.map(eff => {
-      if (eff.type === 'bubble') {
-        eff.spawnPoints = null;
-        eff.maskData = null;
-        eff.maskBounds = null;
-        eff.maskScale = 1;
-      }
-      if (eff.type === 'images') {
-        eff.imagePool = eff.imagePool || [];
-        eff.unusedPool = [];
-        eff.loaded = false;
-        eff.loadError = null;
-      }
+      if (eff.type === 'bubble') { eff.spawnPoints=null; eff.maskData=null; eff.maskBounds=null; eff.maskScale=1; }
+      if (eff.type === 'images') { eff.imagePool=eff.imagePool||[]; eff.unusedPool=[]; eff.loaded=false; eff.loadError=null; }
       return eff;
     });
-    if (cfg.effects.some(e => e.id === p.activeEffectId)) {
-      cfg.activeEffectId = p.activeEffectId;
-    } else {
-      cfg.activeEffectId = cfg.effects[0].id;
-    }
+    if (cfg.effects.some(e => e.id === p.activeEffectId)) cfg.activeEffectId = p.activeEffectId;
+    else cfg.activeEffectId = cfg.effects[0].id;
     return;
   }
   if (!cfg.effects || !cfg.effects.length) {
-    cfg.effects = [createEffect('none')];
-    cfg.activeEffectId = cfg.effects[0].id;
+    cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id;
   }
 }
 function serializeConfig(){
@@ -460,6 +473,58 @@ function resetCanvas(){
     localStorage.removeItem('canvas_star_config');
     location.reload();
   }
+}
+
+/* =========================================================
+   TEXT COLOUR FOR REGULAR PAGE CONTENT
+========================================================= */
+function applyTextColor(color){
+  const sel = window.getSelection();
+  const hasSelection = sel && sel.rangeCount && !sel.isCollapsed;
+  if (hasSelection) {
+    const range = sel.getRangeAt(0);
+    // Check that selection is inside an edit-block
+    let container = range.startContainer;
+    while (container && container.nodeType !== 1) container = container.parentNode;
+    if (container && container.closest('.edit-block')) {
+      document.execCommand('foreColor', false, color);
+      autoSave();
+      return;
+    }
+  }
+  // No selection — colour the whole block containing the caret
+  applyColorToCurrentBlock(color);
+}
+function applyColorToCurrentBlock(color){
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  let node = sel.getRangeAt(0).startContainer;
+  while (node && node.nodeType !== 1) node = node.parentNode;
+  if (!node) return;
+  const block = node.closest && node.closest('.edit-block');
+  if (!block) return;
+  const content = block.firstElementChild;
+  if (!content) return;
+  content.style.color = color;
+  autoSave();
+}
+function clearContentColor(){
+  if (!isEditing) return;
+  const sel = window.getSelection();
+  const hasSelection = sel && sel.rangeCount && !sel.isCollapsed;
+  if (hasSelection) {
+    document.execCommand('removeFormat', false, null);
+    autoSave();
+    return;
+  }
+  // Clear block colour
+  let node = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+  while (node && node.nodeType !== 1) node = node.parentNode;
+  if (!node) return;
+  const block = node.closest && node.closest('.edit-block');
+  if (!block) return;
+  const content = block.firstElementChild;
+  if (content) { content.style.color = ''; autoSave(); }
 }
 
 /* =========================================================
@@ -563,6 +628,7 @@ const TB_DEFAULTS = {
   lineHeight: 1.3,
   letterSpacing: 0
 };
+const TB_MIN_W = 40, TB_MIN_H = 24;
 
 function addTextBox(){
   if(!isEditing) return;
@@ -594,9 +660,7 @@ function applyTextBoxStyle(el, d){
   el.style.background = hexToRgba(d.background, d.backgroundOpacity);
   el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${d.outlineColor}` : 'none';
   el.style.boxSizing = 'border-box';
-  el.textContent = d.text || '';
 }
-
 function hexToRgba(hex, alpha){
   const h = hex.replace('#','');
   const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
@@ -609,95 +673,50 @@ function createTextBox(data){
   const el = document.createElement('div');
   el.className = 'text-box';
   el.dataset.id = 'tb_' + Math.random().toString(36).slice(2,9);
-  // Store config on element
   el.__config = d;
-
+  el.textContent = d.text || '';
   applyTextBoxStyle(el, d);
 
-  // Handles
-  el.innerHTML = `
-    <div class="tb-handle tb-gear" title="Settings"><i class="fa-solid fa-gear"></i></div>
-    <div class="tb-handle tb-del" title="Delete"><i class="fa-solid fa-xmark"></i></div>
-    <div class="tb-handle tb-resize" title="Resize"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>
-    <div class="tb-handle tb-drag" title="Drag"><i class="fa-solid fa-up-down-left-right"></i></div>
-  `;
-  // But textContent above would overwrite handles — reset properly
-  el.textContent = d.text || '';
+  // Gear + delete handles (outside box)
   const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
   const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
-  const rs = document.createElement('div'); rs.className='tb-handle tb-resize'; rs.title='Resize'; rs.innerHTML='<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
-  const dr = document.createElement('div'); dr.className='tb-handle tb-drag'; dr.title='Drag'; dr.innerHTML='<i class="fa-solid fa-up-down-left-right"></i>';
-  el.appendChild(gear); el.appendChild(del); el.appendChild(rs); el.appendChild(dr);
+  el.appendChild(gear); el.appendChild(del);
 
-  // ----- Interactions -----
-  // Select on mousedown
+  // 8 resize handles
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+    const h = document.createElement('div');
+    h.className = 'tb-rz tb-rz-' + dir;
+    h.dataset.dir = dir;
+    attachResizeHandler(el, d, h, dir);
+    el.appendChild(h);
+  });
+
+  // Select on mousedown (but not when clicking a handle)
   el.addEventListener('mousedown', e => {
-    if(!isEditing) return;
-    if(e.target.closest('.tb-handle')) return;
+    if (!isEditing) return;
+    if (e.target.closest('.tb-handle, .tb-rz')) return;
     selectTextBox(el);
   });
 
-  // Drag via whole body (but only when in edit mode and not clicking handles)
-  let dg=false,sx=0,sy=0,ox=0,oy=0;
+  // Body drag with snapping
   el.addEventListener('mousedown', e => {
-    if(!isEditing) return;
-    if(e.target.closest('.tb-handle')) return;
+    if (!isEditing) return;
+    if (e.target.closest('.tb-handle, .tb-rz')) return;
     e.preventDefault();
-    dg=true;
-    sx=e.clientX; sy=e.clientY;
-    ox=d.x; oy=d.y;
+    const sx=e.clientX, sy=e.clientY, ox=d.x, oy=d.y;
     const mv = ev => {
-      if(!dg) return;
-      d.x = ox + (ev.clientX - sx);
-      d.y = oy + (ev.clientY - sy);
+      const rawX = ox + (ev.clientX - sx);
+      const rawY = oy + (ev.clientY - sy);
+      const snap = computeSnapPosition(el, rawX, rawY, d.width, d.height);
+      d.x = snap.x; d.y = snap.y;
       el.style.left = d.x + 'px';
       el.style.top = d.y + 'px';
-    };
-    const up = () => {
-      if(!dg) return;
-      dg=false;
-      document.removeEventListener('mousemove', mv);
-      document.removeEventListener('mouseup', up);
-      saveTextBoxes();
-    };
-    document.addEventListener('mousemove', mv);
-    document.addEventListener('mouseup', up);
-  });
-
-  // Drag handle
-  dr.addEventListener('mousedown', e => {
-    if(!isEditing) return;
-    e.preventDefault(); e.stopPropagation();
-    let sx2=e.clientX, sy2=e.clientY, ox2=d.x, oy2=d.y;
-    const mv = ev => {
-      d.x = ox2 + (ev.clientX - sx2);
-      d.y = oy2 + (ev.clientY - sy2);
-      el.style.left = d.x + 'px';
-      el.style.top = d.y + 'px';
+      renderSnapGuides(snap.guides);
     };
     const up = () => {
       document.removeEventListener('mousemove', mv);
       document.removeEventListener('mouseup', up);
-      saveTextBoxes();
-    };
-    document.addEventListener('mousemove', mv);
-    document.addEventListener('mouseup', up);
-  });
-
-  // Resize
-  rs.addEventListener('mousedown', e => {
-    if(!isEditing) return;
-    e.preventDefault(); e.stopPropagation();
-    let sx2=e.clientX, sy2=e.clientY, ow=d.width, oh=d.height;
-    const mv = ev => {
-      d.width = Math.max(40, ow + (ev.clientX - sx2));
-      d.height = Math.max(30, oh + (ev.clientY - sy2));
-      el.style.width = d.width + 'px';
-      el.style.height = d.height + 'px';
-    };
-    const up = () => {
-      document.removeEventListener('mousemove', mv);
-      document.removeEventListener('mouseup', up);
+      hideSnapGuides();
       saveTextBoxes();
     };
     document.addEventListener('mousemove', mv);
@@ -706,33 +725,149 @@ function createTextBox(data){
 
   // Delete
   del.addEventListener('click', e => {
-    e.stopPropagation();
-    if(!isEditing) return;
+    e.stopPropagation(); if(!isEditing) return;
     if(confirm('Delete this text box?')) {
-      el.remove();
-      saveTextBoxes();
-      closeTbSettings();
+      el.remove(); saveTextBoxes(); closeTbSettings();
     }
   });
 
-  // Gear → open settings
+  // Gear
   gear.addEventListener('click', e => {
-    e.stopPropagation();
-    if(!isEditing) return;
-    selectTextBox(el);
-    openTbSettings(el);
+    e.stopPropagation(); if(!isEditing) return;
+    selectTextBox(el); openTbSettings(el);
   });
 
-  // Double-click → open settings
+  // Double-click
   el.addEventListener('dblclick', e => {
-    if(!isEditing) return;
-    e.preventDefault();
-    selectTextBox(el);
-    openTbSettings(el);
+    if (!isEditing) return;
+    e.preventDefault(); selectTextBox(el); openTbSettings(el);
   });
 
   textboxLayer.appendChild(el);
   return el;
+}
+
+function attachResizeHandler(el, d, handle, dir){
+  handle.addEventListener('mousedown', e => {
+    if (!isEditing) return;
+    e.preventDefault(); e.stopPropagation();
+    selectTextBox(el);
+    const sx=e.clientX, sy=e.clientY;
+    const ox=d.x, oy=d.y, ow=d.width, oh=d.height;
+    const mv = ev => {
+      const dx = ev.clientX - sx;
+      const dy = ev.clientY - sy;
+      let nx=ox, ny=oy, nw=ow, nh=oh;
+      if (dir.includes('e')) nw = Math.max(TB_MIN_W, ow + dx);
+      if (dir.includes('w')) {
+        const cdx = Math.min(dx, ow - TB_MIN_W);
+        nw = ow - cdx;
+        nx = ox + cdx;
+      }
+      if (dir.includes('s')) nh = Math.max(TB_MIN_H, oh + dy);
+      if (dir.includes('n')) {
+        const cdy = Math.min(dy, oh - TB_MIN_H);
+        nh = oh - cdy;
+        ny = oy + cdy;
+      }
+      d.x=nx; d.y=ny; d.width=nw; d.height=nh;
+      el.style.left = nx + 'px';
+      el.style.top = ny + 'px';
+      el.style.width = nw + 'px';
+      el.style.height = nh + 'px';
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      saveTextBoxes();
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+  });
+}
+
+/* ---------- SNAPPING ---------- */
+function computeSnapPosition(el, rawX, rawY, w, h){
+  const guides = [];
+  if (!snapEnabled) return { x: rawX, y: rawY, guides };
+  const threshold = 6;
+  const vw = window.innerWidth, vh = window.innerHeight;
+
+  // Build X candidates
+  const xCands = [];
+  // Viewport: our-left→0, our-center→vw/2, our-right→vw
+  xCands.push({x: 0, guideAt: 0});
+  xCands.push({x: vw/2 - w/2, guideAt: vw/2});
+  xCands.push({x: vw - w, guideAt: vw});
+
+  // Other text boxes
+  const others = Array.from(document.querySelectorAll('#textbox-layer .text-box')).filter(o => o !== el);
+  others.forEach(o => {
+    const od = o.__config;
+    const oL = od.x, oR = od.x + od.width, oC = od.x + od.width/2;
+    xCands.push({x: oL, guideAt: oL});              // our left → their left
+    xCands.push({x: oC, guideAt: oC});              // our left → their center
+    xCands.push({x: oR, guideAt: oR});              // our left → their right
+    xCands.push({x: oL - w/2, guideAt: oL});        // our center → their left
+    xCands.push({x: oC - w/2, guideAt: oC});        // our center → their center
+    xCands.push({x: oR - w/2, guideAt: oR});        // our center → their right
+    xCands.push({x: oL - w, guideAt: oL});          // our right → their left
+    xCands.push({x: oC - w, guideAt: oC});          // our right → their center
+    xCands.push({x: oR - w, guideAt: oR});          // our right → their right
+  });
+
+  let bestX = null, bestXDist = threshold;
+  xCands.forEach(c => {
+    const dist = Math.abs(rawX - c.x);
+    if (dist < bestXDist) { bestXDist = dist; bestX = c; }
+  });
+
+  // Build Y candidates
+  const yCands = [];
+  yCands.push({y: 0, guideAt: 0});
+  yCands.push({y: vh/2 - h/2, guideAt: vh/2});
+  yCands.push({y: vh - h, guideAt: vh});
+
+  others.forEach(o => {
+    const od = o.__config;
+    const oT = od.y, oB = od.y + od.height, oM = od.y + od.height/2;
+    yCands.push({y: oT, guideAt: oT});
+    yCands.push({y: oM, guideAt: oM});
+    yCands.push({y: oB, guideAt: oB});
+    yCands.push({y: oT - h/2, guideAt: oT});
+    yCands.push({y: oM - h/2, guideAt: oM});
+    yCands.push({y: oB - h/2, guideAt: oB});
+    yCands.push({y: oT - h, guideAt: oT});
+    yCands.push({y: oM - h, guideAt: oM});
+    yCands.push({y: oB - h, guideAt: oB});
+  });
+
+  let bestY = null, bestYDist = threshold;
+  yCands.forEach(c => {
+    const dist = Math.abs(rawY - c.y);
+    if (dist < bestYDist) { bestYDist = dist; bestY = c; }
+  });
+
+  const finalX = bestX ? bestX.x : rawX;
+  const finalY = bestY ? bestY.y : rawY;
+  if (bestX) guides.push({ type: 'v', pos: bestX.guideAt });
+  if (bestY) guides.push({ type: 'h', pos: bestY.guideAt });
+
+  return { x: finalX, y: finalY, guides };
+}
+function renderSnapGuides(guides){
+  const c = document.getElementById('snap-guides');
+  c.innerHTML = '';
+  guides.forEach(g => {
+    const l = document.createElement('div');
+    l.className = 'sg ' + (g.type === 'v' ? 'sg-v' : 'sg-h');
+    if (g.type === 'v') l.style.left = g.pos + 'px';
+    else l.style.top = g.pos + 'px';
+    c.appendChild(l);
+  });
+}
+function hideSnapGuides(){
+  document.getElementById('snap-guides').innerHTML = '';
 }
 
 function selectTextBox(el){
@@ -742,11 +877,8 @@ function selectTextBox(el){
 function deselectAllTextBoxes(){
   document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
 }
-
 function getTextBoxesData(){
-  return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => {
-    return { ...el.__config };
-  });
+  return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => ({ ...el.__config }));
 }
 function saveTextBoxes(){
   try { localStorage.setItem('canvas_textboxes', JSON.stringify(getTextBoxesData())); }
@@ -765,20 +897,16 @@ function openTbSettings(el){
   const d = el.__config;
   body.innerHTML = '';
 
-  // TEXT
   body.appendChild(sect('Content'));
   body.appendChild(tbField('Text (multi-line)', () => {
     const ta = document.createElement('textarea');
     ta.value = d.text;
-    ta.addEventListener('input', () => { d.text = ta.value; el.textContent = ta.value; saveTextBoxes(); });
+    ta.addEventListener('input', () => { d.text = ta.value; el.textContent = ta.value; el.appendChild(el.querySelector('.tb-gear')); /* keep handles */ restoreHandles(el); saveTextBoxes(); });
     return ta;
   }));
 
-  // TYPOGRAPHY
   body.appendChild(sect('Typography'));
-  body.appendChild(tbNumRange('Font size (px)', d, 'fontSize', 6, 400, 1, v => {
-    el.style.fontSize = v + 'px'; saveTextBoxes();
-  }));
+  body.appendChild(tbNumRange('Font size (px)', d, 'fontSize', 6, 400, 1, v => { el.style.fontSize = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbSelect('Font family', d, 'fontFamily', [
     {value:"'Inter', sans-serif", label:'Inter'},
     {value:"'Arial Black', Arial, sans-serif", label:'Arial Black'},
@@ -794,59 +922,40 @@ function openTbSettings(el){
     {value:'500', label:'Medium'},{value:'600', label:'Semi-bold'},
     {value:'700', label:'Bold'},{value:'800', label:'Extra bold'},{value:'900', label:'Black'}
   ], v => { el.style.fontWeight = v; saveTextBoxes(); }));
-  body.appendChild(tbNumRange('Line height', d, 'lineHeight', 0.5, 4, 0.05, v => {
-    el.style.lineHeight = v; saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Letter spacing (px)', d, 'letterSpacing', -5, 30, 0.1, v => {
-    el.style.letterSpacing = v + 'px'; saveTextBoxes();
-  }));
+  body.appendChild(tbNumRange('Line height', d, 'lineHeight', 0.5, 4, 0.05, v => { el.style.lineHeight = v; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Letter spacing (px)', d, 'letterSpacing', -5, 30, 0.1, v => { el.style.letterSpacing = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbSelect('Text align', d, 'textAlign', [
     {value:'left',label:'Left'},{value:'center',label:'Center'},
     {value:'right',label:'Right'},{value:'justify',label:'Justify'}
   ], v => { el.style.textAlign = v; saveTextBoxes(); }));
 
-  // COLORS
   body.appendChild(sect('Colours'));
-  body.appendChild(tbColor('Text colour', d, 'color', v => {
-    el.style.color = v; saveTextBoxes();
-  }));
-  body.appendChild(tbColor('Background', d, 'background', v => {
-    el.style.background = hexToRgba(v, d.backgroundOpacity); saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Background opacity', d, 'backgroundOpacity', 0, 1, 0.01, v => {
-    el.style.background = hexToRgba(d.background, v); saveTextBoxes();
-  }));
-  body.appendChild(tbColor('Outline colour', d, 'outlineColor', v => {
-    el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${v}` : 'none';
-    saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Outline width (px)', d, 'outlineWidth', 0, 30, 0.5, v => {
-    el.style.border = v > 0 ? `${v}px solid ${d.outlineColor}` : 'none';
-    saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Border radius (px)', d, 'borderRadius', 0, 200, 1, v => {
-    el.style.borderRadius = v + 'px'; saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Padding (px)', d, 'padding', 0, 100, 1, v => {
-    el.style.padding = v + 'px'; saveTextBoxes();
-  }));
+  body.appendChild(tbColor('Text colour', d, 'color', v => { el.style.color = v; saveTextBoxes(); }));
+  body.appendChild(tbColor('Background', d, 'background', v => { el.style.background = hexToRgba(v, d.backgroundOpacity); saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Background opacity', d, 'backgroundOpacity', 0, 1, 0.01, v => { el.style.background = hexToRgba(d.background, v); saveTextBoxes(); }));
+  body.appendChild(tbColor('Outline colour', d, 'outlineColor', v => { el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${v}` : 'none'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Outline width (px)', d, 'outlineWidth', 0, 30, 0.5, v => { el.style.border = v > 0 ? `${v}px solid ${d.outlineColor}` : 'none'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Border radius (px)', d, 'borderRadius', 0, 200, 1, v => { el.style.borderRadius = v + 'px'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Padding (px)', d, 'padding', 0, 100, 1, v => { el.style.padding = v + 'px'; saveTextBoxes(); }));
 
-  // POSITION / SIZE
   body.appendChild(sect('Position & size'));
-  body.appendChild(tbNumRange('X', d, 'x', -5000, 5000, 1, v => {
-    el.style.left = v + 'px'; saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Y', d, 'y', -5000, 5000, 1, v => {
-    el.style.top = v + 'px'; saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Width', d, 'width', 30, 3000, 1, v => {
-    el.style.width = v + 'px'; saveTextBoxes();
-  }));
-  body.appendChild(tbNumRange('Height', d, 'height', 20, 3000, 1, v => {
-    el.style.height = v + 'px'; saveTextBoxes();
-  }));
+  body.appendChild(tbNumRange('X', d, 'x', -5000, 5000, 1, v => { el.style.left = v + 'px'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Y', d, 'y', -5000, 5000, 1, v => { el.style.top = v + 'px'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Width', d, 'width', TB_MIN_W, 3000, 1, v => { el.style.width = v + 'px'; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Height', d, 'height', TB_MIN_H, 3000, 1, v => { el.style.height = v + 'px'; saveTextBoxes(); }));
 
-  // POSITION THE PANEL
+  body.appendChild(sect('Behaviour'));
+  const snapRow = document.createElement('div'); snapRow.className='tb-switch-row';
+  const snapLbl = document.createElement('span'); snapLbl.textContent = 'Snap while dragging';
+  const snapSw = document.createElement('div'); snapSw.className = 'tb-switch' + (snapEnabled ? ' on' : '');
+  snapSw.addEventListener('click', () => {
+    snapEnabled = !snapEnabled;
+    snapSw.classList.toggle('on', snapEnabled);
+    localStorage.setItem('canvas_snap_enabled', snapEnabled ? '1' : '0');
+  });
+  snapRow.appendChild(snapLbl); snapRow.appendChild(snapSw);
+  body.appendChild(snapRow);
+
   panel.classList.add('open');
   const rect = el.getBoundingClientRect();
   const pw = panel.offsetWidth || 300;
@@ -861,23 +970,36 @@ function openTbSettings(el){
   panel.style.top = py + 'px';
 }
 
+/* When settings panel updates text, re-append handles so they survive textContent overwrite */
+function restoreHandles(el){
+  // Remove any leftover gear/del/rz before re-adding
+  el.querySelectorAll('.tb-handle, .tb-rz').forEach(h => h.remove());
+  const d = el.__config;
+  const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
+  const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
+  el.appendChild(gear); el.appendChild(del);
+  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+    const h = document.createElement('div');
+    h.className = 'tb-rz tb-rz-' + dir;
+    h.dataset.dir = dir;
+    attachResizeHandler(el, d, h, dir);
+    el.appendChild(h);
+  });
+  gear.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; selectTextBox(el); openTbSettings(el); });
+  del.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; if(confirm('Delete this text box?')) { el.remove(); saveTextBoxes(); closeTbSettings(); } });
+}
+
 function closeTbSettings(){
   document.getElementById('tb-settings').classList.remove('open');
   tbActiveEl = null;
 }
-
 function sect(label){
-  const d = document.createElement('div');
-  d.className = 'tb-sect';
-  d.textContent = label;
-  return d;
+  const d = document.createElement('div'); d.className = 'tb-sect'; d.textContent = label; return d;
 }
 function tbField(label, buildFn){
   const row = document.createElement('div'); row.className='row';
   const l = document.createElement('label'); l.innerHTML = `<span class="lbl-text">${label}</span>`;
-  row.appendChild(l);
-  row.appendChild(buildFn());
-  return row;
+  row.appendChild(l); row.appendChild(buildFn()); return row;
 }
 function tbNumRange(label, obj, key, min, max, step, onChange){
   const row = document.createElement('div'); row.className='row';
@@ -950,37 +1072,14 @@ function createEffect(type){
   if(type==='bubble'){
     const chars=[];const text='J';
     for(let i=0;i<text.length;i++){const c=defaultCharFor(i,text.length);c.char=text[i];chars.push(c)}
-    return {
-      id,type,name:'Bubble Text',
-      minStarsForBubble:0,
-      beforeThresholdMode:'avoid',
-      outlineWidth:4,outlineColor:'#6366f1',
-      outlineOpacity:0.5,
-      showOutline:true,
-      showHandles:true,
-      flashColor:'#ffffff',
-      chars,
-      spawnPoints:null,maskData:null,maskScale:1,maskBounds:null
-    };
+    return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',outlineWidth:4,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,flashColor:'#ffffff',chars,spawnPoints:null,maskData:null,maskScale:1,maskBounds:null};
   }
   if(type==='images'){
-    return {
-      id,type,name:'Image Stars',
-      minStarsForImages:0,
-      folder:'strimiges',
-      defaultSize:60,
-      explicitList:'',
-      exceptions:{},
-      flashColor:'#8000ff',
-      imagePool:[],unusedPool:[],loaded:false,loadError:null
-    };
+    return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:60,explicitList:'',exceptions:{},flashColor:'#8000ff',imagePool:[],unusedPool:[],loaded:false,loadError:null};
   }
   return {id,type:'none',name:'Plain Stars',flashColor:'#ffffff'};
 }
-if (!cfg.effects || !cfg.effects.length) {
-  cfg.effects=[createEffect('none')];
-  cfg.activeEffectId=cfg.effects[0].id;
-}
+if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)||cfg.effects[0]||null}
 
 /* =========================================================
@@ -988,25 +1087,20 @@ function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)
 ========================================================= */
 function computeBubbleMask(effect){
   if(!effect||effect.type!=='bubble')return;
-  if(!effect.chars||!effect.chars.length){
-    effect.spawnPoints=[];effect.maskData=null;effect.maskBounds=null;return;
-  }
+  if(!effect.chars||!effect.chars.length){effect.spawnPoints=[];effect.maskData=null;effect.maskBounds=null;return}
   const W=window.innerWidth,H=window.innerHeight;
   const scale=0.5;
   const c=document.createElement('canvas');
-  c.width=Math.max(1,Math.floor(W*scale));
-  c.height=Math.max(1,Math.floor(H*scale));
+  c.width=Math.max(1,Math.floor(W*scale));c.height=Math.max(1,Math.floor(H*scale));
   const ctx=c.getContext('2d');
   effect.chars.forEach(ch=>{
     if(!ch.char)return;
-    ctx.save();
-    ctx.translate(ch.x*scale,ch.y*scale);
+    ctx.save();ctx.translate(ch.x*scale,ch.y*scale);
     if(ch.rotation)ctx.rotate(ch.rotation*Math.PI/180);
     const size=Math.max(1,ch.size*scale);
     ctx.font=`900 ${size}px 'Arial Black', Arial, sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';
-    ctx.fillText(ch.char,0,0);
-    ctx.restore();
+    ctx.fillText(ch.char,0,0);ctx.restore();
   });
   const imgData=ctx.getImageData(0,0,c.width,c.height);
   const data=imgData.data;
@@ -1021,15 +1115,12 @@ function computeBubbleMask(effect){
       }
     }
   }
-  effect.spawnPoints=points;
-  effect.maskData=imgData;
-  effect.maskScale=scale;
+  effect.spawnPoints=points;effect.maskData=imgData;effect.maskScale=scale;
   effect.maskBounds=found?{minX:minX/scale,minY:minY/scale,maxX:maxX/scale,maxY:maxY/scale}:null;
 }
 function isInMask(effect,x,y){
   if(!effect||!effect.maskData)return false;
-  const mx=Math.floor(x*effect.maskScale);
-  const my=Math.floor(y*effect.maskScale);
+  const mx=Math.floor(x*effect.maskScale),my=Math.floor(y*effect.maskScale);
   if(mx<0||my<0||mx>=effect.maskData.width||my>=effect.maskData.height)return false;
   return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
 }
@@ -1045,9 +1136,8 @@ function getCharBounds(ch){
   const m=_boundsCtx.measureText(ch.char);
   const w=Math.max(m.width,8);
   let h;
-  if(m.actualBoundingBoxAscent!==undefined&&m.actualBoundingBoxAscent!==null){
-    h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
-  }else{h=ch.size*1.1}
+  if(m.actualBoundingBoxAscent!==undefined&&m.actualBoundingBoxAscent!==null){h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent}
+  else{h=ch.size*1.1}
   return {w,h:Math.max(h,8)};
 }
 function rebuildBubbleEditor(){
@@ -1061,18 +1151,13 @@ function rebuildBubbleEditor(){
 
   eff.chars.forEach((ch,idx)=>{
     const b=getCharBounds(ch);
-    const div=document.createElement('div');
-    div.className='char-editor';
-    div.dataset.idx=idx;
+    const div=document.createElement('div');div.className='char-editor';div.dataset.idx=idx;
     div.style.width=b.w+'px';div.style.height=b.h+'px';
     div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
     div.style.transform=`rotate(${ch.rotation||0}deg)`;
 
-    const label=document.createElement('div');label.className='char-label';
-    label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
-
-    const rot=document.createElement('div');rot.className='char-rotate-handle';
-    rot.title='Rotate (drag)';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
+    const label=document.createElement('div');label.className='char-label';label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
+    const rot=document.createElement('div');rot.className='char-rotate-handle';rot.title='Rotate (drag)';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
 
     div.addEventListener('mousedown',e=>{
       if(e.target.closest('.char-rotate-handle'))return;
@@ -1097,7 +1182,6 @@ function rebuildBubbleEditor(){
       const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);computeBubbleMask(eff);renderEffectList();saveStarConfig()};
       document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
-
     layer.appendChild(div);
   });
 }
@@ -1132,9 +1216,7 @@ async function loadEffectImages(effect){
   effect.loadError=null;effect.loaded=false;
   effect.imagePool=[];effect.unusedPool=[];
   let filenames=[];
-  if(effect.explicitList&&effect.explicitList.trim()){
-    filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
-  }
+  if(effect.explicitList&&effect.explicitList.trim()){filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
   if(!filenames.length){
     try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}
   }
@@ -1160,10 +1242,7 @@ function pickNextImage(effect){
   if(!effect.imagePool.length)return null;
   if(!effect.unusedPool||effect.unusedPool.length===0){
     effect.unusedPool=[...effect.imagePool];
-    for(let i=effect.unusedPool.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [effect.unusedPool[i],effect.unusedPool[j]]=[effect.unusedPool[j],effect.unusedPool[i]];
-    }
+    for(let i=effect.unusedPool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[effect.unusedPool[i],effect.unusedPool[j]]=[effect.unusedPool[j],effect.unusedPool[i]]}
   }
   return effect.unusedPool.pop();
 }
@@ -1175,10 +1254,7 @@ function initStars(){
   starCanvas=document.getElementById('star-canvas');
   starCtx=starCanvas.getContext('2d');
   resizeStarCanvas();
-  window.addEventListener('resize',()=>{
-    resizeStarCanvas();
-    cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)});
-  });
+  window.addEventListener('resize',()=>{resizeStarCanvas();cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)})});
   nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
   cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)});
   buildGui();
@@ -1188,10 +1264,8 @@ function initStars(){
 }
 function resizeStarCanvas(){
   dpr=window.devicePixelRatio||1;
-  starCanvas.width=window.innerWidth*dpr;
-  starCanvas.height=window.innerHeight*dpr;
-  starCanvas.style.width=window.innerWidth+'px';
-  starCanvas.style.height=window.innerHeight+'px';
+  starCanvas.width=window.innerWidth*dpr;starCanvas.height=window.innerHeight*dpr;
+  starCanvas.style.width=window.innerWidth+'px';starCanvas.style.height=window.innerHeight+'px';
   starCtx.setTransform(dpr,0,0,dpr,0,0);
 }
 function getSpawnPoint(effect){
@@ -1219,13 +1293,7 @@ function spawnStar(isBase){
     const threshold=Number(active.minStarsForImages)||0;
     if(stars.length>=threshold) imgUrl=pickNextImage(active);
   }
-  stars.push({
-    x:pt.x,y:pt.y,isBase,birth:now,
-    deathStart:now+type.lifespan*1000,
-    nextTick:now+type.tickMs,
-    imgUrl,
-    rotation: type.randomRotation ? Math.random()*360 : 0
-  });
+  stars.push({x:pt.x,y:pt.y,isBase,birth:now,deathStart:now+type.lifespan*1000,nextTick:now+type.tickMs,imgUrl,rotation:type.randomRotation?Math.random()*360:0});
 }
 function starLoop(){
   requestAnimationFrame(starLoop);
@@ -1234,31 +1302,20 @@ function starLoop(){
   const hasSpawned=stars.some(s=>!s.isBase);
   if(hasSpawned){baseSpawnArmed=false}
   else{
-    if(!baseSpawnArmed){
-      baseSpawnArmed=true;
-      const anyBase=stars.some(s=>s.isBase);
-      nextBaseSpawnAt=now+(anyBase?0:cfg.base.initialDelay);
-    }
-    if(cfg.base.enabled&&stars.length<cfg.global.maxStars&&now>=nextBaseSpawnAt){
-      spawnStar(true);
-      nextBaseSpawnAt=now+cfg.base.spawnInterval;
-    }
+    if(!baseSpawnArmed){baseSpawnArmed=true;const anyBase=stars.some(s=>s.isBase);nextBaseSpawnAt=now+(anyBase?0:cfg.base.initialDelay)}
+    if(cfg.base.enabled&&stars.length<cfg.global.maxStars&&now>=nextBaseSpawnAt){spawnStar(true);nextBaseSpawnAt=now+cfg.base.spawnInterval}
   }
   for(let i=stars.length-1;i>=0;i--){
-    const s=stars[i];
-    const type=s.isBase?cfg.base:cfg.spawned;
+    const s=stars[i];const type=s.isBase?cfg.base:cfg.spawned;
     if(now>=s.deathStart+type.fadeOut*1000){stars.splice(i,1);continue}
     if(now<s.deathStart&&now>=s.nextTick){
       s.nextTick=now+type.tickMs;
-      if(cfg.spawned.enabled&&stars.length<cfg.global.maxStars){
-        if(Math.random()*100<type.reproChance)spawnStar(false);
-      }
+      if(cfg.spawned.enabled&&stars.length<cfg.global.maxStars){if(Math.random()*100<type.reproChance)spawnStar(false)}
     }
   }
   if(cfg.global.triggerEnabled&&stars.length>=cfg.global.maxStars){
     flashScreen(active?active.flashColor:'#ffffff');
-    stars=[];baseSpawnArmed=false;
-    nextBaseSpawnAt=now+cfg.base.initialDelay;
+    stars=[];baseSpawnArmed=false;nextBaseSpawnAt=now+cfg.base.initialDelay;
   }
   renderStars(now,active);
   updateStarCount();
@@ -1267,8 +1324,7 @@ function renderStars(now,active){
   const W=window.innerWidth,H=window.innerHeight;
   starCtx.clearRect(0,0,W,H);
   if(active&&active.type==='bubble'&&active.showOutline&&(active.outlineOpacity??0.5)>0&&active.chars){
-    starCtx.save();
-    starCtx.strokeStyle=active.outlineColor;
+    starCtx.save();starCtx.strokeStyle=active.outlineColor;
     starCtx.globalAlpha=Math.min(1,Math.max(0,active.outlineOpacity??0.5));
     starCtx.lineWidth=active.outlineWidth;
     active.chars.forEach(ch=>{
@@ -1344,10 +1400,7 @@ function flashScreen(c){
   el.style.background=c||'#ffffff';
   el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
 }
-function resetStars(){
-  stars=[];baseSpawnArmed=false;
-  nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
-}
+function resetStars(){stars=[];baseSpawnArmed=false;nextBaseSpawnAt=performance.now()+cfg.base.initialDelay}
 
 /* =========================================================
    GUI WIDGETS
@@ -1363,11 +1416,9 @@ function widget_numRange(labelText,obj,key,opts={}){
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
   const wrap=el('label');
   const txt=el('span','lbl-text',labelText);
-  const num=el('input');num.type='number';num.className='num-inline';num.step='any';
-  num.value=obj[key];
+  const num=el('input');num.type='number';num.className='num-inline';num.step='any';num.value=obj[key];
   wrap.appendChild(txt);wrap.appendChild(num);
-  const rng=el('input');rng.type='range';rng.min=min;rng.max=max;rng.step=step;
-  rng.value=Math.min(obj[key],max);
+  const rng=el('input');rng.type='range';rng.min=min;rng.max=max;rng.step=step;rng.value=Math.min(obj[key],max);
   row.appendChild(wrap);row.appendChild(rng);
   const apply=(v,fromSlider)=>{
     let val=parseFloat(v);if(isNaN(val))return;
@@ -1405,10 +1456,7 @@ function widget_toggle(labelText,obj,key,onChange){
   const row=el('div','row');
   const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const tog=el('div','toggle-switch'+(obj[key]?' on':''));
-  tog.addEventListener('click',()=>{
-    tog.classList.toggle('on');obj[key]=tog.classList.contains('on');
-    if(onChange)onChange(obj[key]);saveStarConfig();
-  });
+  tog.addEventListener('click',()=>{tog.classList.toggle('on');obj[key]=tog.classList.contains('on');if(onChange)onChange(obj[key]);saveStarConfig()});
   wrap.appendChild(tog);row.appendChild(wrap);return row;
 }
 function widget_text(labelText,obj,key,onChange,isArea){
@@ -1509,13 +1557,8 @@ function renderEffectList(){
       <div class="effect-type">${eff.type}</div>
       <div class="effect-del" title="Delete"><i class="fa-solid fa-trash-can"></i></div>
     `;
-    head.addEventListener('click',ev=>{
-      if(ev.target.closest('.effect-del'))return;
-      activateEffect(eff.id);
-    });
-    head.querySelector('.effect-del').addEventListener('click',ev=>{
-      ev.stopPropagation();deleteEffect(eff.id);
-    });
+    head.addEventListener('click',ev=>{if(ev.target.closest('.effect-del'))return;activateEffect(eff.id)});
+    head.querySelector('.effect-del').addEventListener('click',ev=>{ev.stopPropagation();deleteEffect(eff.id)});
     item.appendChild(head);
 
     if(eff.id===cfg.activeEffectId){
@@ -1528,10 +1571,7 @@ function renderEffectList(){
 
   const addBtn=el('button','gui-btn ghost');
   addBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add Effect';
-  addBtn.addEventListener('click',()=>{
-    const p=document.getElementById('effect-picker');
-    p.classList.toggle('open');
-  });
+  addBtn.addEventListener('click',()=>{const p=document.getElementById('effect-picker');p.classList.toggle('open')});
   container.appendChild(addBtn);
 
   const picker=el('div');
@@ -1559,9 +1599,7 @@ function buildEffectSettings(container,eff){
   container.appendChild(widget_color('Flash colour at N',eff,'flashColor'));
 
   if(eff.type==='bubble'){
-    container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{
-      min:0,max:100000000,step:1
-    }));
+    container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{min:0,max:100000000,step:1}));
     container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[
       {value:'avoid',label:'Avoid the letters (no stars inside)'},
       {value:'allow',label:'Ignore letters (stars can spawn inside)'}
@@ -1571,9 +1609,7 @@ function buildEffectSettings(container,eff){
     const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
     container.appendChild(charsLabel);
 
-    const hdr=el('div','char-header-row',`
-      <span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>
-    `);
+    const hdr=el('div','char-header-row',`<span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>`);
     container.appendChild(hdr);
 
     const charsBox=el('div');
@@ -1584,8 +1620,7 @@ function buildEffectSettings(container,eff){
 
     eff.chars.forEach((ch,idx)=>{
       const row=el('div','char-row');
-      const glyph=el('input','mini char-glyph');
-      glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
+      const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{ch.char=glyph.value;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
 
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
@@ -1637,9 +1672,7 @@ function buildEffectSettings(container,eff){
   }
 
   if(eff.type==='images'){
-    container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{
-      min:0,max:100000000,step:1
-    }));
+    container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{min:0,max:100000000,step:1}));
     const thresh = Number(eff.minStarsForImages)||0;
     const threshInfo = el('div');
     if (thresh === 0) threshInfo.innerHTML = `<span class="status-tag warn">Threshold = 0 → images from the very start</span>`;
@@ -1719,10 +1752,7 @@ function deleteEffect(id){
   saveStarConfig();
 }
 
-function toggleStarGui(){
-  if(!isEditing)return;
-  document.getElementById('star-gui').classList.toggle('hidden');
-}
+function toggleStarGui(){if(!isEditing)return;document.getElementById('star-gui').classList.toggle('hidden')}
 
 /* =========================================================
    EXPORT
@@ -1744,11 +1774,8 @@ async function exportHTML(){
     const cfgJSON = JSON.stringify(serializeConfig());
     const docContent = canvasEl.innerHTML;
     const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(w => ({
-      src: w.dataset.src,
-      x: parseFloat(w.style.left)||0,
-      y: parseFloat(w.style.top)||0,
-      width: w.offsetWidth,
-      height: w.offsetHeight
+      src: w.dataset.src, x: parseFloat(w.style.left)||0, y: parseFloat(w.style.top)||0,
+      width: w.offsetWidth, height: w.offsetHeight
     }));
     const textboxes = getTextBoxesData();
 
@@ -1790,8 +1817,7 @@ function downloadExportedHTML(){
   const blob = new Blob([content], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'index.html';
+  a.href = url; a.download = 'index.html';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
 }
