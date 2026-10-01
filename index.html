@@ -14,6 +14,9 @@ body{font-family:'Inter',sans-serif;background:#0f0f11;color:#f3f4f6;overflow-x:
 [contenteditable="true"]:focus{outline:2px dashed rgba(99,102,241,.5);outline-offset:4px;border-radius:4px}
 .edit-block{position:relative;transition:all .2s ease}
 .is-editing .edit-block:hover{background:rgba(255,255,255,.03);border-radius:6px}
+.edit-block .block-del{position:absolute;top:-10px;right:-10px;width:22px;height:22px;background:#ef4444;color:#fff;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:3}
+body.is-editing .edit-block:hover > .block-del,
+body.is-editing .edit-block:focus-within > .block-del{display:flex}
 ::-webkit-scrollbar{width:8px}
 ::-webkit-scrollbar-track{background:#0f0f11}
 ::-webkit-scrollbar-thumb{background:#27272a;border-radius:4px}
@@ -39,8 +42,6 @@ body.is-editing #image-layer .draggable-img.selected .resize-handle,
 body.is-editing #image-layer .draggable-img.selected .delete-btn{display:flex}
 body.is-editing #image-layer .draggable-img.selected img{outline:2px dashed #6366f1;outline-offset:2px}
 body.is-editing.dragover-file main::after{content:"Drop image to add it";position:fixed;inset:0;background:rgba(99,102,241,.15);border:3px dashed #6366f1;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#a5b4fc;pointer-events:none;z-index:30}
-
-/* ===== TEXT BOX LAYER ===== */
 #textbox-layer{position:fixed;inset:0;z-index:22;pointer-events:none}
 #textbox-layer .text-box{position:absolute;pointer-events:auto;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:2px}
 body.is-editing #textbox-layer .text-box{cursor:move;user-select:none}
@@ -50,8 +51,6 @@ body.is-editing #textbox-layer .text-box.selected{outline-color:#6366f1;outline-
 body.is-editing #textbox-layer .text-box.selected .tb-handle{display:flex}
 #textbox-layer .tb-del{right:-10px;top:-10px;width:24px;height:24px;background:#ef4444;border-radius:50%;cursor:pointer}
 #textbox-layer .tb-gear{left:-10px;top:-10px;width:24px;height:24px;background:#6366f1;border-radius:50%;cursor:pointer}
-
-/* 8 Word-style resize handles */
 #textbox-layer .tb-rz{position:absolute;width:11px;height:11px;background:#6366f1;border:1.5px solid #fff;border-radius:50%;display:none;z-index:5;box-shadow:0 1px 4px rgba(0,0,0,.55)}
 body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 #textbox-layer .tb-rz-nw{top:-6px;left:-6px;cursor:nwse-resize}
@@ -62,22 +61,16 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 #textbox-layer .tb-rz-s {bottom:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
 #textbox-layer .tb-rz-sw{bottom:-6px;left:-6px;cursor:nesw-resize}
 #textbox-layer .tb-rz-w {top:50%;left:-6px;transform:translateY(-50%);cursor:ew-resize}
-
-/* Snap guides */
 #snap-guides{position:fixed;inset:0;pointer-events:none;z-index:23}
 #snap-guides .sg{position:absolute;background:#f0abfc;box-shadow:0 0 6px rgba(240,171,252,.75)}
 #snap-guides .sg-v{width:1px;top:0;bottom:0}
 #snap-guides .sg-h{height:1px;left:0;right:0}
-
-/* Toolbar colour tool */
 .tb-tool{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;cursor:pointer;color:#a1a1aa;transition:background .15s;font-size:11px}
 .tb-tool:hover{background:#27272a;color:#fff}
 .tb-tool input[type="color"]{width:22px;height:22px;padding:0;border:none;background:transparent;cursor:pointer;border-radius:50%;overflow:hidden}
 .tb-tool input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
 .tb-tool input[type="color"]::-webkit-color-swatch{border:2px solid #52525b;border-radius:50%}
 .tb-tool input[type="color"]::-moz-color-swatch{border:2px solid #52525b;border-radius:50%}
-
-/* ===== TEXT BOX SETTINGS PANEL ===== */
 #tb-settings{position:fixed;width:300px;max-height:calc(100vh - 40px);overflow-y:auto;background:#18181b;border:1px solid #6366f1;border-radius:12px;z-index:70;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.7);display:none}
 #tb-settings.open{display:block}
 #tb-settings .tb-head{padding:8px 12px;background:#1f1f24;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;border-radius:12px 12px 0 0}
@@ -100,8 +93,6 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 .tb-switch::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .tb-switch.on{background:#6366f1}
 .tb-switch.on::after{transform:translateX(14px)}
-
-/* ===== STAR GUI ===== */
 #star-gui{position:fixed;top:80px;right:16px;width:430px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #star-gui.hidden{display:none}
 #star-gui .gui-header{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:2}
@@ -182,6 +173,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></div>
       <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
       <span class="text-[10px] text-zinc-500 font-mono" id="star-count">0★</span>
+      <span class="text-[10px] text-fuchsia-400/70 font-mono" id="page-badge"></span>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
       <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"><i class="fa-solid fa-code"></i> Export Code</button>
@@ -284,7 +276,30 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 
 <script>
 /* =========================================================
-   DOC EDIT MODE
+   PAGE NAMESPACE — derived from the current filename
+   index.html → "index",  page2.html → "page2",  etc.
+   Every localStorage key is suffixed with this so the same
+   file dropped in twice behaves as two independent pages.
+========================================================= */
+const PAGE_NS = (function(){
+  let path = location.pathname;
+  if (path.endsWith('/')) path += 'index.html';
+  const m = path.match(/\/([^\/]+?)(\.html?)?$/i);
+  let name = (m && m[1]) ? m[1] : 'index';
+  name = name.replace(/\.html?$/i, '');
+  if (!name) name = 'index';
+  return name;
+})();
+const STORAGE = {
+  doc:       `canvas_doc_content__${PAGE_NS}`,
+  images:    `canvas_images__${PAGE_NS}`,
+  textboxes: `canvas_textboxes__${PAGE_NS}`,
+  star:      `canvas_star_config__${PAGE_NS}`,
+  snap:      `canvas_snap_enabled__${PAGE_NS}`
+};
+
+/* =========================================================
+   BOOT
 ========================================================= */
 let isEditing = false;
 const ADMIN_PASS = "admin";
@@ -302,9 +317,6 @@ const formattingToolbar=document.getElementById('formatting-toolbar');
 const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 
-/* =========================================================
-   STAR CONFIG
-========================================================= */
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
   base:{enabled:true,initialDelay:800,spawnInterval:400,reproChance:3,tickMs:500,lifespan:5,color:'#ffffff',shape:'square',size:3,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
@@ -312,43 +324,41 @@ const cfg={
   effects:[],
   activeEffectId:null
 };
-
-/* Snapping state (global for text boxes) */
 let snapEnabled = true;
 
 window.addEventListener('DOMContentLoaded',()=>{
-  const sc = localStorage.getItem('canvas_doc_content');
+  const pb = document.getElementById('page-badge');
+  if (pb) pb.textContent = '📄 ' + PAGE_NS;
+
+  const sc = localStorage.getItem(STORAGE.doc);
   if (sc) canvasEl.innerHTML = sc;
   else if (window.__EXPORTED_DOC__) canvasEl.innerHTML = window.__EXPORTED_DOC__;
 
   loadStarConfig();
 
-  const si = localStorage.getItem('canvas_images');
+  const si = localStorage.getItem(STORAGE.images);
   if (si) { try{JSON.parse(si).forEach(img=>createImageElement(img))}catch(e){} }
   else if (window.__EXPORTED_IMAGES__ && Array.isArray(window.__EXPORTED_IMAGES__)) {
     window.__EXPORTED_IMAGES__.forEach(img=>createImageElement(img));
   }
 
-  const stb = localStorage.getItem('canvas_textboxes');
+  const stb = localStorage.getItem(STORAGE.textboxes);
   if (stb) { try{JSON.parse(stb).forEach(tb=>createTextBox(tb))}catch(e){} }
   else if (window.__EXPORTED_TEXTBOXES__ && Array.isArray(window.__EXPORTED_TEXTBOXES__)) {
     window.__EXPORTED_TEXTBOXES__.forEach(tb=>createTextBox(tb));
   }
 
-  // Snap enabled pref
-  const snapPref = localStorage.getItem('canvas_snap_enabled');
+  const snapPref = localStorage.getItem(STORAGE.snap);
   if (snapPref !== null) snapEnabled = snapPref === '1';
 
   disableEditing();
   initStars();
 
-  // Text colour picker
   document.getElementById('text-color-input').addEventListener('input', e => {
     if (!isEditing) return;
     applyTextColor(e.target.value);
   });
 
-  // Close tb settings on outside click
   document.addEventListener('mousedown', e => {
     const panel = document.getElementById('tb-settings');
     if (panel.classList.contains('open') && !e.target.closest('#tb-settings') && !e.target.closest('.text-box')) {
@@ -358,8 +368,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
+/* =========================================================
+   STAR CONFIG LOAD/SAVE
+========================================================= */
 function loadStarConfig(){
-  const saved = localStorage.getItem('canvas_star_config');
+  const saved = localStorage.getItem(STORAGE.star);
   if (saved) {
     try { const p = JSON.parse(saved); applyConfigObject(p); cfg.global.triggerEnabled = false; return; }
     catch(e) {}
@@ -400,13 +413,13 @@ let _saveStarTimer = null;
 function saveStarConfig(){
   if (_saveStarTimer) clearTimeout(_saveStarTimer);
   _saveStarTimer = setTimeout(() => {
-    try { localStorage.setItem('canvas_star_config', JSON.stringify(serializeConfig())); }
+    try { localStorage.setItem(STORAGE.star, JSON.stringify(serializeConfig())); }
     catch(e) { console.warn('Failed to save star config:', e); }
   }, 120);
 }
 
 /* =========================================================
-   EDIT MODE TOGGLE
+   EDIT MODE
 ========================================================= */
 function requestEditModeToggle(){
   if(isEditing){isEditing=false;disableEditing()}
@@ -440,16 +453,64 @@ function disableEditing(){
   addBlockContainer.classList.add('hidden');formattingToolbar.classList.add('hidden');
   starGuiBtn.classList.add('hidden');
   document.getElementById('star-gui').classList.add('hidden');
-  canvasEl.querySelectorAll('.edit-block').forEach(b=>{const e=b.firstElementChild;if(e)e.removeAttribute('contenteditable')});
+  canvasEl.querySelectorAll('.block-del').forEach(b=>b.remove());
+  canvasEl.querySelectorAll('.edit-block').forEach(b=>{
+    const e = blockContentEl(b);
+    if (e) e.removeAttribute('contenteditable');
+  });
   document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'));
   document.getElementById('bubble-editor-layer').innerHTML='';
   closeTbSettings();
   deselectAllTextBoxes();
 }
+
+/* Get the content element inside an .edit-block, skipping the delete button */
+function blockContentEl(block){
+  for (const c of block.children) {
+    if (!c.classList.contains('block-del')) return c;
+  }
+  return null;
+}
+
+/* Clean HTML for save/export — strips block-del buttons */
+function getCleanDocHTML(){
+  const clone = canvasEl.cloneNode(true);
+  clone.querySelectorAll('.block-del').forEach(b=>b.remove());
+  return clone.innerHTML;
+}
+
+/* Attach the red X delete button to a block */
+function attachBlockDel(block){
+  if (block.querySelector(':scope > .block-del')) return;
+  const btn = document.createElement('div');
+  btn.className = 'block-del';
+  btn.title = 'Delete this block';
+  btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+  btn.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+  btn.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!isEditing) return;
+    const content = blockContentEl(block);
+    const preview = content ? (content.textContent || '').trim().slice(0, 40) : '';
+    if (confirm(`Delete this block?${preview ? `\n"${preview}${preview.length>=40?'…':''}"` : ''}`)) {
+      block.remove();
+      autoSave();
+    }
+  });
+  block.appendChild(btn);
+}
+
 function makeBlocksEditable(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
-    const e=b.firstElementChild;
-    if(e){e.contentEditable="true";e.addEventListener('input',autoSave)}
+    const e = blockContentEl(b);
+    if(e){
+      e.contentEditable="true";
+      if (!e.dataset.hasInputListener) {
+        e.addEventListener('input', autoSave);
+        e.dataset.hasInputListener = '1';
+      }
+    }
+    attachBlockDel(b);
   });
 }
 function addBlock(type){
@@ -461,29 +522,33 @@ function addBlock(type){
   else if(type==='quote')inner=`<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
   else inner=`<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
   div.innerHTML=inner;canvasEl.appendChild(div);
-  const el=div.firstElementChild;el.contentEditable="true";el.addEventListener('input',autoSave);el.focus();autoSave();
+  const el=div.firstElementChild;
+  el.contentEditable="true";
+  el.addEventListener('input',autoSave);
+  el.focus();
+  attachBlockDel(div);
+  autoSave();
 }
-function autoSave(){localStorage.setItem('canvas_doc_content',canvasEl.innerHTML)}
+function autoSave(){ try{ localStorage.setItem(STORAGE.doc, getCleanDocHTML()); }catch(e){} }
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
-  if(confirm("Reset ALL page content, images, text boxes, AND star settings?")){
-    localStorage.removeItem('canvas_doc_content');
-    localStorage.removeItem('canvas_images');
-    localStorage.removeItem('canvas_textboxes');
-    localStorage.removeItem('canvas_star_config');
+  if(confirm(`Reset ALL content on this page (${PAGE_NS})?\n\nPage text, images, text boxes, AND star settings will be wiped.`)){
+    localStorage.removeItem(STORAGE.doc);
+    localStorage.removeItem(STORAGE.images);
+    localStorage.removeItem(STORAGE.textboxes);
+    localStorage.removeItem(STORAGE.star);
     location.reload();
   }
 }
 
 /* =========================================================
-   TEXT COLOUR FOR REGULAR PAGE CONTENT
+   TEXT COLOUR FOR REGULAR CONTENT
 ========================================================= */
 function applyTextColor(color){
   const sel = window.getSelection();
   const hasSelection = sel && sel.rangeCount && !sel.isCollapsed;
   if (hasSelection) {
     const range = sel.getRangeAt(0);
-    // Check that selection is inside an edit-block
     let container = range.startContainer;
     while (container && container.nodeType !== 1) container = container.parentNode;
     if (container && container.closest('.edit-block')) {
@@ -492,7 +557,6 @@ function applyTextColor(color){
       return;
     }
   }
-  // No selection — colour the whole block containing the caret
   applyColorToCurrentBlock(color);
 }
 function applyColorToCurrentBlock(color){
@@ -503,7 +567,7 @@ function applyColorToCurrentBlock(color){
   if (!node) return;
   const block = node.closest && node.closest('.edit-block');
   if (!block) return;
-  const content = block.firstElementChild;
+  const content = blockContentEl(block);
   if (!content) return;
   content.style.color = color;
   autoSave();
@@ -517,13 +581,12 @@ function clearContentColor(){
     autoSave();
     return;
   }
-  // Clear block colour
   let node = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
   while (node && node.nodeType !== 1) node = node.parentNode;
   if (!node) return;
   const block = node.closest && node.closest('.edit-block');
   if (!block) return;
-  const content = block.firstElementChild;
+  const content = blockContentEl(block);
   if (content) { content.style.color = ''; autoSave(); }
 }
 
@@ -602,7 +665,7 @@ function saveImages(){
     src:w.dataset.src,x:parseFloat(w.style.left)||0,y:parseFloat(w.style.top)||0,
     width:w.offsetWidth,height:w.offsetHeight
   }));
-  try{localStorage.setItem('canvas_images',JSON.stringify(imgs))}catch(e){alert('Storage full — try smaller images.')}
+  try{localStorage.setItem(STORAGE.images,JSON.stringify(imgs))}catch(e){alert('Storage full — try smaller images.')}
 }
 document.addEventListener('mousedown',e=>{
   if(!e.target.closest('.draggable-img'))document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'))
@@ -644,10 +707,8 @@ function addTextBox(){
 }
 
 function applyTextBoxStyle(el, d){
-  el.style.left = d.x + 'px';
-  el.style.top = d.y + 'px';
-  el.style.width = d.width + 'px';
-  el.style.height = d.height + 'px';
+  el.style.left = d.x + 'px'; el.style.top = d.y + 'px';
+  el.style.width = d.width + 'px'; el.style.height = d.height + 'px';
   el.style.fontSize = d.fontSize + 'px';
   el.style.fontFamily = d.fontFamily;
   el.style.fontWeight = d.fontWeight;
@@ -677,12 +738,10 @@ function createTextBox(data){
   el.textContent = d.text || '';
   applyTextBoxStyle(el, d);
 
-  // Gear + delete handles (outside box)
   const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
   const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
   el.appendChild(gear); el.appendChild(del);
 
-  // 8 resize handles
   ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
     const h = document.createElement('div');
     h.className = 'tb-rz tb-rz-' + dir;
@@ -691,14 +750,12 @@ function createTextBox(data){
     el.appendChild(h);
   });
 
-  // Select on mousedown (but not when clicking a handle)
   el.addEventListener('mousedown', e => {
     if (!isEditing) return;
     if (e.target.closest('.tb-handle, .tb-rz')) return;
     selectTextBox(el);
   });
 
-  // Body drag with snapping
   el.addEventListener('mousedown', e => {
     if (!isEditing) return;
     if (e.target.closest('.tb-handle, .tb-rz')) return;
@@ -723,21 +780,14 @@ function createTextBox(data){
     document.addEventListener('mouseup', up);
   });
 
-  // Delete
   del.addEventListener('click', e => {
     e.stopPropagation(); if(!isEditing) return;
-    if(confirm('Delete this text box?')) {
-      el.remove(); saveTextBoxes(); closeTbSettings();
-    }
+    if(confirm('Delete this text box?')) { el.remove(); saveTextBoxes(); closeTbSettings(); }
   });
-
-  // Gear
   gear.addEventListener('click', e => {
     e.stopPropagation(); if(!isEditing) return;
     selectTextBox(el); openTbSettings(el);
   });
-
-  // Double-click
   el.addEventListener('dblclick', e => {
     if (!isEditing) return;
     e.preventDefault(); selectTextBox(el); openTbSettings(el);
@@ -759,22 +809,12 @@ function attachResizeHandler(el, d, handle, dir){
       const dy = ev.clientY - sy;
       let nx=ox, ny=oy, nw=ow, nh=oh;
       if (dir.includes('e')) nw = Math.max(TB_MIN_W, ow + dx);
-      if (dir.includes('w')) {
-        const cdx = Math.min(dx, ow - TB_MIN_W);
-        nw = ow - cdx;
-        nx = ox + cdx;
-      }
+      if (dir.includes('w')) { const cdx = Math.min(dx, ow - TB_MIN_W); nw = ow - cdx; nx = ox + cdx; }
       if (dir.includes('s')) nh = Math.max(TB_MIN_H, oh + dy);
-      if (dir.includes('n')) {
-        const cdy = Math.min(dy, oh - TB_MIN_H);
-        nh = oh - cdy;
-        ny = oy + cdy;
-      }
+      if (dir.includes('n')) { const cdy = Math.min(dy, oh - TB_MIN_H); nh = oh - cdy; ny = oy + cdy; }
       d.x=nx; d.y=ny; d.width=nw; d.height=nh;
-      el.style.left = nx + 'px';
-      el.style.top = ny + 'px';
-      el.style.width = nw + 'px';
-      el.style.height = nh + 'px';
+      el.style.left = nx + 'px'; el.style.top = ny + 'px';
+      el.style.width = nw + 'px'; el.style.height = nh + 'px';
     };
     const up = () => {
       document.removeEventListener('mousemove', mv);
@@ -786,73 +826,47 @@ function attachResizeHandler(el, d, handle, dir){
   });
 }
 
-/* ---------- SNAPPING ---------- */
 function computeSnapPosition(el, rawX, rawY, w, h){
   const guides = [];
   if (!snapEnabled) return { x: rawX, y: rawY, guides };
   const threshold = 6;
   const vw = window.innerWidth, vh = window.innerHeight;
 
-  // Build X candidates
-  const xCands = [];
-  // Viewport: our-left→0, our-center→vw/2, our-right→vw
-  xCands.push({x: 0, guideAt: 0});
-  xCands.push({x: vw/2 - w/2, guideAt: vw/2});
-  xCands.push({x: vw - w, guideAt: vw});
-
-  // Other text boxes
+  const xCands = [
+    {x: 0, guideAt: 0},
+    {x: vw/2 - w/2, guideAt: vw/2},
+    {x: vw - w, guideAt: vw}
+  ];
   const others = Array.from(document.querySelectorAll('#textbox-layer .text-box')).filter(o => o !== el);
   others.forEach(o => {
     const od = o.__config;
     const oL = od.x, oR = od.x + od.width, oC = od.x + od.width/2;
-    xCands.push({x: oL, guideAt: oL});              // our left → their left
-    xCands.push({x: oC, guideAt: oC});              // our left → their center
-    xCands.push({x: oR, guideAt: oR});              // our left → their right
-    xCands.push({x: oL - w/2, guideAt: oL});        // our center → their left
-    xCands.push({x: oC - w/2, guideAt: oC});        // our center → their center
-    xCands.push({x: oR - w/2, guideAt: oR});        // our center → their right
-    xCands.push({x: oL - w, guideAt: oL});          // our right → their left
-    xCands.push({x: oC - w, guideAt: oC});          // our right → their center
-    xCands.push({x: oR - w, guideAt: oR});          // our right → their right
+    xCands.push({x: oL, guideAt: oL}, {x: oC, guideAt: oC}, {x: oR, guideAt: oR});
+    xCands.push({x: oL - w/2, guideAt: oL}, {x: oC - w/2, guideAt: oC}, {x: oR - w/2, guideAt: oR});
+    xCands.push({x: oL - w, guideAt: oL}, {x: oC - w, guideAt: oC}, {x: oR - w, guideAt: oR});
   });
-
   let bestX = null, bestXDist = threshold;
-  xCands.forEach(c => {
-    const dist = Math.abs(rawX - c.x);
-    if (dist < bestXDist) { bestXDist = dist; bestX = c; }
-  });
+  xCands.forEach(c => { const dist = Math.abs(rawX - c.x); if (dist < bestXDist) { bestXDist = dist; bestX = c; } });
 
-  // Build Y candidates
-  const yCands = [];
-  yCands.push({y: 0, guideAt: 0});
-  yCands.push({y: vh/2 - h/2, guideAt: vh/2});
-  yCands.push({y: vh - h, guideAt: vh});
-
+  const yCands = [
+    {y: 0, guideAt: 0},
+    {y: vh/2 - h/2, guideAt: vh/2},
+    {y: vh - h, guideAt: vh}
+  ];
   others.forEach(o => {
     const od = o.__config;
     const oT = od.y, oB = od.y + od.height, oM = od.y + od.height/2;
-    yCands.push({y: oT, guideAt: oT});
-    yCands.push({y: oM, guideAt: oM});
-    yCands.push({y: oB, guideAt: oB});
-    yCands.push({y: oT - h/2, guideAt: oT});
-    yCands.push({y: oM - h/2, guideAt: oM});
-    yCands.push({y: oB - h/2, guideAt: oB});
-    yCands.push({y: oT - h, guideAt: oT});
-    yCands.push({y: oM - h, guideAt: oM});
-    yCands.push({y: oB - h, guideAt: oB});
+    yCands.push({y: oT, guideAt: oT}, {y: oM, guideAt: oM}, {y: oB, guideAt: oB});
+    yCands.push({y: oT - h/2, guideAt: oT}, {y: oM - h/2, guideAt: oM}, {y: oB - h/2, guideAt: oB});
+    yCands.push({y: oT - h, guideAt: oT}, {y: oM - h, guideAt: oM}, {y: oB - h, guideAt: oB});
   });
-
   let bestY = null, bestYDist = threshold;
-  yCands.forEach(c => {
-    const dist = Math.abs(rawY - c.y);
-    if (dist < bestYDist) { bestYDist = dist; bestY = c; }
-  });
+  yCands.forEach(c => { const dist = Math.abs(rawY - c.y); if (dist < bestYDist) { bestYDist = dist; bestY = c; } });
 
   const finalX = bestX ? bestX.x : rawX;
   const finalY = bestY ? bestY.y : rawY;
   if (bestX) guides.push({ type: 'v', pos: bestX.guideAt });
   if (bestY) guides.push({ type: 'h', pos: bestY.guideAt });
-
   return { x: finalX, y: finalY, guides };
 }
 function renderSnapGuides(guides){
@@ -866,30 +880,23 @@ function renderSnapGuides(guides){
     c.appendChild(l);
   });
 }
-function hideSnapGuides(){
-  document.getElementById('snap-guides').innerHTML = '';
-}
+function hideSnapGuides(){ document.getElementById('snap-guides').innerHTML = ''; }
 
 function selectTextBox(el){
   document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
   el.classList.add('selected');
 }
-function deselectAllTextBoxes(){
-  document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
-}
-function getTextBoxesData(){
-  return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => ({ ...el.__config }));
-}
+function deselectAllTextBoxes(){ document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected')); }
+function getTextBoxesData(){ return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => ({ ...el.__config })); }
 function saveTextBoxes(){
-  try { localStorage.setItem('canvas_textboxes', JSON.stringify(getTextBoxesData())); }
+  try { localStorage.setItem(STORAGE.textboxes, JSON.stringify(getTextBoxesData())); }
   catch(e) { console.warn('Textbox save failed:', e); }
 }
 
 /* =========================================================
-   TEXT BOX SETTINGS PANEL
+   TEXT BOX SETTINGS
 ========================================================= */
 let tbActiveEl = null;
-
 function openTbSettings(el){
   tbActiveEl = el;
   const panel = document.getElementById('tb-settings');
@@ -901,7 +908,7 @@ function openTbSettings(el){
   body.appendChild(tbField('Text (multi-line)', () => {
     const ta = document.createElement('textarea');
     ta.value = d.text;
-    ta.addEventListener('input', () => { d.text = ta.value; el.textContent = ta.value; el.appendChild(el.querySelector('.tb-gear')); /* keep handles */ restoreHandles(el); saveTextBoxes(); });
+    ta.addEventListener('input', () => { d.text = ta.value; el.firstChild && (el.firstChild.nodeType === 3 ? (el.firstChild.nodeValue = ta.value) : null); restoreTextContent(el, ta.value); saveTextBoxes(); });
     return ta;
   }));
 
@@ -951,7 +958,7 @@ function openTbSettings(el){
   snapSw.addEventListener('click', () => {
     snapEnabled = !snapEnabled;
     snapSw.classList.toggle('on', snapEnabled);
-    localStorage.setItem('canvas_snap_enabled', snapEnabled ? '1' : '0');
+    localStorage.setItem(STORAGE.snap, snapEnabled ? '1' : '0');
   });
   snapRow.appendChild(snapLbl); snapRow.appendChild(snapSw);
   body.appendChild(snapRow);
@@ -970,32 +977,17 @@ function openTbSettings(el){
   panel.style.top = py + 'px';
 }
 
-/* When settings panel updates text, re-append handles so they survive textContent overwrite */
-function restoreHandles(el){
-  // Remove any leftover gear/del/rz before re-adding
-  el.querySelectorAll('.tb-handle, .tb-rz').forEach(h => h.remove());
-  const d = el.__config;
-  const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
-  const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
-  el.appendChild(gear); el.appendChild(del);
-  ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
-    const h = document.createElement('div');
-    h.className = 'tb-rz tb-rz-' + dir;
-    h.dataset.dir = dir;
-    attachResizeHandler(el, d, h, dir);
-    el.appendChild(h);
-  });
-  gear.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; selectTextBox(el); openTbSettings(el); });
-  del.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; if(confirm('Delete this text box?')) { el.remove(); saveTextBoxes(); closeTbSettings(); } });
+/* Safely update text content of a text-box without touching handles */
+function restoreTextContent(el, newText){
+  // Find the text node child (there will be one after applyTextBoxStyle set textContent)
+  // Easiest: re-set textContent then re-append all handles
+  const kids = Array.from(el.children); // these are handle divs
+  el.textContent = newText;
+  kids.forEach(k => el.appendChild(k));
 }
 
-function closeTbSettings(){
-  document.getElementById('tb-settings').classList.remove('open');
-  tbActiveEl = null;
-}
-function sect(label){
-  const d = document.createElement('div'); d.className = 'tb-sect'; d.textContent = label; return d;
-}
+function closeTbSettings(){ document.getElementById('tb-settings').classList.remove('open'); tbActiveEl = null; }
+function sect(label){ const d = document.createElement('div'); d.className = 'tb-sect'; d.textContent = label; return d; }
 function tbField(label, buildFn){
   const row = document.createElement('div'); row.className='row';
   const l = document.createElement('label'); l.innerHTML = `<span class="lbl-text">${label}</span>`;
@@ -1005,8 +997,7 @@ function tbNumRange(label, obj, key, min, max, step, onChange){
   const row = document.createElement('div'); row.className='row';
   const lab = document.createElement('label');
   const span = document.createElement('span'); span.className='lbl-text'; span.textContent = label;
-  const num = document.createElement('input'); num.type='number'; num.className='num-inline'; num.step='any';
-  num.value = obj[key];
+  const num = document.createElement('input'); num.type='number'; num.className='num-inline'; num.step='any'; num.value = obj[key];
   lab.appendChild(span); lab.appendChild(num);
   row.appendChild(lab);
   const rng = document.createElement('input'); rng.type='range';
@@ -1015,9 +1006,7 @@ function tbNumRange(label, obj, key, min, max, step, onChange){
   const apply = (v, fromSlider) => {
     let val = parseFloat(v); if(isNaN(val)) return;
     if (fromSlider) val = Math.min(Math.max(val,min),max);
-    obj[key] = val;
-    num.value = val;
-    rng.value = Math.min(Math.max(val,min),max);
+    obj[key] = val; num.value = val; rng.value = Math.min(Math.max(val,min),max);
     onChange && onChange(val);
   };
   num.addEventListener('input', ()=>apply(num.value,false));
@@ -1082,9 +1071,6 @@ function createEffect(type){
 if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)||cfg.effects[0]||null}
 
-/* =========================================================
-   BUBBLE MASK
-========================================================= */
 function computeBubbleMask(effect){
   if(!effect||effect.type!=='bubble')return;
   if(!effect.chars||!effect.chars.length){effect.spawnPoints=[];effect.maskData=null;effect.maskBounds=null;return}
@@ -1125,9 +1111,6 @@ function isInMask(effect,x,y){
   return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
 }
 
-/* =========================================================
-   CHAR BOUNDS + EDITOR
-========================================================= */
 let _boundsCtx=null;
 function getCharBounds(ch){
   if(!ch.char)return {w:20,h:20};
@@ -1200,9 +1183,6 @@ function updateCharDivByIndex(idx,ch){
 }
 window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
 
-/* =========================================================
-   IMAGE LOADING
-========================================================= */
 function preloadImage(url){
   return new Promise((resolve,reject)=>{
     if(imageCache[url]&&imageCache[url].complete)return resolve(imageCache[url]);
@@ -1247,9 +1227,6 @@ function pickNextImage(effect){
   return effect.unusedPool.pop();
 }
 
-/* =========================================================
-   STAR SYSTEM
-========================================================= */
 function initStars(){
   starCanvas=document.getElementById('star-canvas');
   starCtx=starCanvas.getContext('2d');
@@ -1405,12 +1382,7 @@ function resetStars(){stars=[];baseSpawnArmed=false;nextBaseSpawnAt=performance.
 /* =========================================================
    GUI WIDGETS
 ========================================================= */
-function el(tag,cls,html){
-  const d=document.createElement(tag);
-  if(cls)d.className=cls;
-  if(html!==undefined)d.innerHTML=html;
-  return d;
-}
+function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
 function widget_numRange(labelText,obj,key,opts={}){
   const row=el('div','row');
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
@@ -1420,14 +1392,7 @@ function widget_numRange(labelText,obj,key,opts={}){
   wrap.appendChild(txt);wrap.appendChild(num);
   const rng=el('input');rng.type='range';rng.min=min;rng.max=max;rng.step=step;rng.value=Math.min(obj[key],max);
   row.appendChild(wrap);row.appendChild(rng);
-  const apply=(v,fromSlider)=>{
-    let val=parseFloat(v);if(isNaN(val))return;
-    if(val<min)val=min;
-    if(fromSlider&&val>max)val=max;
-    obj[key]=val;num.value=val;rng.value=Math.min(val,max);
-    if(opts.onChange)opts.onChange(val);
-    saveStarConfig();
-  };
+  const apply=(v,fromSlider)=>{let val=parseFloat(v);if(isNaN(val))return;if(val<min)val=min;if(fromSlider&&val>max)val=max;obj[key]=val;num.value=val;rng.value=Math.min(val,max);if(opts.onChange)opts.onChange(val);saveStarConfig()};
   num.addEventListener('input',()=>apply(num.value,false));
   num.addEventListener('blur',()=>apply(num.value,false));
   rng.addEventListener('input',()=>apply(rng.value,true));
@@ -1444,11 +1409,7 @@ function widget_select(labelText,obj,key,options,onChange){
   const row=el('div','row');
   const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const sel=el('select');
-  options.forEach(o=>{
-    const opt=el('option',null,o.label);opt.value=o.value;
-    if(obj[key]===o.value)opt.selected=true;
-    sel.appendChild(opt);
-  });
+  options.forEach(o=>{const opt=el('option',null,o.label);opt.value=o.value;if(obj[key]===o.value)opt.selected=true;sel.appendChild(opt)});
   sel.addEventListener('change',()=>{obj[key]=sel.value;if(onChange)onChange(sel.value);saveStarConfig()});
   row.appendChild(wrap);row.appendChild(sel);return row;
 }
@@ -1772,7 +1733,7 @@ async function exportHTML(){
     let source = await res.text();
 
     const cfgJSON = JSON.stringify(serializeConfig());
-    const docContent = canvasEl.innerHTML;
+    const docContent = getCleanDocHTML();
     const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(w => ({
       src: w.dataset.src, x: parseFloat(w.style.left)||0, y: parseFloat(w.style.top)||0,
       width: w.offsetWidth, height: w.offsetHeight
@@ -1810,7 +1771,6 @@ window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
     statusEl.classList.remove('hidden');
   }
 }
-
 function downloadExportedHTML(){
   const content = document.getElementById('export-textarea').value;
   if (!content || content.length < 100) { alert('Nothing to download yet — wait for the export to finish.'); return; }
@@ -1821,7 +1781,6 @@ function downloadExportedHTML(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
 }
-
 function closeExportModal(){document.getElementById('export-modal').classList.add('hidden')}
 function copyExportedCode(){
   const t=document.getElementById('export-textarea');
