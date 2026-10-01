@@ -19,6 +19,12 @@ body{font-family:'Inter',sans-serif;background:#0f0f11;color:#f3f4f6;overflow-x:
 ::-webkit-scrollbar-thumb{background:#27272a;border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:#3f3f46}
 #star-canvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none}
+#bubble-editor-layer{position:fixed;inset:0;z-index:25;pointer-events:none}
+#bubble-editor-layer .char-editor{position:absolute;border:1px dashed rgba(99,102,241,.55);background:rgba(99,102,241,.05);cursor:move;pointer-events:auto;box-sizing:border-box;transition:border-color .15s, background .15s}
+#bubble-editor-layer .char-editor:hover{border-color:#818cf8;background:rgba(99,102,241,.12)}
+#bubble-editor-layer .char-rotate-handle{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;background:#6366f1;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:auto}
+#bubble-editor-layer .char-rotate-handle:active{cursor:grabbing;background:#818cf8}
+#bubble-editor-layer .char-label{position:absolute;top:-18px;left:0;font-size:9px;color:#a5b4fc;font-family:ui-monospace,monospace;background:#1a1938;padding:1px 4px;border-radius:3px;pointer-events:none}
 #flash-overlay{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:200}
 #flash-overlay.flash{animation:flashAnim 700ms ease-out}
 @keyframes flashAnim{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
@@ -33,7 +39,7 @@ body.is-editing #image-layer .draggable-img.selected .resize-handle,
 body.is-editing #image-layer .draggable-img.selected .delete-btn{display:flex}
 body.is-editing #image-layer .draggable-img.selected img{outline:2px dashed #6366f1;outline-offset:2px}
 body.is-editing.dragover-file main::after{content:"Drop image to add it";position:fixed;inset:0;background:rgba(99,102,241,.15);border:3px dashed #6366f1;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#a5b4fc;pointer-events:none;z-index:30}
-#star-gui{position:fixed;top:80px;right:16px;width:410px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+#star-gui{position:fixed;top:80px;right:16px;width:420px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #star-gui.hidden{display:none}
 #star-gui .gui-header{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:2}
 #star-gui .gui-body{padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px}
@@ -50,7 +56,7 @@ body.is-editing.dragover-file main::after{content:"Drop image to add it";positio
 .row{display:flex;flex-direction:column;gap:3px}
 .row>label{color:#a1a1aa;font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.02em;gap:8px}
 .row>label .lbl-text{flex:1}
-input.num-inline{width:82px;background:#0f0f11;border:1px solid #27272a;border-radius:5px;padding:2px 6px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
+input.num-inline{width:88px;background:#0f0f11;border:1px solid #27272a;border-radius:5px;padding:2px 6px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
 input.num-inline:focus{outline:none;border-color:#6366f1}
 input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
 input[type="color"]{width:100%;height:28px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:6px}
@@ -81,8 +87,8 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .effect-del{color:#71717a;font-size:12px;padding:2px 4px;cursor:pointer}
 .effect-del:hover{color:#ef4444}
 .effect-settings{padding:10px;display:flex;flex-direction:column;gap:9px;border-top:1px solid #27272a;background:#141416}
-.char-header-row{display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:0 1px}
-.char-row{display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 20px;gap:3px;align-items:center;margin-bottom:3px}
+.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:0 1px}
+.char-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;align-items:center;margin-bottom:3px}
 .char-row input.mini{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:4px;padding:3px 2px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace}
 .char-row input.mini:focus{outline:none;border-color:#6366f1}
 .char-row input.char-glyph{color:#f0abfc;font-weight:700}
@@ -101,6 +107,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
 <canvas id="star-canvas"></canvas>
+<div id="bubble-editor-layer"></div>
 <div id="flash-overlay"></div>
 
 <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
@@ -232,6 +239,7 @@ function enableEditing(){
   addBlockContainer.classList.remove('hidden');formattingToolbar.classList.remove('hidden');
   starGuiBtn.classList.remove('hidden');
   makeBlocksEditable();
+  rebuildBubbleEditor();
 }
 function disableEditing(){
   document.body.classList.remove('is-editing');
@@ -245,6 +253,7 @@ function disableEditing(){
   document.getElementById('star-gui').classList.add('hidden');
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{const e=b.firstElementChild;if(e)e.removeAttribute('contenteditable')});
   document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'));
+  document.getElementById('bubble-editor-layer').innerHTML='';
 }
 function makeBlocksEditable(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
@@ -357,12 +366,14 @@ const cfg={
     enabled:true,initialDelay:800,spawnInterval:400,
     reproChance:3,tickMs:500,lifespan:5,
     color:'#ffffff',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true
+    fadeIn:0.4,fadeOut:0.5,flashOut:true,
+    randomRotation:false
   },
   spawned:{
     enabled:true,reproChance:5,tickMs:200,lifespan:3,
     color:'#a5b4fc',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true
+    fadeIn:0.4,fadeOut:0.5,flashOut:true,
+    randomRotation:false
   },
   effects:[],
   activeEffectId:null
@@ -393,6 +404,7 @@ function createEffect(type){
       outlineWidth:4,outlineColor:'#6366f1',
       outlineOpacity:0.5,
       showOutline:true,
+      showHandles:true,
       flashColor:'#ffffff',
       chars,
       spawnPoints:null,maskData:null,maskScale:1,maskBounds:null
@@ -456,6 +468,119 @@ function computeBubbleMask(effect){
   effect.maskScale=scale;
   effect.maskBounds=found?{minX:minX/scale,minY:minY/scale,maxX:maxX/scale,maxY:maxY/scale}:null;
 }
+
+/* ===== CHARACTER BOUNDS (for editor) ===== */
+let _boundsCtx=null;
+function getCharBounds(ch){
+  if(!ch.char)return {w:20,h:20};
+  if(!_boundsCtx)_boundsCtx=document.createElement('canvas').getContext('2d');
+  _boundsCtx.font=`900 ${Math.max(1,ch.size)}px 'Arial Black', Arial, sans-serif`;
+  const m=_boundsCtx.measureText(ch.char);
+  const w=Math.max(m.width,8);
+  let h;
+  if(m.actualBoundingBoxAscent!==undefined&&m.actualBoundingBoxAscent!==null){
+    h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
+  }else{
+    h=ch.size*1.1;
+  }
+  return {w,h:Math.max(h,8)};
+}
+
+/* ===== BUBBLE EDITOR (canvas handles) ===== */
+function rebuildBubbleEditor(){
+  const layer=document.getElementById('bubble-editor-layer');
+  layer.innerHTML='';
+  if(!isEditing)return;
+  const eff=getActiveEffect();
+  if(!eff||eff.type!=='bubble')return;
+  if(!eff.showHandles)return;
+  if(!eff.chars||!eff.chars.length)return;
+
+  eff.chars.forEach((ch,idx)=>{
+    const b=getCharBounds(ch);
+    const div=document.createElement('div');
+    div.className='char-editor';
+    div.dataset.idx=idx;
+    div.style.width=b.w+'px';
+    div.style.height=b.h+'px';
+    div.style.left=(ch.x-b.w/2)+'px';
+    div.style.top=(ch.y-b.h/2)+'px';
+    div.style.transform=`rotate(${ch.rotation||0}deg)`;
+
+    const label=document.createElement('div');
+    label.className='char-label';
+    label.textContent=`#${idx+1} ${ch.char||'·'}`;
+    div.appendChild(label);
+
+    const rot=document.createElement('div');
+    rot.className='char-rotate-handle';
+    rot.title='Rotate (drag)';
+    rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';
+    div.appendChild(rot);
+
+    // drag to move
+    div.addEventListener('mousedown',e=>{
+      if(e.target.closest('.char-rotate-handle'))return;
+      if(!isEditing)return;
+      e.preventDefault();
+      const sx=e.clientX,sy=e.clientY;
+      const ox=ch.x,oy=ch.y;
+      const mv=ev=>{
+        ch.x=ox+(ev.clientX-sx);
+        ch.y=oy+(ev.clientY-sy);
+        updateCharDiv(div,ch);
+      };
+      const up=()=>{
+        document.removeEventListener('mousemove',mv);
+        document.removeEventListener('mouseup',up);
+        computeBubbleMask(eff);
+        renderEffectList();
+      };
+      document.addEventListener('mousemove',mv);
+      document.addEventListener('mouseup',up);
+    });
+
+    // rotate
+    rot.addEventListener('mousedown',e=>{
+      if(!isEditing)return;
+      e.preventDefault();
+      e.stopPropagation();
+      const cx=ch.x,cy=ch.y;
+      const startAngle=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI;
+      const startRot=ch.rotation||0;
+      const mv=ev=>{
+        const cur=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI;
+        ch.rotation=startRot+(cur-startAngle);
+        div.style.transform=`rotate(${ch.rotation}deg)`;
+      };
+      const up=()=>{
+        document.removeEventListener('mousemove',mv);
+        document.removeEventListener('mouseup',up);
+        computeBubbleMask(eff);
+        renderEffectList();
+      };
+      document.addEventListener('mousemove',mv);
+      document.addEventListener('mouseup',up);
+    });
+
+    layer.appendChild(div);
+  });
+}
+
+function updateCharDiv(div,ch){
+  const b=getCharBounds(ch);
+  div.style.width=b.w+'px';
+  div.style.height=b.h+'px';
+  div.style.left=(ch.x-b.w/2)+'px';
+  div.style.top=(ch.y-b.h/2)+'px';
+  div.style.transform=`rotate(${ch.rotation||0}deg)`;
+  const label=div.querySelector('.char-label');
+  if(label)label.textContent=`#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
+}
+
+window.addEventListener('resize',()=>{
+  if(isEditing)rebuildBubbleEditor();
+});
 
 /* ===== IMAGE LOADING ===== */
 function preloadImage(url){
@@ -542,7 +667,6 @@ function getSpawnPoint(effect){
     if(stars.length>=threshold&&effect.maskBounds&&effect.maskData){
       const b=effect.maskBounds;
       const w=b.maxX-b.minX,h=b.maxY-b.minY;
-      // Rejection sampling: pick truly random point in bbox, keep if inside mask
       for(let t=0;t<40;t++){
         const x=b.minX+Math.random()*w;
         const y=b.minY+Math.random()*h;
@@ -552,7 +676,6 @@ function getSpawnPoint(effect){
         const idx=(my*effect.maskData.width+mx)*4+3;
         if(effect.maskData.data[idx]>128)return{x,y};
       }
-      // Fallback if we somehow failed
       if(effect.spawnPoints&&effect.spawnPoints.length){
         const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];
         return{x:p.x,y:p.y};
@@ -575,7 +698,8 @@ function spawnStar(isBase){
     birth:now,
     deathStart:now+type.lifespan*1000,
     nextTick:now+type.tickMs,
-    imgUrl
+    imgUrl,
+    rotation: type.randomRotation ? Math.random()*360 : 0
   });
 }
 function starLoop(){
@@ -617,7 +741,6 @@ function starLoop(){
 function renderStars(now,active){
   const W=window.innerWidth,H=window.innerHeight;
   starCtx.clearRect(0,0,W,H);
-  // Outline guide (visible only if showOutline is true AND opacity > 0)
   if(active&&active.type==='bubble'&&active.showOutline&&(active.outlineOpacity??0.5)>0&&active.chars){
     starCtx.save();
     starCtx.strokeStyle=active.outlineColor;
@@ -647,18 +770,25 @@ function renderStars(now,active){
       else alpha=1-t;
     }
     if(alpha<=0)continue;
+    starCtx.globalAlpha=Math.min(1,alpha);
     if(s.imgUrl&&imageCache[s.imgUrl]&&imageCache[s.imgUrl].complete){
       const img=imageCache[s.imgUrl];
       const sSize=(active&&active.exceptions&&active.exceptions[s.imgUrl])||(active?active.defaultSize:60);
       const aspect=img.naturalWidth/img.naturalHeight;
       let dw,dh;
       if(aspect>1){dw=sSize;dh=sSize/aspect}else{dw=sSize*aspect;dh=sSize}
-      starCtx.globalAlpha=Math.min(1,alpha);
-      starCtx.drawImage(img,s.x-dw/2,s.y-dh/2,dw,dh);
+      starCtx.save();
+      starCtx.translate(s.x,s.y);
+      if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
+      starCtx.drawImage(img,-dw/2,-dh/2,dw,dh);
+      starCtx.restore();
     }else{
-      starCtx.globalAlpha=Math.min(1,alpha);
+      starCtx.save();
+      starCtx.translate(s.x,s.y);
+      if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
       starCtx.fillStyle=type.color;
-      drawShape(starCtx,s.x,s.y,size,type.shape);
+      drawShape(starCtx,0,0,size,type.shape);
+      starCtx.restore();
     }
   }
   starCtx.globalAlpha=1;
@@ -790,7 +920,7 @@ function buildGui(){
   body.innerHTML='';
 
   const g=makeSection('<i class="fa-solid fa-globe mr-1.5"></i>Global','global','global');
-  g.body.appendChild(widget_numRange('Max stars N (trigger point)',cfg.global,'maxStars',{min:10,max:50000,step:100}));
+  g.body.appendChild(widget_numRange('Max stars N (trigger point)',cfg.global,'maxStars',{min:10,max:100000000,step:100}));
   g.body.appendChild(widget_toggle('Flash + reset at N (off by default)',cfg.global,'triggerEnabled'));
   const rst=el('button','gui-btn danger');
   rst.innerHTML='<i class="fa-solid fa-bomb mr-1"></i> Reset All Stars';
@@ -815,6 +945,7 @@ function buildGui(){
   b.body.appendChild(widget_numRange('Fade in (s)',cfg.base,'fadeIn',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_numRange('Fade out (s)',cfg.base,'fadeOut',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_toggle('Mini explosion on death',cfg.base,'flashOut'));
+  b.body.appendChild(widget_toggle('Random rotation',cfg.base,'randomRotation'));
   body.appendChild(b.sec);
 
   const s=makeSection('<i class="fa-solid fa-sparkles mr-1.5"></i>Spawned Stars','spawned','spawned');
@@ -832,6 +963,7 @@ function buildGui(){
   s.body.appendChild(widget_numRange('Fade in (s)',cfg.spawned,'fadeIn',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_numRange('Fade out (s)',cfg.spawned,'fadeOut',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_toggle('Mini explosion on death',cfg.spawned,'flashOut'));
+  s.body.appendChild(widget_toggle('Random rotation',cfg.spawned,'randomRotation'));
   body.appendChild(s.sec);
 
   const e=makeSection('<i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Effects (one active)','effects','effects');
@@ -905,48 +1037,44 @@ function buildEffectSettings(container,eff){
   container.appendChild(widget_color('Flash colour at N',eff,'flashColor'));
 
   if(eff.type==='bubble'){
-    // Threshold — only spawn inside bubble after this many stars
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{
-      min:0,max:50000,step:1,
-      onChange:()=>{}
+      min:0,max:100000000,step:1
     }));
-
     container.appendChild(widget_text('Text',eff,'text',()=>renderEffectList(),false));
 
-    // Per-character controls
     const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
     container.appendChild(charsLabel);
 
     const hdr=el('div','char-header-row',`
-      <span></span><span>Char</span><span>X</span><span>Y</span><span>Size</span><span></span>
+      <span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>
     `);
     container.appendChild(hdr);
 
     const charsBox=el('div');
-    charsBox.style.display='flex';
-    charsBox.style.flexDirection='column';
-    charsBox.style.maxHeight='320px';
-    charsBox.style.overflowY='auto';
-    charsBox.style.padding='4px';
-    charsBox.style.background='#0f0f11';
-    charsBox.style.borderRadius='6px';
-    charsBox.style.border='1px solid #27272a';
+    charsBox.style.display='flex';charsBox.style.flexDirection='column';
+    charsBox.style.maxHeight='340px';charsBox.style.overflowY='auto';
+    charsBox.style.padding='4px';charsBox.style.background='#0f0f11';
+    charsBox.style.borderRadius='6px';charsBox.style.border='1px solid #27272a';
 
     eff.chars.forEach((ch,idx)=>{
       const row=el('div','char-row');
+
       const glyph=el('input','mini char-glyph');
       glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{
         ch.char=glyph.value;
         computeBubbleMask(eff);
+        updateCharDivByIndex(idx,ch);
       });
 
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
-      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff)});
+      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
       const yin=el('input','mini');yin.type='number';yin.step='any';yin.value=Math.round(ch.y);
-      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;computeBubbleMask(eff)});
+      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
       const sin=el('input','mini');sin.type='number';sin.step='any';sin.value=Math.round(ch.size);
-      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff)});
+      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
+      const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
+      rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
 
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.title='Remove character';
@@ -954,19 +1082,14 @@ function buildEffectSettings(container,eff){
         eff.chars.splice(idx,1);
         computeBubbleMask(eff);
         renderEffectList();
+        rebuildBubbleEditor();
       });
 
-      row.appendChild(el('span',null,'')); // placeholder for glyph grid position — actual glyph input below
-      // Rearrange: glyph input should occupy first column cell in header "Char" — put it in grid
-      // We'll restructure: 24px (delete area) | char | x | y | size | 20px delete
-      // Actually put delete on right, and a spacer on left
-      row.innerHTML='';
-      const spacer=el('span');spacer.style.width='24px';
-      row.appendChild(spacer);
       row.appendChild(glyph);
       row.appendChild(xin);
       row.appendChild(yin);
       row.appendChild(sin);
+      row.appendChild(rin);
       row.appendChild(del);
 
       charsBox.appendChild(row);
@@ -978,42 +1101,52 @@ function buildEffectSettings(container,eff){
     addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
     addCharBtn.addEventListener('click',()=>{
       eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));
-      computeBubbleMask(eff);
-      renderEffectList();
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
     });
     container.appendChild(addCharBtn);
 
-    // Bulk layout controls
-    const bulkLabel=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Bulk</span>');
-    container.appendChild(bulkLabel);
-
     const reloadLayoutBtn=el('button','gui-btn ghost');
-    reloadLayoutBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space characters horizontally';
+    reloadLayoutBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
     reloadLayoutBtn.addEventListener('click',()=>{
       eff.chars.forEach((ch,i)=>{
         const c=defaultCharFor(i,eff.chars.length);
-        ch.x=c.x;ch.y=c.y;
+        ch.x=c.x;ch.y=c.y;ch.rotation=0;
       });
-      computeBubbleMask(eff);renderEffectList();
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
     });
     container.appendChild(reloadLayoutBtn);
 
+    const clearRotBtn=el('button','gui-btn ghost');
+    clearRotBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations to 0';
+    clearRotBtn.addEventListener('click',()=>{
+      eff.chars.forEach(ch=>{ch.rotation=0});
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
+    });
+    container.appendChild(clearRotBtn);
+
     const outlineHeader=el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>');
     container.appendChild(outlineHeader);
-
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
     container.appendChild(widget_numRange('Outline opacity',eff,'outlineOpacity',{min:0,max:1,step:0.01}));
     container.appendChild(widget_numRange('Outline width',eff,'outlineWidth',{min:0,max:60,step:0.5}));
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
 
+    const editorHeader=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>');
+    container.appendChild(editorHeader);
+    container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
+
     const info=el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`);
     container.appendChild(info);
+
+    // Hint
+    const hint=el('div',null,'<span style="color:#71717a;font-size:10px;">Tip: on the page, drag the dashed box to move a letter, drag the blue circle to rotate.</span>');
+    container.appendChild(hint);
   }
 
   if(eff.type==='images'){
     container.appendChild(widget_text('Folder name',eff,'folder',null,false));
     container.appendChild(widget_text('Manual file list (optional — one per line)',eff,'explicitList',null,true));
-    container.appendChild(widget_numRange('Default image size (px)',eff,'defaultSize',{min:8,max:1000,step:1}));
+    container.appendChild(widget_numRange('Default image size (px)',eff,'defaultSize',{min:8,max:2000,step:1}));
     const rb=el('button','gui-btn primary');
     rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
     rb.addEventListener('click',()=>loadEffectImages(eff));
@@ -1039,7 +1172,7 @@ function buildEffectSettings(container,eff){
         const tog=el('input');tog.type='checkbox';tog.checked=isEx;tog.style.accentColor='#6366f1';
         const lbl=el('span',null,fn);lbl.style.flex='1';lbl.style.color='#a1a1aa';lbl.style.overflow='hidden';lbl.style.textOverflow='ellipsis';lbl.style.whiteSpace='nowrap';
         const num=el('input');num.type='number';num.className='num-inline';num.step='any';
-        num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=2000;num.disabled=!isEx;
+        num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=10000;num.disabled=!isEx;
         tog.addEventListener('change',()=>{
           if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}
           else{delete eff.exceptions[url];num.disabled=true}
@@ -1058,6 +1191,12 @@ function buildEffectSettings(container,eff){
   }
 }
 
+function updateCharDivByIndex(idx,ch){
+  const layer=document.getElementById('bubble-editor-layer');
+  const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
+  if(div)updateCharDiv(div,ch);
+}
+
 function activateEffect(id){
   cfg.activeEffectId=id;
   const eff=getActiveEffect();
@@ -1066,6 +1205,7 @@ function activateEffect(id){
   if(eff.type==='bubble')computeBubbleMask(eff);
   resetStars();
   renderEffectList();
+  rebuildBubbleEditor();
 }
 function deleteEffect(id){
   if(cfg.effects.length<=1){alert('Must keep at least one effect.');return}
@@ -1077,6 +1217,7 @@ function deleteEffect(id){
     const f=getActiveEffect();
     if(f&&f.type==='images'&&!f.loaded)loadEffectImages(f);
     if(f&&f.type==='bubble')computeBubbleMask(f);
+    rebuildBubbleEditor();
   }
   renderEffectList();
 }
