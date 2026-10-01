@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interactive Canvas Page</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f11;
+            color: #f3f4f6;
+        }
+
+        /* Focus rings and contenteditable styling */
+        [contenteditable="true"]:focus {
+            outline: 2px dashed rgba(99, 102, 241, 0.5);
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+
+        .edit-block {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .is-editing .edit-block:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0f11;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Bar Navigation / Admin Controls -->
+    <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
+            </div>
+
+            <!-- Control Actions -->
+            <div class="flex items-center gap-3">
+                <!-- Export / Copy Code Button (Visible when editing) -->
+                <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-code">prefix</i> Export Code for GitHub
+                </button>
+
+                <!-- Reset Page Button -->
+                <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+
+                <!-- Edit Mode Switcher -->
+                <button id="toggle-edit-btn" onclick="requestEditModeToggle()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-lock" id="lock-icon"></i> <span id="toggle-text">Admin Login</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Formatting Toolbar for Admin Mode -->
+    <div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg">
+        <button onclick="execCmd('bold')" title="Bold" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-bold"></i></button>
+        <button onclick="execCmd('italic')" title="Italic" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
+        <button onclick="execCmd('underline')" title="Underline" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
+        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+        <button onclick="addBlock('h1')" title="Add Heading" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H1</button>
+        <button onclick="addBlock('h2')" title="Add Subheading" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H2</button>
+        <button onclick="addBlock('p')" title="Add Paragraph" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">Text</button>
+        <button onclick="addBlock('quote')" title="Add Quote" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-quote-left"></i></button>
+        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+        <button onclick="execCmd('justifyLeft')" title="Align Left" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-left"></i></button>
+        <button onclick="execCmd('justifyCenter')" title="Align Center" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
+        <div id="document-canvas" class="space-y-6">
+            <!-- Initial Default Content -->
+            <div class="edit-block group relative">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1>
+            </div>
+            
+            <div class="edit-block group relative">
+                <p class="text-lg text-zinc-400 font-light leading-relaxed">Click anywhere in Edit Mode to modify text or add new sections. Changes automatically save locally in your browser!</p>
+            </div>
+
+            <div class="edit-block group relative">
+                <blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">
+                    "Simple, modern dark mode canvas designed for instant editing and quick deployment."
+                </blockquote>
+            </div>
+        </div>
+
+        <!-- Add Block Trigger (Only visible in Edit Mode) -->
+        <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
+            <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto">
+                <i class="fa-solid fa-plus"></i> Click to add a new text block
+            </button>
+        </div>
+    </main>
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-indigo-600/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Enter Password</h3>
+                <p class="text-xs text-zinc-400 mt-1">Default password is <span class="text-indigo-400 font-mono">admin</span></p>
+            </div>
+            <form onsubmit="handlePasswordSubmit(event)" class="space-y-3">
+                <input type="password" id="pass-input" placeholder="Password..." class="w-full bg-[#0f0f11] border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all">
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="w-1/2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium py-2 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-xl transition-all">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Export Code Modal -->
+    <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML Code for GitHub</h3>
+                <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-zinc-400">Copy the code below and paste it directly into your <span class="text-indigo-400 font-mono">index.html</span> file on GitHub to publish your changes online!</p>
+            <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-regular fa-copy"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let isEditing = false;
+        const ADMIN_PASS = "admin"; // Change your default passcode here
+
+        // Elements
+        const canvas = document.getElementById('document-canvas');
+        const statusBadge = document.getElementById('status-badge');
+        const lockIcon = document.getElementById('lock-icon');
+        const toggleText = document.getElementById('toggle-text');
+        const exportBtn = document.getElementById('export-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const addBlockContainer = document.getElementById('add-block-container');
+        const formattingToolbar = document.getElementById('formatting-toolbar');
+
+        // Load saved state on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedContent = localStorage.getItem('canvas_doc_content');
+            if (savedContent) {
+                canvas.innerHTML = savedContent;
+            }
+            disableEditing();
+        });
+
+        // Request Password Modal or Exit Edit Mode
+        function requestEditModeToggle() {
+            if (isEditing) {
+                isEditing = false;
+                disableEditing();
+            } else {
+                document.getElementById('password-modal').classList.remove('hidden');
+                document.getElementById('pass-input').focus();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+            document.getElementById('pass-input').value = '';
+        }
+
+        function handlePasswordSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('pass-input').value;
+            if (input === ADMIN_PASS) {
+                isEditing = true;
+                closeModal();
+                enableEditing();
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+
+        // Enable Edit Mode
+        function enableEditing() {
+            document.body.classList.add('is-editing');
+            statusBadge.textContent = "Edit Mode Active";
+            statusBadge.previousElementSibling.className = "w-3 h-3 rounded-full bg-indigo-500 animate-pulse";
+            lockIcon.className = "fa-solid fa-unlock text-indigo-400";
+            toggleText.textContent = "Exit Edit Mode";
+
+            exportBtn.classList.remove('hidden');
+            resetBtn.classList.remove('hidden');
+            addBlockContainer.classList.remove('hidden');
+            formattingToolbar.classList.remove('hidden');
+
+            makeBlocksEditable();
+        }
+
+        // Disable Edit Mode (Visitor View)
+        function disableEditing() {
+            document.body.classList.remove('is-editing');
+            statusBadge.textContent = "Visitor View";
+            statusBadge.previousElementSibling.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
+            lockIcon.className = "fa-solid fa-lock";
+            toggleText.textContent = "Admin Login";
+
+            exportBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            addBlockContainer.classList.add('hidden');
+            formattingToolbar.classList.add('hidden');
+
+            // Strip editable attributes
+            const blocks = canvas.querySelectorAll('.edit-block');
+            blocks.forEach(block => {
+                const element = block.firstElementChild;
+                if (element) element.removeAttribute('contenteditable');
+            });
+        }
+
+        // Make all child blocks editable & add event listeners
+        function makeBlocksEditable() {
+            const blocks = canvas.querySelectorAll('.edit-block');
+            blocks.forEach(block => {
+                const element = block.firstElementChild;
+                if (element) {
+                    element.contentEditable = "true";
+                    element.addEventListener('input', autoSave);
+                }
+            });
+        }
+
+        // Add a new text block
+        function addBlock(type) {
+            if (!isEditing) return;
+
+            const div = document.createElement('div');
+            div.className = "edit-block group relative";
+
+            let inner;
+            if (type === 'h1') {
+                inner = `<h1 class="text-3xl font-bold text-white">New Title Header</h1>`;
+            } else if (type === 'h2') {
+                inner = `<h2 class="text-xl font-semibold text-zinc-200">New Subtitle</h2>`;
+            } else if (type === 'quote') {
+                inner = `<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
+            } else {
+                inner = `<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
+            }
+
+            div.innerHTML = inner;
+            canvas.appendChild(div);
+
+            const el = div.firstElementChild;
+            el.contentEditable = "true";
+            el.addEventListener('input', autoSave);
+            el.focus();
+
+            autoSave();
+        }
+
+        // Auto Save Content to LocalStorage
+        function autoSave() {
+            localStorage.setItem('canvas_doc_content', canvas.innerHTML);
+        }
+
+        // Format selected text
+        function execCmd(command) {
+            if (!isEditing) return;
+            document.execCommand(command, false, null);
+            autoSave();
+        }
+
+        // Reset Page Content
+        function resetCanvas() {
+            if (confirm("Are you sure you want to reset all content?")) {
+                localStorage.removeItem('canvas_doc_content');
+                location.reload();
+            }
+        }
+
+        // Export Clean HTML Modal
+        function exportHTML() {
+            // Create a clone of current document for clean export
+            const clone = canvas.cloneNode(true);
+            
+            // Clean contenteditable attributes from export text
+            const editableElements = clone.querySelectorAll('[contenteditable]');
+            editableElements.forEach(el => el.removeAttribute('contenteditable'));
+
+            const fullPageHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Webpage</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f0f11; color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
+        <div class="space-y-6">
+${clone.innerHTML}
+        </div>
+    </main>
+</body>
+</html>`;
+
+            document.getElementById('export-textarea').value = fullPageHTML;
+            document.getElementById('export-modal').classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.add('hidden');
+        }
+
+        function copyExportedCode() {
+            const textarea = document.getElementById('export-textarea');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Code copied! Paste it into your index.html file on GitHub.');
+        }
+    </script>
+</body>
+</html>
