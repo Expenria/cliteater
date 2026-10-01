@@ -39,7 +39,7 @@ body.is-editing #image-layer .draggable-img.selected .resize-handle,
 body.is-editing #image-layer .draggable-img.selected .delete-btn{display:flex}
 body.is-editing #image-layer .draggable-img.selected img{outline:2px dashed #6366f1;outline-offset:2px}
 body.is-editing.dragover-file main::after{content:"Drop image to add it";position:fixed;inset:0;background:rgba(99,102,241,.15);border:3px dashed #6366f1;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#a5b4fc;pointer-events:none;z-index:30}
-#star-gui{position:fixed;top:80px;right:16px;width:420px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+#star-gui{position:fixed;top:80px;right:16px;width:430px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #star-gui.hidden{display:none}
 #star-gui .gui-header{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:2}
 #star-gui .gui-body{padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px}
@@ -401,6 +401,7 @@ function createEffect(type){
     return {
       id,type,name:'Bubble Text',
       minStarsForBubble:0,
+      beforeThresholdMode:'avoid',
       outlineWidth:4,outlineColor:'#6366f1',
       outlineOpacity:0.5,
       showOutline:true,
@@ -469,6 +470,14 @@ function computeBubbleMask(effect){
   effect.maskBounds=found?{minX:minX/scale,minY:minY/scale,maxX:maxX/scale,maxY:maxY/scale}:null;
 }
 
+function isInMask(effect,x,y){
+  if(!effect||!effect.maskData)return false;
+  const mx=Math.floor(x*effect.maskScale);
+  const my=Math.floor(y*effect.maskScale);
+  if(mx<0||my<0||mx>=effect.maskData.width||my>=effect.maskData.height)return false;
+  return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
+}
+
 /* ===== CHARACTER BOUNDS (for editor) ===== */
 let _boundsCtx=null;
 function getCharBounds(ch){
@@ -518,7 +527,6 @@ function rebuildBubbleEditor(){
     rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';
     div.appendChild(rot);
 
-    // drag to move
     div.addEventListener('mousedown',e=>{
       if(e.target.closest('.char-rotate-handle'))return;
       if(!isEditing)return;
@@ -540,7 +548,6 @@ function rebuildBubbleEditor(){
       document.addEventListener('mouseup',up);
     });
 
-    // rotate
     rot.addEventListener('mousedown',e=>{
       if(!isEditing)return;
       e.preventDefault();
@@ -661,29 +668,42 @@ function resizeStarCanvas(){
   starCanvas.style.height=window.innerHeight+'px';
   starCtx.setTransform(dpr,0,0,dpr,0,0);
 }
+
 function getSpawnPoint(effect){
-  if(effect&&effect.type==='bubble'&&effect.chars&&effect.chars.length){
+  const W=window.innerWidth,H=window.innerHeight;
+
+  if(effect&&effect.type==='bubble'&&effect.chars&&effect.chars.length&&effect.maskData&&effect.maskBounds){
     const threshold=Number(effect.minStarsForBubble)||0;
-    if(stars.length>=threshold&&effect.maskBounds&&effect.maskData){
+    const overThreshold=stars.length>=threshold;
+
+    if(overThreshold){
+      // Spawn ONLY inside letters
       const b=effect.maskBounds;
       const w=b.maxX-b.minX,h=b.maxY-b.minY;
       for(let t=0;t<40;t++){
         const x=b.minX+Math.random()*w;
         const y=b.minY+Math.random()*h;
-        const mx=Math.floor(x*effect.maskScale);
-        const my=Math.floor(y*effect.maskScale);
-        if(mx<0||my<0||mx>=effect.maskData.width||my>=effect.maskData.height)continue;
-        const idx=(my*effect.maskData.width+mx)*4+3;
-        if(effect.maskData.data[idx]>128)return{x,y};
+        if(isInMask(effect,x,y))return{x,y};
       }
+      // Fallback: sample point grid
       if(effect.spawnPoints&&effect.spawnPoints.length){
         const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];
         return{x:p.x,y:p.y};
       }
+    } else if(effect.beforeThresholdMode==='avoid'){
+      // Pre-threshold: spawn ANYWHERE EXCEPT inside letters
+      for(let t=0;t<80;t++){
+        const x=Math.random()*W;
+        const y=Math.random()*H;
+        if(!isInMask(effect,x,y))return{x,y};
+      }
+      // Fallback: just random (rare — only if mask covers nearly everything)
     }
   }
-  return{x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight};
+
+  return{x:Math.random()*W,y:Math.random()*H};
 }
+
 function spawnStar(isBase){
   const type=isBase?cfg.base:cfg.spawned;
   const active=getActiveEffect();
@@ -1037,9 +1057,17 @@ function buildEffectSettings(container,eff){
   container.appendChild(widget_color('Flash colour at N',eff,'flashColor'));
 
   if(eff.type==='bubble'){
+    // Threshold
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{
       min:0,max:100000000,step:1
     }));
+
+    // Pre-threshold behaviour
+    container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[
+      {value:'avoid',label:'Avoid the letters (no stars inside)'},
+      {value:'allow',label:'Ignore letters (stars can spawn inside)'}
+    ]));
+
     container.appendChild(widget_text('Text',eff,'text',()=>renderEffectList(),false));
 
     const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
@@ -1138,7 +1166,6 @@ function buildEffectSettings(container,eff){
     const info=el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`);
     container.appendChild(info);
 
-    // Hint
     const hint=el('div',null,'<span style="color:#71717a;font-size:10px;">Tip: on the page, drag the dashed box to move a letter, drag the blue circle to rotate.</span>');
     container.appendChild(hint);
   }
