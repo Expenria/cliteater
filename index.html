@@ -39,6 +39,39 @@ body.is-editing #image-layer .draggable-img.selected .resize-handle,
 body.is-editing #image-layer .draggable-img.selected .delete-btn{display:flex}
 body.is-editing #image-layer .draggable-img.selected img{outline:2px dashed #6366f1;outline-offset:2px}
 body.is-editing.dragover-file main::after{content:"Drop image to add it";position:fixed;inset:0;background:rgba(99,102,241,.15);border:3px dashed #6366f1;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#a5b4fc;pointer-events:none;z-index:30}
+
+/* ===== TEXT BOX LAYER ===== */
+#textbox-layer{position:fixed;inset:0;z-index:22;pointer-events:none}
+#textbox-layer .text-box{position:absolute;pointer-events:auto;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;transition:outline-color .15s;outline:2px dashed transparent;outline-offset:2px}
+body.is-editing #textbox-layer .text-box{cursor:move;user-select:none}
+body.is-editing #textbox-layer .text-box:hover{outline-color:rgba(99,102,241,.4)}
+body.is-editing #textbox-layer .text-box.selected{outline-color:#6366f1;outline-style:solid}
+#textbox-layer .tb-handle{position:absolute;display:none;align-items:center;justify-content:center;border:2px solid #fff;color:#fff;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:3}
+body.is-editing #textbox-layer .text-box.selected .tb-handle{display:flex}
+#textbox-layer .tb-del{right:-10px;top:-10px;width:24px;height:24px;background:#ef4444;border-radius:50%;cursor:pointer}
+#textbox-layer .tb-gear{left:-10px;top:-10px;width:24px;height:24px;background:#6366f1;border-radius:50%;cursor:pointer}
+#textbox-layer .tb-resize{right:-8px;bottom:-8px;width:18px;height:18px;background:#6366f1;border-radius:50%;cursor:nwse-resize;font-size:9px}
+#textbox-layer .tb-drag{bottom:-10px;left:50%;transform:translateX(-50%);width:26px;height:22px;background:#6366f1;border-radius:11px;cursor:move;font-size:9px}
+
+/* ===== TEXT BOX SETTINGS PANEL ===== */
+#tb-settings{position:fixed;width:300px;max-height:calc(100vh - 40px);overflow-y:auto;background:#18181b;border:1px solid #6366f1;border-radius:12px;z-index:70;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.7);display:none}
+#tb-settings.open{display:block}
+#tb-settings .tb-head{padding:8px 12px;background:#1f1f24;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;cursor:move;user-select:none;border-radius:12px 12px 0 0}
+#tb-settings .tb-body{padding:10px 12px 14px;display:flex;flex-direction:column;gap:8px}
+#tb-settings .row{display:flex;flex-direction:column;gap:3px}
+#tb-settings .row>label{color:#a1a1aa;font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;gap:8px}
+#tb-settings .row>label .lbl-text{flex:1}
+#tb-settings input.num-inline{width:76px;background:#0f0f11;border:1px solid #27272a;border-radius:5px;padding:2px 6px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
+#tb-settings input.num-inline:focus{outline:none;border-color:#6366f1}
+#tb-settings input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
+#tb-settings input[type="color"]{width:100%;height:26px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:5px}
+#tb-settings textarea,#tb-settings select,#tb-settings input[type="text"]{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#e4e4e7;font-size:11px;font-family:inherit}
+#tb-settings textarea{resize:vertical;min-height:60px}
+#tb-settings textarea:focus,#tb-settings select:focus,#tb-settings input[type="text"]:focus{outline:none;border-color:#6366f1}
+.tb-sect{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#6366f1;font-weight:700;padding-top:6px;border-top:1px solid #27272a;margin-top:2px}
+.tb-sect:first-child{border-top:none;margin-top:0;padding-top:0}
+
+/* ===== STAR GUI ===== */
 #star-gui{position:fixed;top:80px;right:16px;width:430px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:60;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
 #star-gui.hidden{display:none}
 #star-gui .gui-header{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:2}
@@ -109,6 +142,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 
 <canvas id="star-canvas"></canvas>
 <div id="bubble-editor-layer"></div>
+<div id="textbox-layer"></div>
 <div id="flash-overlay"></div>
 
 <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
@@ -141,6 +175,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
   <button onclick="execCmd('justifyCenter')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
   <button onclick="triggerImageUpload()" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-image"></i> Add Image</button>
+  <button onclick="addTextBox()" class="p-2 text-fuchsia-400 hover:text-white hover:bg-fuchsia-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-font"></i> Add Text Box</button>
   <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
 </div>
 
@@ -152,10 +187,19 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
   <div class="gui-body" id="gui-body"></div>
 </div>
 
+<!-- TEXT BOX SETTINGS PANEL -->
+<div id="tb-settings">
+  <div class="tb-head" id="tb-head">
+    <span class="text-xs font-bold text-white"><i class="fa-solid fa-font text-fuchsia-400 mr-1.5"></i>Text Box Settings</span>
+    <button onclick="closeTbSettings()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="tb-body" id="tb-body"></div>
+</div>
+
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
     <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1></div>
-    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects.</p></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere.</p></div>
     <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Stars seed the field. Effects reshape it."</blockquote></div>
   </div>
   <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
@@ -188,7 +232,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Export Page</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Full page with text, images, <strong class="text-indigo-400">and all star settings</strong> baked in. Copy the code into <span class="text-indigo-400 font-mono">index.html</span> on GitHub, or download the file.</p>
+    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, <strong class="text-indigo-400">and all star settings</strong> baked in.</p>
     <div id="export-status" class="hidden text-xs"></div>
     <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600" placeholder="Generating..."></textarea>
     <div class="flex justify-end gap-3">
@@ -210,6 +254,7 @@ let isEditing = false;
 const ADMIN_PASS = "admin";
 const canvasEl=document.getElementById('document-canvas');
 const imageLayer=document.getElementById('image-layer');
+const textboxLayer=document.getElementById('textbox-layer');
 const statusBadge=document.getElementById('status-badge');
 const statusDot=document.getElementById('status-dot');
 const lockIcon=document.getElementById('lock-icon');
@@ -222,7 +267,7 @@ const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 
 /* =========================================================
-   STAR CONFIG — declared up here so preload can populate it
+   STAR CONFIG
 ========================================================= */
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
@@ -244,40 +289,51 @@ const cfg={
 };
 
 /* =========================================================
-   BOOTSTRAP — load saved state BEFORE GUI builds
+   BOOTSTRAP
 ========================================================= */
 window.addEventListener('DOMContentLoaded',()=>{
-  // 1. Load doc content: localStorage first, then exported fallback
   const sc = localStorage.getItem('canvas_doc_content');
   if (sc) canvasEl.innerHTML = sc;
   else if (window.__EXPORTED_DOC__) canvasEl.innerHTML = window.__EXPORTED_DOC__;
 
-  // 2. Load star config into cfg (localStorage > exported > defaults)
   loadStarConfig();
 
-  // 3. Load page images
   const si = localStorage.getItem('canvas_images');
   if (si) { try{JSON.parse(si).forEach(img=>createImageElement(img))}catch(e){} }
   else if (window.__EXPORTED_IMAGES__ && Array.isArray(window.__EXPORTED_IMAGES__)) {
     window.__EXPORTED_IMAGES__.forEach(img=>createImageElement(img));
   }
 
+  // Text boxes
+  const stb = localStorage.getItem('canvas_textboxes');
+  if (stb) { try{JSON.parse(stb).forEach(tb=>createTextBox(tb))}catch(e){} }
+  else if (window.__EXPORTED_TEXTBOXES__ && Array.isArray(window.__EXPORTED_TEXTBOXES__)) {
+    window.__EXPORTED_TEXTBOXES__.forEach(tb=>createTextBox(tb));
+  }
+
   disableEditing();
   initStars();
+
+  // Close tb settings on outside click
+  document.addEventListener('mousedown', e => {
+    const panel = document.getElementById('tb-settings');
+    if (panel.classList.contains('open') && !e.target.closest('#tb-settings') && !e.target.closest('.text-box')) {
+      closeTbSettings();
+      deselectAllTextBoxes();
+    }
+  });
 });
 
 function loadStarConfig(){
-  // Priority 1: localStorage
   const saved = localStorage.getItem('canvas_star_config');
   if (saved) {
     try {
       const p = JSON.parse(saved);
       applyConfigObject(p);
-      cfg.global.triggerEnabled = false; // safety: always off on load
+      cfg.global.triggerEnabled = false;
       return;
     } catch(e) {}
   }
-  // Priority 2: exported baked config
   if (window.__EXPORTED_CFG__) {
     try {
       applyConfigObject(window.__EXPORTED_CFG__);
@@ -285,14 +341,12 @@ function loadStarConfig(){
     } catch(e) {}
   }
 }
-
 function applyConfigObject(p){
   if (!p) return;
   if (p.global) Object.assign(cfg.global, p.global);
   if (p.base) Object.assign(cfg.base, p.base);
   if (p.spawned) Object.assign(cfg.spawned, p.spawned);
   if (Array.isArray(p.effects) && p.effects.length) {
-    // Recompute runtime-only fields for bubble effects
     cfg.effects = p.effects.map(eff => {
       if (eff.type === 'bubble') {
         eff.spawnPoints = null;
@@ -315,31 +369,26 @@ function applyConfigObject(p){
     }
     return;
   }
-  // If no effects were saved, create defaults
   if (!cfg.effects || !cfg.effects.length) {
     cfg.effects = [createEffect('none')];
     cfg.activeEffectId = cfg.effects[0].id;
   }
 }
-
 function serializeConfig(){
-  // Strip runtime-only fields before saving/exporting
   const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
     if (key === 'maskData' || key === 'spawnPoints') return undefined;
     if (key === 'imagePool' || key === 'unusedPool') return undefined;
     return value;
   }));
-  clean.global.triggerEnabled = false; // never persist the trigger state
+  clean.global.triggerEnabled = false;
   return clean;
 }
-
 let _saveStarTimer = null;
 function saveStarConfig(){
   if (_saveStarTimer) clearTimeout(_saveStarTimer);
   _saveStarTimer = setTimeout(() => {
-    try {
-      localStorage.setItem('canvas_star_config', JSON.stringify(serializeConfig()));
-    } catch(e) { console.warn('Failed to save star config:', e); }
+    try { localStorage.setItem('canvas_star_config', JSON.stringify(serializeConfig())); }
+    catch(e) { console.warn('Failed to save star config:', e); }
   }, 120);
 }
 
@@ -381,6 +430,8 @@ function disableEditing(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{const e=b.firstElementChild;if(e)e.removeAttribute('contenteditable')});
   document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'));
   document.getElementById('bubble-editor-layer').innerHTML='';
+  closeTbSettings();
+  deselectAllTextBoxes();
 }
 function makeBlocksEditable(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
@@ -402,9 +453,10 @@ function addBlock(type){
 function autoSave(){localStorage.setItem('canvas_doc_content',canvasEl.innerHTML)}
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
-  if(confirm("Reset ALL page content, images, AND star settings?")){
+  if(confirm("Reset ALL page content, images, text boxes, AND star settings?")){
     localStorage.removeItem('canvas_doc_content');
     localStorage.removeItem('canvas_images');
+    localStorage.removeItem('canvas_textboxes');
     localStorage.removeItem('canvas_star_config');
     location.reload();
   }
@@ -492,6 +544,391 @@ document.addEventListener('mousedown',e=>{
 });
 
 /* =========================================================
+   TEXT BOXES
+========================================================= */
+const TB_DEFAULTS = {
+  text: 'Your text here',
+  x: 200, y: 200, width: 260, height: 100,
+  fontSize: 24,
+  fontFamily: "'Inter', sans-serif",
+  fontWeight: '600',
+  color: '#ffffff',
+  background: '#000000',
+  backgroundOpacity: 0,
+  outlineColor: '#6366f1',
+  outlineWidth: 0,
+  borderRadius: 8,
+  padding: 10,
+  textAlign: 'left',
+  lineHeight: 1.3,
+  letterSpacing: 0
+};
+
+function addTextBox(){
+  if(!isEditing) return;
+  const data = {
+    ...TB_DEFAULTS,
+    x: window.innerWidth/2 - 130 + (Math.random()*80 - 40),
+    y: window.innerHeight/2 - 50 + (Math.random()*80 - 40)
+  };
+  const el = createTextBox(data);
+  saveTextBoxes();
+  selectTextBox(el);
+  openTbSettings(el);
+}
+
+function applyTextBoxStyle(el, d){
+  el.style.left = d.x + 'px';
+  el.style.top = d.y + 'px';
+  el.style.width = d.width + 'px';
+  el.style.height = d.height + 'px';
+  el.style.fontSize = d.fontSize + 'px';
+  el.style.fontFamily = d.fontFamily;
+  el.style.fontWeight = d.fontWeight;
+  el.style.color = d.color;
+  el.style.padding = d.padding + 'px';
+  el.style.textAlign = d.textAlign;
+  el.style.lineHeight = d.lineHeight;
+  el.style.letterSpacing = d.letterSpacing + 'px';
+  el.style.borderRadius = d.borderRadius + 'px';
+  el.style.background = hexToRgba(d.background, d.backgroundOpacity);
+  el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${d.outlineColor}` : 'none';
+  el.style.boxSizing = 'border-box';
+  el.textContent = d.text || '';
+}
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  const r = (n>>16)&255, g = (n>>8)&255, b = n&255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function createTextBox(data){
+  const d = { ...TB_DEFAULTS, ...data };
+  const el = document.createElement('div');
+  el.className = 'text-box';
+  el.dataset.id = 'tb_' + Math.random().toString(36).slice(2,9);
+  // Store config on element
+  el.__config = d;
+
+  applyTextBoxStyle(el, d);
+
+  // Handles
+  el.innerHTML = `
+    <div class="tb-handle tb-gear" title="Settings"><i class="fa-solid fa-gear"></i></div>
+    <div class="tb-handle tb-del" title="Delete"><i class="fa-solid fa-xmark"></i></div>
+    <div class="tb-handle tb-resize" title="Resize"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>
+    <div class="tb-handle tb-drag" title="Drag"><i class="fa-solid fa-up-down-left-right"></i></div>
+  `;
+  // But textContent above would overwrite handles — reset properly
+  el.textContent = d.text || '';
+  const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
+  const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
+  const rs = document.createElement('div'); rs.className='tb-handle tb-resize'; rs.title='Resize'; rs.innerHTML='<i class="fa-solid fa-up-right-and-down-left-from-center"></i>';
+  const dr = document.createElement('div'); dr.className='tb-handle tb-drag'; dr.title='Drag'; dr.innerHTML='<i class="fa-solid fa-up-down-left-right"></i>';
+  el.appendChild(gear); el.appendChild(del); el.appendChild(rs); el.appendChild(dr);
+
+  // ----- Interactions -----
+  // Select on mousedown
+  el.addEventListener('mousedown', e => {
+    if(!isEditing) return;
+    if(e.target.closest('.tb-handle')) return;
+    selectTextBox(el);
+  });
+
+  // Drag via whole body (but only when in edit mode and not clicking handles)
+  let dg=false,sx=0,sy=0,ox=0,oy=0;
+  el.addEventListener('mousedown', e => {
+    if(!isEditing) return;
+    if(e.target.closest('.tb-handle')) return;
+    e.preventDefault();
+    dg=true;
+    sx=e.clientX; sy=e.clientY;
+    ox=d.x; oy=d.y;
+    const mv = ev => {
+      if(!dg) return;
+      d.x = ox + (ev.clientX - sx);
+      d.y = oy + (ev.clientY - sy);
+      el.style.left = d.x + 'px';
+      el.style.top = d.y + 'px';
+    };
+    const up = () => {
+      if(!dg) return;
+      dg=false;
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      saveTextBoxes();
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Drag handle
+  dr.addEventListener('mousedown', e => {
+    if(!isEditing) return;
+    e.preventDefault(); e.stopPropagation();
+    let sx2=e.clientX, sy2=e.clientY, ox2=d.x, oy2=d.y;
+    const mv = ev => {
+      d.x = ox2 + (ev.clientX - sx2);
+      d.y = oy2 + (ev.clientY - sy2);
+      el.style.left = d.x + 'px';
+      el.style.top = d.y + 'px';
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      saveTextBoxes();
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Resize
+  rs.addEventListener('mousedown', e => {
+    if(!isEditing) return;
+    e.preventDefault(); e.stopPropagation();
+    let sx2=e.clientX, sy2=e.clientY, ow=d.width, oh=d.height;
+    const mv = ev => {
+      d.width = Math.max(40, ow + (ev.clientX - sx2));
+      d.height = Math.max(30, oh + (ev.clientY - sy2));
+      el.style.width = d.width + 'px';
+      el.style.height = d.height + 'px';
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      saveTextBoxes();
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Delete
+  del.addEventListener('click', e => {
+    e.stopPropagation();
+    if(!isEditing) return;
+    if(confirm('Delete this text box?')) {
+      el.remove();
+      saveTextBoxes();
+      closeTbSettings();
+    }
+  });
+
+  // Gear → open settings
+  gear.addEventListener('click', e => {
+    e.stopPropagation();
+    if(!isEditing) return;
+    selectTextBox(el);
+    openTbSettings(el);
+  });
+
+  // Double-click → open settings
+  el.addEventListener('dblclick', e => {
+    if(!isEditing) return;
+    e.preventDefault();
+    selectTextBox(el);
+    openTbSettings(el);
+  });
+
+  textboxLayer.appendChild(el);
+  return el;
+}
+
+function selectTextBox(el){
+  document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function deselectAllTextBoxes(){
+  document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
+}
+
+function getTextBoxesData(){
+  return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => {
+    return { ...el.__config };
+  });
+}
+function saveTextBoxes(){
+  try { localStorage.setItem('canvas_textboxes', JSON.stringify(getTextBoxesData())); }
+  catch(e) { console.warn('Textbox save failed:', e); }
+}
+
+/* =========================================================
+   TEXT BOX SETTINGS PANEL
+========================================================= */
+let tbActiveEl = null;
+
+function openTbSettings(el){
+  tbActiveEl = el;
+  const panel = document.getElementById('tb-settings');
+  const body = document.getElementById('tb-body');
+  const d = el.__config;
+  body.innerHTML = '';
+
+  // TEXT
+  body.appendChild(sect('Content'));
+  body.appendChild(tbField('Text (multi-line)', () => {
+    const ta = document.createElement('textarea');
+    ta.value = d.text;
+    ta.addEventListener('input', () => { d.text = ta.value; el.textContent = ta.value; saveTextBoxes(); });
+    return ta;
+  }));
+
+  // TYPOGRAPHY
+  body.appendChild(sect('Typography'));
+  body.appendChild(tbNumRange('Font size (px)', d, 'fontSize', 6, 400, 1, v => {
+    el.style.fontSize = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbSelect('Font family', d, 'fontFamily', [
+    {value:"'Inter', sans-serif", label:'Inter'},
+    {value:"'Arial Black', Arial, sans-serif", label:'Arial Black'},
+    {value:"Arial, sans-serif", label:'Arial'},
+    {value:"Georgia, serif", label:'Georgia'},
+    {value:"'Courier New', monospace", label:'Courier'},
+    {value:"'Times New Roman', serif", label:'Times'},
+    {value:"'Comic Sans MS', cursive", label:'Comic Sans'},
+    {value:"Impact, sans-serif", label:'Impact'}
+  ], v => { el.style.fontFamily = v; saveTextBoxes(); }));
+  body.appendChild(tbSelect('Font weight', d, 'fontWeight', [
+    {value:'300', label:'Light'},{value:'400', label:'Regular'},
+    {value:'500', label:'Medium'},{value:'600', label:'Semi-bold'},
+    {value:'700', label:'Bold'},{value:'800', label:'Extra bold'},{value:'900', label:'Black'}
+  ], v => { el.style.fontWeight = v; saveTextBoxes(); }));
+  body.appendChild(tbNumRange('Line height', d, 'lineHeight', 0.5, 4, 0.05, v => {
+    el.style.lineHeight = v; saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Letter spacing (px)', d, 'letterSpacing', -5, 30, 0.1, v => {
+    el.style.letterSpacing = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbSelect('Text align', d, 'textAlign', [
+    {value:'left',label:'Left'},{value:'center',label:'Center'},
+    {value:'right',label:'Right'},{value:'justify',label:'Justify'}
+  ], v => { el.style.textAlign = v; saveTextBoxes(); }));
+
+  // COLORS
+  body.appendChild(sect('Colours'));
+  body.appendChild(tbColor('Text colour', d, 'color', v => {
+    el.style.color = v; saveTextBoxes();
+  }));
+  body.appendChild(tbColor('Background', d, 'background', v => {
+    el.style.background = hexToRgba(v, d.backgroundOpacity); saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Background opacity', d, 'backgroundOpacity', 0, 1, 0.01, v => {
+    el.style.background = hexToRgba(d.background, v); saveTextBoxes();
+  }));
+  body.appendChild(tbColor('Outline colour', d, 'outlineColor', v => {
+    el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${v}` : 'none';
+    saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Outline width (px)', d, 'outlineWidth', 0, 30, 0.5, v => {
+    el.style.border = v > 0 ? `${v}px solid ${d.outlineColor}` : 'none';
+    saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Border radius (px)', d, 'borderRadius', 0, 200, 1, v => {
+    el.style.borderRadius = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Padding (px)', d, 'padding', 0, 100, 1, v => {
+    el.style.padding = v + 'px'; saveTextBoxes();
+  }));
+
+  // POSITION / SIZE
+  body.appendChild(sect('Position & size'));
+  body.appendChild(tbNumRange('X', d, 'x', -5000, 5000, 1, v => {
+    el.style.left = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Y', d, 'y', -5000, 5000, 1, v => {
+    el.style.top = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Width', d, 'width', 30, 3000, 1, v => {
+    el.style.width = v + 'px'; saveTextBoxes();
+  }));
+  body.appendChild(tbNumRange('Height', d, 'height', 20, 3000, 1, v => {
+    el.style.height = v + 'px'; saveTextBoxes();
+  }));
+
+  // POSITION THE PANEL
+  panel.classList.add('open');
+  const rect = el.getBoundingClientRect();
+  const pw = panel.offsetWidth || 300;
+  const ph = Math.min(window.innerHeight - 40, 600);
+  let px = rect.right + 14;
+  if (px + pw > window.innerWidth - 10) px = rect.left - pw - 14;
+  if (px < 10) px = 10;
+  let py = rect.top;
+  if (py + ph > window.innerHeight - 10) py = window.innerHeight - ph - 10;
+  if (py < 10) py = 10;
+  panel.style.left = px + 'px';
+  panel.style.top = py + 'px';
+}
+
+function closeTbSettings(){
+  document.getElementById('tb-settings').classList.remove('open');
+  tbActiveEl = null;
+}
+
+function sect(label){
+  const d = document.createElement('div');
+  d.className = 'tb-sect';
+  d.textContent = label;
+  return d;
+}
+function tbField(label, buildFn){
+  const row = document.createElement('div'); row.className='row';
+  const l = document.createElement('label'); l.innerHTML = `<span class="lbl-text">${label}</span>`;
+  row.appendChild(l);
+  row.appendChild(buildFn());
+  return row;
+}
+function tbNumRange(label, obj, key, min, max, step, onChange){
+  const row = document.createElement('div'); row.className='row';
+  const lab = document.createElement('label');
+  const span = document.createElement('span'); span.className='lbl-text'; span.textContent = label;
+  const num = document.createElement('input'); num.type='number'; num.className='num-inline'; num.step='any';
+  num.value = obj[key];
+  lab.appendChild(span); lab.appendChild(num);
+  row.appendChild(lab);
+  const rng = document.createElement('input'); rng.type='range';
+  rng.min=min; rng.max=max; rng.step=step; rng.value=Math.min(Math.max(obj[key],min),max);
+  row.appendChild(rng);
+  const apply = (v, fromSlider) => {
+    let val = parseFloat(v); if(isNaN(val)) return;
+    if (fromSlider) val = Math.min(Math.max(val,min),max);
+    obj[key] = val;
+    num.value = val;
+    rng.value = Math.min(Math.max(val,min),max);
+    onChange && onChange(val);
+  };
+  num.addEventListener('input', ()=>apply(num.value,false));
+  rng.addEventListener('input', ()=>apply(rng.value,true));
+  return row;
+}
+function tbColor(label, obj, key, onChange){
+  const row = document.createElement('div'); row.className='row';
+  const lab = document.createElement('label');
+  const span = document.createElement('span'); span.className='lbl-text'; span.textContent = label;
+  lab.appendChild(span); row.appendChild(lab);
+  const inp = document.createElement('input'); inp.type='color'; inp.value = obj[key];
+  inp.addEventListener('input', ()=>{ obj[key] = inp.value; onChange && onChange(inp.value); });
+  row.appendChild(inp);
+  return row;
+}
+function tbSelect(label, obj, key, options, onChange){
+  const row = document.createElement('div'); row.className='row';
+  const lab = document.createElement('label');
+  const span = document.createElement('span'); span.className='lbl-text'; span.textContent = label;
+  lab.appendChild(span); row.appendChild(lab);
+  const sel = document.createElement('select');
+  options.forEach(o=>{
+    const opt = document.createElement('option'); opt.value=o.value; opt.textContent=o.label;
+    if (obj[key] === o.value) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', ()=>{ obj[key] = sel.value; onChange && onChange(sel.value); });
+  row.appendChild(sel);
+  return row;
+}
+
+/* =========================================================
    EFFECTS
 ========================================================= */
 let stars=[];
@@ -529,7 +966,7 @@ function createEffect(type){
   if(type==='images'){
     return {
       id,type,name:'Image Stars',
-      minStarsForImages:0,        // ← threshold for image replacement
+      minStarsForImages:0,
       folder:'strimiges',
       defaultSize:60,
       explicitList:'',
@@ -598,7 +1035,7 @@ function isInMask(effect,x,y){
 }
 
 /* =========================================================
-   CHARACTER BOUNDS + EDITOR
+   CHAR BOUNDS + EDITOR
 ========================================================= */
 let _boundsCtx=null;
 function getCharBounds(ch){
@@ -610,9 +1047,7 @@ function getCharBounds(ch){
   let h;
   if(m.actualBoundingBoxAscent!==undefined&&m.actualBoundingBoxAscent!==null){
     h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent;
-  }else{
-    h=ch.size*1.1;
-  }
+  }else{h=ch.size*1.1}
   return {w,h:Math.max(h,8)};
 }
 function rebuildBubbleEditor(){
@@ -629,45 +1064,25 @@ function rebuildBubbleEditor(){
     const div=document.createElement('div');
     div.className='char-editor';
     div.dataset.idx=idx;
-    div.style.width=b.w+'px';
-    div.style.height=b.h+'px';
-    div.style.left=(ch.x-b.w/2)+'px';
-    div.style.top=(ch.y-b.h/2)+'px';
+    div.style.width=b.w+'px';div.style.height=b.h+'px';
+    div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
     div.style.transform=`rotate(${ch.rotation||0}deg)`;
 
-    const label=document.createElement('div');
-    label.className='char-label';
-    label.textContent=`#${idx+1} ${ch.char||'·'}`;
-    div.appendChild(label);
+    const label=document.createElement('div');label.className='char-label';
+    label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
 
-    const rot=document.createElement('div');
-    rot.className='char-rotate-handle';
-    rot.title='Rotate (drag)';
-    rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';
-    div.appendChild(rot);
+    const rot=document.createElement('div');rot.className='char-rotate-handle';
+    rot.title='Rotate (drag)';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
 
     div.addEventListener('mousedown',e=>{
       if(e.target.closest('.char-rotate-handle'))return;
       if(!isEditing)return;
       e.preventDefault();
-      const sx=e.clientX,sy=e.clientY;
-      const ox=ch.x,oy=ch.y;
-      const mv=ev=>{
-        ch.x=ox+(ev.clientX-sx);
-        ch.y=oy+(ev.clientY-sy);
-        updateCharDiv(div,ch);
-      };
-      const up=()=>{
-        document.removeEventListener('mousemove',mv);
-        document.removeEventListener('mouseup',up);
-        computeBubbleMask(eff);
-        renderEffectList();
-        saveStarConfig();
-      };
-      document.addEventListener('mousemove',mv);
-      document.addEventListener('mouseup',up);
+      const sx=e.clientX,sy=e.clientY,ox=ch.x,oy=ch.y;
+      const mv=ev=>{ch.x=ox+(ev.clientX-sx);ch.y=oy+(ev.clientY-sy);updateCharDiv(div,ch)};
+      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);computeBubbleMask(eff);renderEffectList();saveStarConfig()};
+      document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
-
     rot.addEventListener('mousedown',e=>{
       if(!isEditing)return;
       e.preventDefault();e.stopPropagation();
@@ -679,15 +1094,8 @@ function rebuildBubbleEditor(){
         ch.rotation=startRot+(cur-startAngle);
         div.style.transform=`rotate(${ch.rotation}deg)`;
       };
-      const up=()=>{
-        document.removeEventListener('mousemove',mv);
-        document.removeEventListener('mouseup',up);
-        computeBubbleMask(eff);
-        renderEffectList();
-        saveStarConfig();
-      };
-      document.addEventListener('mousemove',mv);
-      document.addEventListener('mouseup',up);
+      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);computeBubbleMask(eff);renderEffectList();saveStarConfig()};
+      document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
 
     layer.appendChild(div);
@@ -695,10 +1103,8 @@ function rebuildBubbleEditor(){
 }
 function updateCharDiv(div,ch){
   const b=getCharBounds(ch);
-  div.style.width=b.w+'px';
-  div.style.height=b.h+'px';
-  div.style.left=(ch.x-b.w/2)+'px';
-  div.style.top=(ch.y-b.h/2)+'px';
+  div.style.width=b.w+'px';div.style.height=b.h+'px';
+  div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
   div.style.transform=`rotate(${ch.rotation||0}deg)`;
   const label=div.querySelector('.char-label');
   if(label)label.textContent=`#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
@@ -730,10 +1136,7 @@ async function loadEffectImages(effect){
     filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
   }
   if(!filenames.length){
-    try{
-      const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});
-      if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}
-    }catch(e){}
+    try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}
   }
   if(!filenames.length){
     try{
@@ -745,15 +1148,11 @@ async function loadEffectImages(effect){
       }
     }catch(e){}
   }
-  if(!filenames.length){
-    effect.loadError='No images found in "'+effect.folder+'/"';
-    renderEffectList();return;
-  }
+  if(!filenames.length){effect.loadError='No images found in "'+effect.folder+'/"';renderEffectList();return}
   const urls=filenames.map(f=>/^https?:\/\//.test(f)||f.startsWith('/')?f:effect.folder+'/'+f);
   const loaded=[];
   for(const u of urls){try{await preloadImage(u);loaded.push(u)}catch(e){}}
-  effect.imagePool=loaded;
-  effect.loaded=loaded.length>0;
+  effect.imagePool=loaded;effect.loaded=loaded.length>0;
   if(!effect.loaded)effect.loadError='Could not load any images.';
   renderEffectList();
 }
@@ -783,11 +1182,8 @@ function initStars(){
   nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
   cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)});
   buildGui();
-  // If active effect is image-based, kick off load
   const active = getActiveEffect();
-  if (active && active.type === 'images' && !active.loaded) {
-    loadEffectImages(active);
-  }
+  if (active && active.type === 'images' && !active.loaded) loadEffectImages(active);
   requestAnimationFrame(starLoop);
 }
 function resizeStarCanvas(){
@@ -804,23 +1200,11 @@ function getSpawnPoint(effect){
     const threshold=Number(effect.minStarsForBubble)||0;
     const overThreshold=stars.length>=threshold;
     if(overThreshold){
-      const b=effect.maskBounds;
-      const w=b.maxX-b.minX,h=b.maxY-b.minY;
-      for(let t=0;t<40;t++){
-        const x=b.minX+Math.random()*w;
-        const y=b.minY+Math.random()*h;
-        if(isInMask(effect,x,y))return{x,y};
-      }
-      if(effect.spawnPoints&&effect.spawnPoints.length){
-        const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];
-        return{x:p.x,y:p.y};
-      }
+      const b=effect.maskBounds;const w=b.maxX-b.minX,h=b.maxY-b.minY;
+      for(let t=0;t<40;t++){const x=b.minX+Math.random()*w;const y=b.minY+Math.random()*h;if(isInMask(effect,x,y))return{x,y}}
+      if(effect.spawnPoints&&effect.spawnPoints.length){const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];return{x:p.x,y:p.y}}
     } else if(effect.beforeThresholdMode==='avoid'){
-      for(let t=0;t<80;t++){
-        const x=Math.random()*W;
-        const y=Math.random()*H;
-        if(!isInMask(effect,x,y))return{x,y};
-      }
+      for(let t=0;t<80;t++){const x=Math.random()*W;const y=Math.random()*H;if(!isInMask(effect,x,y))return{x,y}}
     }
   }
   return{x:Math.random()*W,y:Math.random()*H};
@@ -832,15 +1216,11 @@ function spawnStar(isBase){
   const pt=getSpawnPoint(active);
   let imgUrl=null;
   if(active&&active.type==='images'&&active.imagePool.length){
-    // Only replace with images once we hit the threshold
     const threshold=Number(active.minStarsForImages)||0;
-    if(stars.length>=threshold){
-      imgUrl=pickNextImage(active);
-    }
+    if(stars.length>=threshold) imgUrl=pickNextImage(active);
   }
   stars.push({
-    x:pt.x,y:pt.y,isBase,
-    birth:now,
+    x:pt.x,y:pt.y,isBase,birth:now,
     deathStart:now+type.lifespan*1000,
     nextTick:now+type.tickMs,
     imgUrl,
@@ -893,20 +1273,17 @@ function renderStars(now,active){
     starCtx.lineWidth=active.outlineWidth;
     active.chars.forEach(ch=>{
       if(!ch.char)return;
-      starCtx.save();
-      starCtx.translate(ch.x,ch.y);
+      starCtx.save();starCtx.translate(ch.x,ch.y);
       if(ch.rotation)starCtx.rotate(ch.rotation*Math.PI/180);
       starCtx.font=`900 ${ch.size}px 'Arial Black', Arial, sans-serif`;
       starCtx.textAlign='center';starCtx.textBaseline='middle';
-      starCtx.strokeText(ch.char,0,0);
-      starCtx.restore();
+      starCtx.strokeText(ch.char,0,0);starCtx.restore();
     });
     starCtx.restore();
   }
   for(const s of stars){
     const type=s.isBase?cfg.base:cfg.spawned;
-    const fi=Math.max(1,type.fadeIn*1000);
-    const fo=Math.max(1,type.fadeOut*1000);
+    const fi=Math.max(1,type.fadeIn*1000),fo=Math.max(1,type.fadeOut*1000);
     let alpha=1,size=type.size;
     if(now<s.birth+fi)alpha=(now-s.birth)/fi;
     else if(now>=s.deathStart){
@@ -922,18 +1299,14 @@ function renderStars(now,active){
       const aspect=img.naturalWidth/img.naturalHeight;
       let dw,dh;
       if(aspect>1){dw=sSize;dh=sSize/aspect}else{dw=sSize*aspect;dh=sSize}
-      starCtx.save();
-      starCtx.translate(s.x,s.y);
+      starCtx.save();starCtx.translate(s.x,s.y);
       if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
-      starCtx.drawImage(img,-dw/2,-dh/2,dw,dh);
-      starCtx.restore();
+      starCtx.drawImage(img,-dw/2,-dh/2,dw,dh);starCtx.restore();
     }else{
-      starCtx.save();
-      starCtx.translate(s.x,s.y);
+      starCtx.save();starCtx.translate(s.x,s.y);
       if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
       starCtx.fillStyle=type.color;
-      drawShape(starCtx,0,0,size,type.shape);
-      starCtx.restore();
+      drawShape(starCtx,0,0,size,type.shape);starCtx.restore();
     }
   }
   starCtx.globalAlpha=1;
@@ -953,10 +1326,7 @@ function drawShape(ctx,x,y,s,shape){
         if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
       }
       ctx.closePath();ctx.fill();return;
-    case 'plus':{
-      const t=Math.max(1,s*0.34);
-      ctx.fillRect(x-t/2,y-h,t,s);ctx.fillRect(x-h,y-t/2,s,t);return;
-    }
+    case 'plus':{const t=Math.max(1,s*0.34);ctx.fillRect(x-t/2,y-h,t,s);ctx.fillRect(x-h,y-t/2,s,t);return}
     default:ctx.fillRect(x-h,y-h,s,s);
   }
 }
@@ -1000,8 +1370,7 @@ function widget_numRange(labelText,obj,key,opts={}){
   rng.value=Math.min(obj[key],max);
   row.appendChild(wrap);row.appendChild(rng);
   const apply=(v,fromSlider)=>{
-    let val=parseFloat(v);
-    if(isNaN(val))return;
+    let val=parseFloat(v);if(isNaN(val))return;
     if(val<min)val=min;
     if(fromSlider&&val>max)val=max;
     obj[key]=val;num.value=val;rng.value=Math.min(val,max);
@@ -1038,8 +1407,7 @@ function widget_toggle(labelText,obj,key,onChange){
   const tog=el('div','toggle-switch'+(obj[key]?' on':''));
   tog.addEventListener('click',()=>{
     tog.classList.toggle('on');obj[key]=tog.classList.contains('on');
-    if(onChange)onChange(obj[key]);
-    saveStarConfig();
+    if(onChange)onChange(obj[key]);saveStarConfig();
   });
   wrap.appendChild(tog);row.appendChild(wrap);return row;
 }
@@ -1216,15 +1584,9 @@ function buildEffectSettings(container,eff){
 
     eff.chars.forEach((ch,idx)=>{
       const row=el('div','char-row');
-
       const glyph=el('input','mini char-glyph');
       glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
-      glyph.addEventListener('input',()=>{
-        ch.char=glyph.value;
-        computeBubbleMask(eff);
-        updateCharDivByIndex(idx,ch);
-        saveStarConfig();
-      });
+      glyph.addEventListener('input',()=>{ch.char=glyph.value;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
 
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
       xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
@@ -1237,50 +1599,26 @@ function buildEffectSettings(container,eff){
 
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.title='Remove character';
-      del.addEventListener('click',()=>{
-        eff.chars.splice(idx,1);
-        computeBubbleMask(eff);
-        renderEffectList();
-        rebuildBubbleEditor();
-        saveStarConfig();
-      });
+      del.addEventListener('click',()=>{eff.chars.splice(idx,1);computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
 
-      row.appendChild(glyph);
-      row.appendChild(xin);
-      row.appendChild(yin);
-      row.appendChild(sin);
-      row.appendChild(rin);
-      row.appendChild(del);
-
+      row.appendChild(glyph);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(del);
       charsBox.appendChild(row);
     });
     container.appendChild(charsBox);
 
     const addCharBtn=el('button','gui-btn ghost');
     addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
-    addCharBtn.addEventListener('click',()=>{
-      eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
-    });
+    addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(addCharBtn);
 
     const reloadLayoutBtn=el('button','gui-btn ghost');
     reloadLayoutBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
-    reloadLayoutBtn.addEventListener('click',()=>{
-      eff.chars.forEach((ch,i)=>{
-        const c=defaultCharFor(i,eff.chars.length);
-        ch.x=c.x;ch.y=c.y;ch.rotation=0;
-      });
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
-    });
+    reloadLayoutBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(reloadLayoutBtn);
 
     const clearRotBtn=el('button','gui-btn ghost');
     clearRotBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations to 0';
-    clearRotBtn.addEventListener('click',()=>{
-      eff.chars.forEach(ch=>{ch.rotation=0});
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
-    });
+    clearRotBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(clearRotBtn);
 
     const outlineHeader=el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>');
@@ -1299,18 +1637,13 @@ function buildEffectSettings(container,eff){
   }
 
   if(eff.type==='images'){
-    // Threshold — same idea as bubble
     container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{
       min:0,max:100000000,step:1
     }));
-
     const thresh = Number(eff.minStarsForImages)||0;
     const threshInfo = el('div');
-    if (thresh === 0) {
-      threshInfo.innerHTML = `<span class="status-tag warn">Threshold = 0 → images from the very start</span>`;
-    } else {
-      threshInfo.innerHTML = `<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`;
-    }
+    if (thresh === 0) threshInfo.innerHTML = `<span class="status-tag warn">Threshold = 0 → images from the very start</span>`;
+    else threshInfo.innerHTML = `<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`;
     container.appendChild(threshInfo);
 
     container.appendChild(widget_text('Folder name',eff,'folder',null,false));
@@ -1344,11 +1677,7 @@ function buildEffectSettings(container,eff){
         const lbl=el('span',null,fn);lbl.style.flex='1';lbl.style.color='#a1a1aa';lbl.style.overflow='hidden';lbl.style.textOverflow='ellipsis';lbl.style.whiteSpace='nowrap';
         const num=el('input');num.type='number';num.className='num-inline';num.step='any';
         num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=10000;num.disabled=!isEx;
-        tog.addEventListener('change',()=>{
-          if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}
-          else{delete eff.exceptions[url];num.disabled=true}
-          saveStarConfig();
-        });
+        tog.addEventListener('change',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}else{delete eff.exceptions[url];num.disabled=true}saveStarConfig()});
         num.addEventListener('input',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;saveStarConfig()}});
         r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);
         exBox.appendChild(r);
@@ -1396,7 +1725,7 @@ function toggleStarGui(){
 }
 
 /* =========================================================
-   EXPORT — full page with config baked in
+   EXPORT
 ========================================================= */
 async function exportHTML(){
   const modal = document.getElementById('export-modal');
@@ -1408,12 +1737,10 @@ async function exportHTML(){
   statusEl.classList.add('hidden');
 
   try {
-    // Fetch this page's source — this gives us the pristine index.html
     const res = await fetch(window.location.href, { cache: 'no-store' });
     if (!res.ok) throw new Error('Could not fetch page source (' + res.status + ')');
     let source = await res.text();
 
-    // Build the baked payload
     const cfgJSON = JSON.stringify(serializeConfig());
     const docContent = canvasEl.innerHTML;
     const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(w => ({
@@ -1423,8 +1750,8 @@ async function exportHTML(){
       width: w.offsetWidth,
       height: w.offsetHeight
     }));
+    const textboxes = getTextBoxesData();
 
-    // Escape < so JSON strings don't break out of the script tag
     const safe = (str) => str.replace(/</g, '\\u003c');
 
     const bakedBlock = `<!-- BAKED_CONFIG_START -->
@@ -1432,13 +1759,12 @@ async function exportHTML(){
 window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
 window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};
 window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
+window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
 <\/script>
 <!-- BAKED_CONFIG_END -->`;
 
-    // Remove any existing baked block (idempotent re-export)
     source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
 
-    // Inject fresh baked block right before </head>
     if (source.includes('</head>')) {
       source = source.replace('</head>', bakedBlock + '\n</head>');
     } else {
@@ -1448,7 +1774,7 @@ window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
     ta.value = source;
     ta.placeholder = '';
     statusEl.className = 'text-xs';
-    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} page image${imgs.length===1?'':'s'} · ${cfg.effects.length} effect${cfg.effects.length===1?'':'s'}</span>`;
+    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} image${imgs.length===1?'':'s'} · ${textboxes.length} text box${textboxes.length===1?'':'es'} · ${cfg.effects.length} effect${cfg.effects.length===1?'':'s'}</span>`;
     statusEl.classList.remove('hidden');
   } catch (e) {
     ta.placeholder = 'Export failed.';
@@ -1466,9 +1792,7 @@ function downloadExportedHTML(){
   const a = document.createElement('a');
   a.href = url;
   a.download = 'index.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
 }
 
