@@ -1,707 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Interactive Canvas Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f0f11;
-            color: #f3f4f6;
-            overflow-x: hidden;
-        }
-
-        [contenteditable="true"]:focus {
-            outline: 2px dashed rgba(99, 102, 241, 0.5);
-            outline-offset: 4px;
-            border-radius: 4px;
-        }
-
-        .edit-block { position: relative; transition: all 0.2s ease; }
-        .is-editing .edit-block:hover {
-            background-color: rgba(255, 255, 255, 0.03);
-            border-radius: 6px;
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f0f11; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
-
-        /* ===== STAR CANVAS ===== */
-        #star-canvas {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* White flash overlay */
-        #flash-overlay {
-            position: fixed;
-            inset: 0;
-            background: #ffffff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 100;
-        }
-        #flash-overlay.flash {
-            animation: flashAnim 600ms ease-out;
-        }
-        @keyframes flashAnim {
-            0%   { opacity: 0; }
-            10%  { opacity: 0.95; }
-            100% { opacity: 0; }
-        }
-
-        /* ===== IMAGE LAYER ===== */
-        #image-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 20;
-        }
-        #image-layer .draggable-img {
-            position: absolute;
-            pointer-events: auto;
-            user-select: none;
-            touch-action: none;
-        }
-        #image-layer .draggable-img img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-
-        .resize-handle {
-            position: absolute;
-            right: -8px; bottom: -8px;
-            width: 18px; height: 18px;
-            background: #6366f1;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            cursor: nwse-resize;
-            display: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-        .delete-btn {
-            position: absolute;
-            right: -10px; top: -10px;
-            width: 24px; height: 24px;
-            background: #ef4444;
-            color: #fff;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            cursor: pointer;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-
-        body.is-editing #image-layer .draggable-img:hover .resize-handle,
-        body.is-editing #image-layer .draggable-img:hover .delete-btn,
-        body.is-editing #image-layer .draggable-img.selected .resize-handle,
-        body.is-editing #image-layer .draggable-img.selected .delete-btn {
-            display: flex;
-        }
-        body.is-editing #image-layer .draggable-img.selected img {
-            outline: 2px dashed #6366f1;
-            outline-offset: 2px;
-        }
-
-        body:not(.is-editing) #image-layer .draggable-img { cursor: default; }
-
-        body.is-editing.dragover-file main::after {
-            content: "Drop image to add it";
-            position: fixed;
-            inset: 0;
-            background: rgba(99,102,241,0.15);
-            border: 3px dashed #6366f1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            color: #a5b4fc;
-            pointer-events: none;
-            z-index: 30;
-        }
-
-        /* ===== STAR GUI PANEL ===== */
-        #star-gui {
-            position: fixed;
-            top: 80px;
-            right: 16px;
-            width: 300px;
-            max-height: calc(100vh - 100px);
-            overflow-y: auto;
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 14px;
-            z-index: 60;
-            font-size: 11px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-        }
-        #star-gui.hidden { display: none; }
-        #star-gui .gui-header {
-            padding: 10px 12px;
-            border-bottom: 1px solid #27272a;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: move;
-            user-select: none;
-        }
-        #star-gui .gui-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-        #star-gui .row { display: flex; flex-direction: column; gap: 3px; }
-        #star-gui label {
-            color: #a1a1aa;
-            font-weight: 500;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10.5px;
-            letter-spacing: 0.02em;
-        }
-        #star-gui label .val { color: #818cf8; font-family: monospace; font-size: 11px; }
-        #star-gui input[type="range"] {
-            width: 100%;
-            accent-color: #6366f1;
-            height: 4px;
-        }
-        #star-gui input[type="number"],
-        #star-gui input[type="color"] {
-            width: 100%;
-            background: #0f0f11;
-            border: 1px solid #27272a;
-            border-radius: 6px;
-            padding: 4px 6px;
-            color: #e4e4e7;
-            font-size: 11px;
-            font-family: monospace;
-        }
-        #star-gui input[type="color"] {
-            height: 28px;
-            padding: 2px;
-            cursor: pointer;
-        }
-        #star-gui .section-title {
-            font-size: 9.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #6366f1;
-            font-weight: 700;
-            padding-top: 6px;
-            border-top: 1px solid #27272a;
-            margin-top: 4px;
-        }
-        #star-gui .section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
-
-        .toggle-switch {
-            position: relative;
-            width: 32px; height: 18px;
-            background: #3f3f46;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px; left: 2px;
-            width: 14px; height: 14px;
-            background: #fff;
-            border-radius: 50%;
-            transition: transform 0.2s;
-        }
-        .toggle-switch.on { background: #6366f1; }
-        .toggle-switch.on::after { transform: translateX(14px); }
-
-        .gui-btn {
-            width: 100%;
-            padding: 6px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-            border: none;
-        }
-        .gui-btn.primary { background: #6366f1; color: #fff; }
-        .gui-btn.primary:hover { background: #818cf8; }
-        .gui-btn.danger { background: #7f1d1d; color: #fecaca; }
-        .gui-btn.danger:hover { background: #991b1b; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Interactive Canvas Page</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body { font-family:'Inter',sans-serif; background:#0f0f11; color:#f3f4f6; overflow-x:hidden; }
+    [contenteditable="true"]:focus { outline:2px dashed rgba(99,102,241,.5); outline-offset:4px; border-radius:4px; }
+    .edit-block { position:relative; transition:all .2s ease; }
+    .is-editing .edit-block:hover { background:rgba(255,255,255,.03); border-radius:6px; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-track { background:#0f0f11; }
+    ::-webkit-scrollbar-thumb { background:#27272a; border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:#3f3f46; }
+    #star-canvas { position:fixed; inset:0; width:100vw; height:100vh; z-index:1; pointer-events:none; }
+    #flash-overlay { position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:200; }
+    #flash-overlay.flash { animation:flashAnim 700ms ease-out; }
+    @keyframes flashAnim { 0%{opacity:0} 12%{opacity:.95} 100%{opacity:0} }
+    #image-layer { position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:20; }
+    #image-layer .draggable-img { position:absolute; pointer-events:auto; user-select:none; touch-action:none; }
+    #image-layer .draggable-img img { width:100%; height:100%; object-fit:cover; display:block; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,.5); pointer-events:none; }
+    .resize-handle { position:absolute; right:-8px; bottom:-8px; width:18px; height:18px; background:#6366f1; border:2px solid #fff; border-radius:50%; cursor:nwse-resize; display:none; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+    .delete-btn { position:absolute; right:-10px; top:-10px; width:24px; height:24px; background:#ef4444; color:#fff; border-radius:50%; display:none; align-items:center; justify-content:center; font-size:11px; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+    body.is-editing #image-layer .draggable-img:hover .resize-handle,
+    body.is-editing #image-layer .draggable-img:hover .delete-btn,
+    body.is-editing #image-layer .draggable-img.selected .resize-handle,
+    body.is-editing #image-layer .draggable-img.selected .delete-btn { display:flex; }
+    body.is-editing #image-layer .draggable-img.selected img { outline:2px dashed #6366f1; outline-offset:2px; }
+    body.is-editing.dragover-file main::after { content:"Drop image to add it"; position:fixed; inset:0; background:rgba(99,102,241,.15); border:3px dashed #6366f1; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; color:#a5b4fc; pointer-events:none; z-index:30; }
+    #star-gui { position:fixed; top:80px; right:16px; width:310px; max-height:calc(100vh - 100px); overflow-y:auto; background:#18181b; border:1px solid #27272a; border-radius:14px; z-index:60; font-size:11px; box-shadow:0 20px 50px rgba(0,0,0,.6); }
+    #star-gui.hidden { display:none; }
+    #star-gui .gui-header { padding:10px 12px; border-bottom:1px solid #27272a; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#18181b; z-index:2; }
+    #star-gui .gui-body { padding:10px 12px 16px; display:flex; flex-direction:column; gap:10px; }
+    #star-gui .row { display:flex; flex-direction:column; gap:3px; }
+    #star-gui label { color:#a1a1aa; font-weight:500; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; letter-spacing:.02em; }
+    #star-gui label .val { color:#818cf8; font-family:monospace; font-size:11px; }
+    #star-gui input[type="range"] { width:100%; accent-color:#6366f1; height:4px; }
+    #star-gui input[type="color"] { width:100%; height:28px; padding:2px; cursor:pointer; background:#0f0f11; border:1px solid #27272a; border-radius:6px; }
+    #star-gui .section-title { font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:#6366f1; font-weight:700; padding-top:8px; border-top:1px solid #27272a; margin-top:4px; }
+    #star-gui .section-title:first-child { border-top:none; margin-top:0; padding-top:0; }
+    .toggle-switch { position:relative; width:32px; height:18px; background:#3f3f46; border-radius:10px; cursor:pointer; transition:background .2s; flex-shrink:0; }
+    .toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:#fff; border-radius:50%; transition:transform .2s; }
+    .toggle-switch.on { background:#6366f1; }
+    .toggle-switch.on::after { transform:translateX(14px); }
+    .gui-btn { width:100%; padding:7px; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; transition:all .15s; border:none; }
+    .gui-btn.danger { background:#7f1d1d; color:#fecaca; }
+    .gui-btn.danger:hover { background:#991b1b; }
+</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-    <!-- Star canvas (background) -->
-    <canvas id="star-canvas"></canvas>
-    <div id="flash-overlay"></div>
+<canvas id="star-canvas"></canvas>
+<div id="flash-overlay"></div>
 
-    <!-- Top Bar -->
-    <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
-        <div class="max-w-5xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
-                <span class="text-[10px] text-zinc-500 font-mono" id="star-count">0★</span>
-            </div>
-
-            <div class="flex items-center gap-3 flex-wrap">
-                <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
-                    <i class="fa-solid fa-code"></i> Export Code
-                </button>
-
-                <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-rotate-left"></i> Reset
-                </button>
-
-                <button id="star-gui-btn" onclick="toggleStarGui()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-star"></i> Star Settings
-                </button>
-
-                <button id="toggle-edit-btn" onclick="requestEditModeToggle()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-lock" id="lock-icon"></i> <span id="toggle-text">Admin Login</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Floating Toolbar -->
-    <div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg flex-wrap max-w-[95vw]">
-        <button onclick="execCmd('bold')" title="Bold" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-bold"></i></button>
-        <button onclick="execCmd('italic')" title="Italic" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
-        <button onclick="execCmd('underline')" title="Underline" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
-        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-        <button onclick="addBlock('h1')" title="Add Heading" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H1</button>
-        <button onclick="addBlock('h2')" title="Add Subheading" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H2</button>
-        <button onclick="addBlock('p')" title="Add Paragraph" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">Text</button>
-        <button onclick="addBlock('quote')" title="Add Quote" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-quote-left"></i></button>
-        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-        <button onclick="execCmd('justifyLeft')" title="Align Left" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-left"></i></button>
-        <button onclick="execCmd('justifyCenter')" title="Align Center" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
-        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-        <button onclick="triggerImageUpload()" title="Upload Image" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3">
-            <i class="fa-solid fa-image"></i> Add Image
-        </button>
-        <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
+<header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></div>
+      <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
+      <span class="text-[10px] text-zinc-500 font-mono" id="star-count">0★</span>
     </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+        <i class="fa-solid fa-code"></i> Export Code
+      </button>
+      <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </button>
+      <button id="star-gui-btn" onclick="toggleStarGui()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
+        <i class="fa-solid fa-star"></i> Star Settings
+      </button>
+      <button id="toggle-edit-btn" onclick="requestEditModeToggle()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
+        <i class="fa-solid fa-lock" id="lock-icon"></i> <span id="toggle-text">Admin Login</span>
+      </button>
+    </div>
+  </div>
+</header>
 
-    <!-- Star GUI -->
-    <div id="star-gui" class="hidden">
-        <div class="gui-header" id="star-gui-header">
-            <span class="text-xs font-bold text-white"><i class="fa-solid fa-star text-indigo-400 mr-1.5"></i>Star Settings</span>
-            <button onclick="toggleStarGui()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="gui-body">
+<div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg flex-wrap max-w-[95vw]">
+  <button onclick="execCmd('bold')" title="Bold" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-bold"></i></button>
+  <button onclick="execCmd('italic')" title="Italic" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
+  <button onclick="execCmd('underline')" title="Underline" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
+  <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+  <button onclick="addBlock('h1')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H1</button>
+  <button onclick="addBlock('h2')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H2</button>
+  <button onclick="addBlock('p')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">Text</button>
+  <button onclick="addBlock('quote')" title="Add Quote" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-quote-left"></i></button>
+  <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+  <button onclick="execCmd('justifyLeft')" title="Align Left" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-left"></i></button>
+  <button onclick="execCmd('justifyCenter')" title="Align Center" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
+  <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+  <button onclick="triggerImageUpload()" title="Upload Image" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3">
+    <i class="fa-solid fa-image"></i> Add Image
+  </button>
+  <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
+</div>
 
-            <div class="section-title">Base Spawning</div>
+<div id="star-gui" class="hidden">
+  <div class="gui-header">
+    <span class="text-xs font-bold text-white"><i class="fa-solid fa-star text-indigo-400 mr-1.5"></i>Star Settings</span>
+    <button onclick="toggleStarGui()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="gui-body">
+    <div class="section-title">Base Spawning</div>
+    <div class="row"><label>Spawn interval (ms) <span class="val" id="v-spawnInt">800</span></label><input type="range" id="i-spawnInt" min="50" max="5000" step="50" value="800"></div>
+    <div class="row"><label>Base star lifespan (s) <span class="val" id="v-life">3.0</span></label><input type="range" id="i-life" min="0.3" max="20" step="0.1" value="3"></div>
 
-            <div class="row">
-                <label>Spawn interval (ms) <span class="val" id="v-spawnInt">800</span></label>
-                <input type="range" id="i-spawnInt" min="50" max="5000" step="50" value="800">
+    <div class="section-title">Reproduction</div>
+    <div class="row"><label>Spawn chance w <span class="val" id="v-chance">5</span>%</label><input type="range" id="i-chance" min="0" max="100" step="1" value="5"></div>
+    <div class="row"><label>Tick interval z (ms) <span class="val" id="v-tick">200</span></label><input type="range" id="i-tick" min="20" max="2000" step="10" value="200"></div>
+
+    <div class="section-title">Limits &amp; Trigger</div>
+    <div class="row"><label>Max stars N <span class="val" id="v-max">500</span></label><input type="range" id="i-max" min="10" max="3000" step="10" value="500"></div>
+    <div class="row"><label><span>Trigger at N (white flash + reset)</span><div class="toggle-switch" id="t-trigger"></div></label></div>
+
+    <div class="section-title">Appearance</div>
+    <div class="row"><label>Star pixel size <span class="val" id="v-size">3</span></label><input type="range" id="i-size" min="1" max="16" step="1" value="3"></div>
+    <div class="row"><label>Base star color</label><input type="color" id="i-baseColor" value="#ffffff"></div>
+    <div class="row"><label>Spawned star color</label><input type="color" id="i-spawnColor" value="#a5b4fc"></div>
+    <div class="row"><label>Fade-in duration (s) <span class="val" id="v-fadeIn">0.4</span></label><input type="range" id="i-fadeIn" min="0" max="3" step="0.05" value="0.4"></div>
+
+    <div class="section-title">Death Style</div>
+    <div class="row"><label><span>Flash out (mini explosion)</span><div class="toggle-switch on" id="t-flashOut"></div></label></div>
+    <div class="row"><label>Fade-out duration (s) <span class="val" id="v-fadeOut">0.5</span></label><input type="range" id="i-fadeOut" min="0" max="3" step="0.05" value="0.5"></div>
+
+    <div class="section-title">Controls</div>
+    <button class="gui-btn danger" onclick="resetStars()"><i class="fa-solid fa-bomb mr-1"></i> Reset All Stars</button>
+  </div>
+</div>
+
+<main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
+  <div id="document-canvas" class="space-y-6">
+    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings to tune the background live.</p></div>
+    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Base stars seed the field. Spawned stars take over."</blockquote></div>
+  </div>
+  <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
+    <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto"><i class="fa-solid fa-plus"></i> Click to add a new text block</button>
+  </div>
+</main>
+
+<div id="image-layer"></div>
+
+<div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+    <div class="text-center">
+      <div class="w-12 h-12 bg-indigo-600/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-key text-lg"></i></div>
+      <h3 class="text-lg font-bold text-white">Enter Password</h3>
+      <p class="text-xs text-zinc-400 mt-1">Default password is <span class="text-indigo-400 font-mono">admin</span></p>
+    </div>
+    <form onsubmit="handlePasswordSubmit(event)" class="space-y-3">
+      <input type="password" id="pass-input" placeholder="Password..." class="w-full bg-[#0f0f11] border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all">
+      <div class="flex gap-2">
+        <button type="button" onclick="closeModal()" class="w-1/2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium py-2 rounded-xl transition-all">Cancel</button>
+        <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-xl transition-all">Unlock</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML for GitHub</h3>
+      <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="text-xs text-zinc-400">Paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub.</p>
+    <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
+    <div class="flex justify-end"><button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2"><i class="fa-regular fa-copy"></i> Copy to Clipboard</button></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DOC EDIT MODE
+========================================================= */
+let isEditing = false;
+const ADMIN_PASS = "admin";
+
+const canvasEl = document.getElementById('document-canvas');
+const imageLayer = document.getElementById('image-layer');
+const statusBadge = document.getElementById('status-badge');
+const statusDot = document.getElementById('status-dot');
+const lockIcon = document.getElementById('lock-icon');
+const toggleText = document.getElementById('toggle-text');
+const exportBtn = document.getElementById('export-btn');
+const resetBtn = document.getElementById('reset-btn');
+const addBlockContainer = document.getElementById('add-block-container');
+const formattingToolbar = document.getElementById('formatting-toolbar');
+const imageUploadInput = document.getElementById('image-upload');
+const starGuiBtn = document.getElementById('star-gui-btn');
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedContent = localStorage.getItem('canvas_doc_content');
+  if (savedContent) canvasEl.innerHTML = savedContent;
+  const savedImages = localStorage.getItem('canvas_images');
+  if (savedImages) { try { JSON.parse(savedImages).forEach(img => createImageElement(img)); } catch(e){} }
+  disableEditing();
+  initStars();
+});
+
+function requestEditModeToggle() {
+  if (isEditing) { isEditing = false; disableEditing(); }
+  else { document.getElementById('password-modal').classList.remove('hidden'); document.getElementById('pass-input').focus(); }
+}
+function closeModal() { document.getElementById('password-modal').classList.add('hidden'); document.getElementById('pass-input').value = ''; }
+function handlePasswordSubmit(e) {
+  e.preventDefault();
+  if (document.getElementById('pass-input').value === ADMIN_PASS) { isEditing = true; closeModal(); enableEditing(); }
+  else alert('Incorrect password!');
+}
+function enableEditing() {
+  document.body.classList.add('is-editing');
+  statusBadge.textContent = "Edit Mode Active";
+  statusDot.className = "w-3 h-3 rounded-full bg-indigo-500 animate-pulse";
+  lockIcon.className = "fa-solid fa-unlock text-indigo-400";
+  toggleText.textContent = "Exit Edit Mode";
+  exportBtn.classList.remove('hidden');
+  resetBtn.classList.remove('hidden');
+  addBlockContainer.classList.remove('hidden');
+  formattingToolbar.classList.remove('hidden');
+  starGuiBtn.classList.remove('hidden');
+  makeBlocksEditable();
+}
+function disableEditing() {
+  document.body.classList.remove('is-editing');
+  statusBadge.textContent = "Visitor View";
+  statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
+  lockIcon.className = "fa-solid fa-lock";
+  toggleText.textContent = "Admin Login";
+  exportBtn.classList.add('hidden');
+  resetBtn.classList.add('hidden');
+  addBlockContainer.classList.add('hidden');
+  formattingToolbar.classList.add('hidden');
+  starGuiBtn.classList.add('hidden');
+  document.getElementById('star-gui').classList.add('hidden');
+  canvasEl.querySelectorAll('.edit-block').forEach(block => {
+    const el = block.firstElementChild;
+    if (el) el.removeAttribute('contenteditable');
+  });
+  document.querySelectorAll('.draggable-img').forEach(d => d.classList.remove('selected'));
+}
+function makeBlocksEditable() {
+  canvasEl.querySelectorAll('.edit-block').forEach(block => {
+    const el = block.firstElementChild;
+    if (el) { el.contentEditable = "true"; el.addEventListener('input', autoSave); }
+  });
+}
+function addBlock(type) {
+  if (!isEditing) return;
+  const div = document.createElement('div');
+  div.className = "edit-block group relative";
+  let inner;
+  if (type === 'h1') inner = `<h1 class="text-3xl font-bold text-white">New Title Header</h1>`;
+  else if (type === 'h2') inner = `<h2 class="text-xl font-semibold text-zinc-200">New Subtitle</h2>`;
+  else if (type === 'quote') inner = `<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
+  else inner = `<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
+  div.innerHTML = inner;
+  canvasEl.appendChild(div);
+  const el = div.firstElementChild;
+  el.contentEditable = "true";
+  el.addEventListener('input', autoSave);
+  el.focus(); autoSave();
+}
+function autoSave() { localStorage.setItem('canvas_doc_content', canvasEl.innerHTML); }
+function execCmd(cmd) { if (!isEditing) return; document.execCommand(cmd, false, null); autoSave(); }
+function resetCanvas() {
+  if (confirm("Reset ALL content and images? (Stars are unaffected)")) {
+    localStorage.removeItem('canvas_doc_content');
+    localStorage.removeItem('canvas_images');
+    location.reload();
+  }
+}
+
+/* =========================================================
+   IMAGE HANDLING
+========================================================= */
+function triggerImageUpload() { if (isEditing) imageUploadInput.click(); }
+imageUploadInput.addEventListener('change', (e) => {
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      createImageElement({ src: ev.target.result, x: Math.max(40, window.innerWidth/2 - 160 + (Math.random()*80-40)), y: 160 + Math.random()*120, width: 320, height: 240 });
+      saveImages();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
+document.addEventListener('paste', (e) => {
+  if (!isEditing) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) if (item.type.startsWith('image/')) {
+    const file = item.getAsFile();
+    const reader = new FileReader();
+    reader.onload = (ev) => { createImageElement({ src: ev.target.result, x: window.innerWidth/2-160, y: 200, width: 320, height: 240 }); saveImages(); };
+    reader.readAsDataURL(file);
+  }
+});
+document.addEventListener('dragover', (e) => {
+  if (!isEditing) return;
+  if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); document.body.classList.add('dragover-file'); }
+});
+document.addEventListener('dragleave', (e) => { if (e.relatedTarget === null) document.body.classList.remove('dragover-file'); });
+document.addEventListener('drop', (e) => {
+  if (!isEditing) return;
+  if (e.dataTransfer?.files?.length) {
+    e.preventDefault(); document.body.classList.remove('dragover-file');
+    Array.from(e.dataTransfer.files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => { createImageElement({ src: ev.target.result, x: e.clientX-160, y: e.clientY-120, width: 320, height: 240 }); saveImages(); };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+function createImageElement(data) {
+  const wrap = document.createElement('div');
+  wrap.className = 'draggable-img';
+  wrap.style.left = data.x + 'px';
+  wrap.style.top = data.y + 'px';
+  wrap.style.width = (data.width || 320) + 'px';
+  wrap.style.height = (data.height || 240) + 'px';
+  wrap.dataset.src = data.src;
+  wrap.innerHTML = `<img src="${data.src}" draggable="false" alt=""><div class="delete-btn" title="Delete"><i class="fa-solid fa-xmark"></i></div><div class="resize-handle" title="Resize"></div>`;
+  wrap.querySelector('.delete-btn').addEventListener('click', (e) => {
+    e.stopPropagation(); if (!isEditing) return;
+    if (confirm('Delete this image?')) { wrap.remove(); saveImages(); }
+  });
+  let dragging=false, sx=0, sy=0, ol=0, ot=0;
+  wrap.addEventListener('mousedown', (e) => {
+    if (!isEditing) return;
+    if (e.target.classList.contains('resize-handle') || e.target.classList.contains('delete-btn')) return;
+    e.preventDefault(); dragging = true; wrap.classList.add('selected');
+    document.querySelectorAll('.draggable-img').forEach(d => { if (d !== wrap) d.classList.remove('selected'); });
+    sx = e.clientX; sy = e.clientY; ol = parseFloat(wrap.style.left)||0; ot = parseFloat(wrap.style.top)||0;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  function onMove(e) { if (!dragging) return; wrap.style.left = (ol + e.clientX - sx) + 'px'; wrap.style.top = (ot + e.clientY - sy) + 'px'; }
+  function onUp() { if (!dragging) return; dragging = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); saveImages(); }
+  let resizing=false, rx=0, ry=0, rw=0, rh=0;
+  const handle = wrap.querySelector('.resize-handle');
+  handle.addEventListener('mousedown', (e) => {
+    if (!isEditing) return;
+    e.preventDefault(); e.stopPropagation(); resizing = true;
+    rx = e.clientX; ry = e.clientY; rw = wrap.offsetWidth; rh = wrap.offsetHeight;
+    document.addEventListener('mousemove', onResize);
+    document.addEventListener('mouseup', onResizeUp);
+  });
+  function onResize(e) { if (!resizing) return; wrap.style.width = Math.max(60, rw + e.clientX - rx) + 'px'; wrap.style.height = Math.max(60, rh + e.clientY - ry) + 'px'; }
+  function onResizeUp() { if (!resizing) return; resizing = false; document.removeEventListener('mousemove', onResize); document.removeEventListener('mouseup', onResizeUp); saveImages(); }
+  imageLayer.appendChild(wrap);
+  return wrap;
+}
+function saveImages() {
+  const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(w => ({
+    src: w.dataset.src, x: parseFloat(w.style.left)||0, y: parseFloat(w.style.top)||0,
+    width: w.offsetWidth, height: w.offsetHeight
+  }));
+  try { localStorage.setItem('canvas_images', JSON.stringify(imgs)); }
+  catch(e) { alert('Storage full — try smaller images.'); }
+}
+document.addEventListener('mousedown', (e) => {
+  if (!e.target.closest('.draggable-img')) document.querySelectorAll('.draggable-img').forEach(d => d.classList.remove('selected'));
+});
+
+/* =========================================================
+   STAR SYSTEM
+========================================================= */
+const cfg = {
+  spawnInterval: 800,     // ms between base spawn attempts
+  lifespan: 3,            // seconds a star lives before dying
+  spawnChance: 5,         // % per tick
+  tickInterval: 200,      // ms between repro rolls
+  maxStars: 500,          // N
+  triggerEnabled: false,  // default OFF, resets every reload
+  size: 3,
+  baseColor: '#ffffff',
+  spawnColor: '#a5b4fc',
+  fadeIn: 0.4,            // s
+  flashOut: true,
+  fadeOut: 0.5            // s
+};
+
+let stars = [];
+let lastBaseSpawn = 0;
+let starCanvas, starCtx;
+let dpr = 1;
+
+function initStars() {
+  starCanvas = document.getElementById('star-canvas');
+  starCtx = starCanvas.getContext('2d');
+  resizeStarCanvas();
+  window.addEventListener('resize', resizeStarCanvas);
+  lastBaseSpawn = performance.now();
+  requestAnimationFrame(starLoop);
+  bindGui();
+}
+
+function resizeStarCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  starCanvas.width = window.innerWidth * dpr;
+  starCanvas.height = window.innerHeight * dpr;
+  starCanvas.style.width = window.innerWidth + 'px';
+  starCanvas.style.height = window.innerHeight + 'px';
+  starCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function spawnStar(isBase) {
+  const now = performance.now();
+  const lifeMs = cfg.lifespan * 1000;
+  stars.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    isBase,
+    birth: now,
+    deathStart: now + lifeMs,
+    nextTick: now + cfg.tickInterval,
+    color: isBase ? cfg.baseColor : cfg.spawnColor
+  });
+}
+
+function starLoop() {
+  requestAnimationFrame(starLoop);
+  const now = performance.now();
+
+  // ---- Base spawning gate ----
+  // Base stars only spawn while there are NO spawned stars alive.
+  const hasSpawned = stars.some(s => !s.isBase);
+
+  if (hasSpawned) {
+    lastBaseSpawn = now;                 // pause: keep timer fresh
+  } else if (stars.length < cfg.maxStars) {
+    if (now - lastBaseSpawn >= cfg.spawnInterval) {
+      spawnStar(true);
+      lastBaseSpawn = now;
+    }
+  }
+
+  // ---- Per-star update ----
+  for (let i = stars.length - 1; i >= 0; i--) {
+    const s = stars[i];
+
+    // Death?
+    if (now >= s.deathStart + cfg.fadeOut * 1000) {
+      stars.splice(i, 1);
+      continue;
+    }
+
+    // Reproduction (only while alive, pre-death)
+    if (now < s.deathStart && now >= s.nextTick) {
+      s.nextTick = now + cfg.tickInterval;
+      if (Math.random() * 100 < cfg.spawnChance && stars.length < cfg.maxStars) {
+        spawnStar(false);
+      }
+    }
+  }
+
+  // ---- N-star trigger ----
+  if (cfg.triggerEnabled && stars.length >= cfg.maxStars) {
+    flashScreen();
+    stars = [];
+    lastBaseSpawn = now;
+  }
+
+  // ---- Render ----
+  renderStars(now);
+  updateStarCount();
+}
+
+function renderStars(now) {
+  const W = window.innerWidth, H = window.innerHeight;
+  starCtx.clearRect(0, 0, W, H);
+
+  const fadeInMs = Math.max(1, cfg.fadeIn * 1000);
+  const fadeOutMs = Math.max(1, cfg.fadeOut * 1000);
+
+  for (const s of stars) {
+    let alpha = 1;
+    let size = cfg.size;
+
+    if (now < s.birth + fadeInMs) {
+      alpha = (now - s.birth) / fadeInMs;
+    } else if (now >= s.deathStart) {
+      const t = (now - s.deathStart) / fadeOutMs; // 0..1
+      if (cfg.flashOut) {
+        alpha = Math.pow(1 - t, 2);
+        size = cfg.size * (1 + t * 2.5);
+      } else {
+        alpha = 1 - t;
+      }
+    }
+
+    if (alpha <= 0) continue;
+
+    starCtx.globalAlpha = Math.min(1, alpha);
+    starCtx.fillStyle = s.color;
+    starCtx.fillRect(s.x - size/2, s.y - size/2, size, size);
+  }
+  starCtx.globalAlpha = 1;
+}
+
+let lastCountShown = -1;
+function updateStarCount() {
+  if (stars.length !== lastCountShown) {
+    lastCountShown = stars.length;
+    const baseCount = stars.filter(s => s.isBase).length;
+    document.getElementById('star-count').textContent = `${stars.length}★ (${baseCount} base)`;
+  }
+}
+
+function flashScreen() {
+  const el = document.getElementById('flash-overlay');
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function resetStars() { stars = []; lastBaseSpawn = performance.now(); }
+
+/* =========================================================
+   STAR GUI WIRING
+========================================================= */
+function toggleStarGui() {
+  if (!isEditing) return;
+  document.getElementById('star-gui').classList.toggle('hidden');
+}
+
+function bindGui() {
+  const bindSlider = (id, key, fmt) => {
+    const input = document.getElementById('i-' + id);
+    const label = document.getElementById('v-' + id);
+    const apply = () => {
+      cfg[key] = parseFloat(input.value);
+      label.textContent = fmt ? fmt(cfg[key]) : cfg[key];
+    };
+    input.addEventListener('input', apply);
+    apply();
+  };
+  bindSlider('spawnInt', 'spawnInterval');
+  bindSlider('life',     'lifespan',    v => v.toFixed(1));
+  bindSlider('chance',   'spawnChance');
+  bindSlider('tick',     'tickInterval');
+  bindSlider('max',      'maxStars');
+  bindSlider('size',     'size');
+  bindSlider('fadeIn',   'fadeIn',      v => v.toFixed(2));
+  bindSlider('fadeOut',  'fadeOut',     v => v.toFixed(2));
+
+  document.getElementById('i-baseColor').addEventListener('input', e => cfg.baseColor = e.target.value);
+  document.getElementById('i-spawnColor').addEventListener('input', e => cfg.spawnColor = e.target.value);
+
+  const bindToggle = (id, key) => {
+    const el = document.getElementById('t-' + id);
+    el.addEventListener('click', () => {
+      el.classList.toggle('on');
+      cfg[key] = el.classList.contains('on');
+    });
+  };
+  bindToggle('trigger', 'triggerEnabled');
+  bindToggle('flashOut', 'flashOut');
+}
+
+/* =========================================================
+   EXPORT
+========================================================= */
+function exportHTML() {
+  const imagesHTML = Array.from(document.querySelectorAll('.draggable-img')).map(w => {
+    const x = w.style.left, y = w.style.top, wd = w.offsetWidth, ht = w.offsetHeight, src = w.dataset.src;
+    return `            <img src="${src}" alt="" style="position:absolute; left:${x}; top:${y}; width:${wd}px; height:${ht}px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />`;
+  }).join('\n');
+
+  const fullPageHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Webpage</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>body{font-family:'Inter',sans-serif;background:#0f0f11;color:#f3f4f6;margin:0}</style>
+</head>
+<body class="min-h-screen selection:bg-indigo-500 selection:text-white">
+    <div style="position:relative; min-height:100vh;">
+        <main class="max-w-4xl mx-auto w-full px-6 py-12 relative" style="z-index:10;">
+            <div class="space-y-6">
+${canvasEl.innerHTML}
             </div>
-
-            <div class="row">
-                <label>Base star lifespan (s) <span class="val" id="v-life">3.0</span></label>
-                <input type="range" id="i-life" min="0.3" max="20" step="0.1" value="3">
-            </div>
-
-            <div class="section-title">Reproduction</div>
-
-            <div class="row">
-                <label>Spawn chance per tick w <span class="val" id="v-chance">5</span>%</label>
-                <input type="range" id="i-chance" min="0" max="100" step="1" value="5">
-            </div>
-
-            <div class="row">
-                <label>Tick interval z (ms) <span class="val" id="v-tick">200</span></label>
-                <input type="range" id="i-tick" min="20" max="2000" step="10" value="200">
-            </div>
-
-            <div class="section-title">Limits &amp; Trigger</div>
-
-            <div class="row">
-                <label>Max stars N <span class="val" id="v-max">500</span></label>
-                <input type="range" id="i-max" min="10" max="3000" step="10" value="500">
-            </div>
-
-            <div class="row">
-                <label>
-                    <span>Trigger at N (white flash)</span>
-                    <div class="toggle-switch" id="t-trigger" data-on="false"></div>
-                </label>
-            </div>
-
-            <div class="section-title">Star Appearance</div>
-
-            <div class="row">
-                <label>Star pixel size <span class="val" id="v-size">3</span></label>
-                <input type="range" id="i-size" min="1" max="12" step="1" value="3">
-            </div>
-
-            <div class="row">
-                <label>Base star color</label>
-                <input type="color" id="i-baseColor" value="#ffffff">
-            </div>
-
-            <div class="row">
-                <label>Spawned star color</label>
-                <input type="color" id="i-spawnColor" value="#a5b4fc">
-            </div>
-
-            <div class="row">
-                <label>Fade-in duration (s) <span class="val" id="v-fadeIn">0.4</span></label>
-                <input type="range" id="i-fadeIn" min="0" max="3" step="0.05" value="0.4">
-            </div>
-
-            <div class="section-title">Death Style</div>
-
-            <div class="row">
-                <label>
-                    <span>Flash out (mini explosion)</span>
-                    <div class="toggle-switch on" id="t-flashOut" data-on="true"></div>
-                </label>
-            </div>
-
-            <div class="row">
-                <label>Fade-out duration (s) <span class="val" id="v-fadeOut">0.5</span></label>
-                <input type="range" id="i-fadeOut" min="0" max="3" step="0.05" value="0.5">
-            </div>
-
-            <div class="section-title">Controls</div>
-
-            <button class="gui-btn danger" onclick="resetStars()"><i class="fa-solid fa-bomb mr-1"></i> Reset All Stars</button>
-
+        </main>
+        <div style="position:absolute; inset:0; pointer-events:none;">
+${imagesHTML}
         </div>
     </div>
+</body>
+</html>`;
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
-        <div id="document-canvas" class="space-y-6">
-            <div class="edit-block group relative">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1>
-            </div>
-
-            <div class="edit-block group relative">
-                <p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings to tweak the background in real time. Every value is live.</p>
-            </div>
-
-            <div class="edit-block group relative">
-                <blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">
-                    "Stars spawn, stars reproduce, stars die. Occasionally they explode."
-                </blockquote>
-            </div>
-        </div>
-
-        <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
-            <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto">
-                <i class="fa-solid fa-plus"></i> Click to add a new text block
-            </button>
-        </div>
-    </main>
-
-    <!-- Floating image layer -->
-    <div id="image-layer"></div>
-
-    <!-- Password Modal -->
-    <div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-            <div class="text-center">
-                <div class="w-12 h-12 bg-indigo-600/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-key text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Enter Password</h3>
-                <p class="text-xs text-zinc-400 mt-1">Default password is <span class="text-indigo-400 font-mono">admin</span></p>
-            </div>
-            <form onsubmit="handlePasswordSubmit(event)" class="space-y-3">
-                <input type="password" id="pass-input" placeholder="Password..." class="w-full bg-[#0f0f11] border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all">
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeModal()" class="w-1/2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium py-2 rounded-xl transition-all">Cancel</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-xl transition-all">Unlock</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Export Modal -->
-    <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML Code for GitHub</h3>
-                <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <p class="text-xs text-zinc-400">Copy below and paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub.</p>
-            <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
-            <div class="flex justify-end gap-3">
-                <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
-                    <i class="fa-regular fa-copy"></i> Copy to Clipboard
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ========================================================
-        // EDIT MODE / DOC STATE
-        // ========================================================
-        let isEditing = false;
-        const ADMIN_PASS = "admin";
-
-        const canvas = document.getElementById('document-canvas');
-        const imageLayer = document.getElementById('image-layer');
-        const statusBadge = document.getElementById('status-badge');
-        const lockIcon = document.getElementById('lock-icon');
-        const toggleText = document.getElementById('toggle-text');
-        const exportBtn = document.getElementById('export-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const addBlockContainer = document.getElementById('add-block-container');
-        const formattingToolbar = document.getElementById('formatting-toolbar');
-        const imageUploadInput = document.getElementById('image-upload');
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedContent = localStorage.getItem('canvas_doc_content');
-            if (savedContent) canvas.innerHTML = savedContent;
-
-            const savedImages = localStorage.getItem('canvas_images');
-            if (savedImages) {
-                try { JSON.parse(savedImages).forEach(img => createImageElement(img)); }
-                catch(e) { console.warn('Image load failed', e); }
-            }
-
-            disableEditing();
-        });
-
-        function requestEditModeToggle() {
-            if (isEditing) { isEditing = false; disableEditing(); }
-            else {
-                document.getElementById('password-modal').classList.remove('hidden');
-                document.getElementById('pass-input').focus();
-            }
-        }
-        function closeModal() {
-            document.getElementById('password-modal').classList.add('hidden');
-            document.getElementById('pass-input').value = '';
-        }
-        function handlePasswordSubmit(e) {
-            e.preventDefault();
-            if (document.getElementById('pass-input').value === ADMIN_PASS) {
-                isEditing = true; closeModal(); enableEditing();
-            } else alert('Incorrect password!');
-        }
-
-        function enableEditing() {
-            document.body.classList.add('is-editing');
-            statusBadge.textContent = "Edit Mode Active";
-            statusBadge.previousElementSibling.className = "w-3 h-3 rounded-full bg-indigo-500 animate-pulse";
-            lockIcon.className = "fa-solid fa-unlock text-indigo-400";
-            toggleText.textContent = "Exit Edit Mode";
-            exportBtn.classList.remove('hidden');
-            resetBtn.classList.remove('hidden');
-            addBlockContainer.classList.remove('hidden');
-            formattingToolbar.classList.remove('hidden');
-            document.getElementById('star-gui-btn').classList.remove('hidden');
-            makeBlocksEditable();
-        }
-
-        function disableEditing() {
-            document.body.classList.remove('is-editing');
-            statusBadge.textContent = "Visitor View";
-            statusBadge.previousElementSibling.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
-            lockIcon.className = "fa-solid fa-lock";
-            toggleText.textContent = "Admin Login";
-            exportBtn.classList.add('hidden');
-            resetBtn.classList.add('hidden');
-            addBlockContainer.classList.add('hidden');
-            formattingToolbar.classList.add('hidden');
-            document.getElementById('star-gui-btn').classList.add('hidden');
-            document.getElementById('star-gui').classList.add('hidden');
-
-            canvas.querySelectorAll('.edit-block').forEach(block => {
-                const el = block.firstElementChild;
-                if (el) el.removeAttribute('contenteditable');
-            });
-            document.querySelectorAll('.draggable-img').forEach(d => d.classList.remove('selected'));
-        }
-
-        function makeBlocksEditable() {
-            canvas.querySelectorAll('.edit-block').forEach(block => {
-                const el = block.firstElementChild;
-                if (el) {
-                    el.contentEditable = "true";
-                    el.addEventListener('input', autoSave);
-                }
-            });
-        }
-
-        function addBlock(type) {
-            if (!isEditing) return;
-            const div = document.createElement('div');
-            div.className = "edit-block group relative";
-            let inner;
-            if (type === 'h1') inner = `<h1 class="text-3xl font-bold text-white">New Title Header</h1>`;
-            else if (type === 'h2') inner = `<h2 class="text-xl font-semibold text-zinc-200">New Subtitle</h2>`;
-            else if (type === 'quote') inner = `<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
-            else inner = `<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
-            div.innerHTML = inner;
-            canvas.appendChild(div);
-            const el = div.firstElementChild;
-            el.contentEditable = "true";
-            el.addEventListener('input', autoSave);
-            el.focus();
-            autoSave();
-        }
-
-        function autoSave() { localStorage.setItem('canvas_doc_content', canvas.innerHTML); }
-        function execCmd(cmd) { if (!isEditing) return; document.execCommand(cmd, false, null); autoSave(); }
-
-        function resetCanvas() {
-            if (confirm("Reset ALL content and images?")) {
-                localStorage.removeItem('canvas_doc_content');
-                localStorage.removeItem('canvas_images');
-                location.reload();
-            }
-        }
-
-        // ========================================================
-        // IMAGE HANDLING
-        // ========================================================
-        function triggerImageUpload() { if (isEditing) imageUploadInput.click(); }
-
-        imageUploadInput.addEventListener('change', (e) => {
-            Array.from(e.target.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const x = Math.max(40, window.innerWidth / 2 - 160 + (Math.random()*80 - 40));
-                    const y = 160 + Math.random()*120;
-                    createImageElement({ src: ev.target.result, x, y, width: 320, height: 240 });
-                    saveImages();
-                };
-                reader.readAsDataURL(file);
-            });
-            e.target.value = '';
-        });
-
-        document.addEventListener('paste', (e) => {
-            if (!isEditing) return;
-            const items = e.clipboardData?.items || [];
-            for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        createImageElement({ src: ev.target.result, x: window.innerWidth/2 - 160, y: 200, width: 320, height: 240 });
-                        saveImages();
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-        });
-
-        document.addEventListener('dragover', (e) => {
-            if (!isEditing) return;
-            if (e.dataTransfer?.types?.includes('Files')) {
-                e.preventDefault();
-                document.body.classList.add('dragover-file');
-            }
-        });
-        document.addEventListener('dragleave', (e) => {
-            if (e.relatedTarget === null) document.body.classList.remove('dragover-file');
-        });
-        document.addEventListener('drop', (e) => {
-            if (!isEditing) return;
-            if (e.dataTransfer?.files?.length) {
-                e.preventDefault();
-                document.body.classList.remove('dragover-file');
-                Array.from(e.dataTransfer.files).forEach(file => {
-                    if (!file.type.startsWith('image/')) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        createImageElement({ src: ev.target.result, x: e.clientX - 160, y: e.clientY - 120, width: 320, height: 240 });
-                        saveImages();
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-        });
-
-        function createImageElement(data) {
-            const wrap = document.createElement('div');
-            wrap.className = 'draggable-img';
-            wrap.style.left = data.x + 'px';
-            wrap.style.top = data.y + 'px';
-            wrap.style.width = (data.width || 320) + 'px';
-            wrap.style.height = (data.height || 240) + 'px';
-            wrap.dataset.src = data.src;
-
-            wrap.innerHTML = `
-                <img src="${data.src}" draggable="false" alt="">
-                <div class="delete-btn" title="Delete"><i class="fa-solid fa-xmark"></i></div>
-                <div class="resize-handle" title="Resize"></div>
-            `;
-
-            wrap.querySelector('.delete-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!isEditing) return;
-                if (confirm('Delete this image?')) { wrap.remove(); saveImages(); }
-            });
-
-            let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
-            wrap.addEventListener('mousedown', (e) => {
-                if (!isEditing) return;
-                if (e.target.classList.contains('resize-handle') || e.target.classList.contains('delete-btn')) return;
-                e.preventDefault();
-                dragging = true;
-                wrap.classList.add('selected');
-                document.querySelectorAll('.draggable-img').forEach(d => { if (d !== wrap) d.classList.remove('selected'); });
-                startX = e.clientX; startY = e.clientY;
-                origLeft = parseFloat(wrap.style.left) || 0;
-                origTop = parseFloat(wrap.style.top) || 0;
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-            });
-            function onMove(e) {
-                if (!dragging) return;
-                wrap.style.left = (origLeft + e.clientX - startX) + 'px';
-                wrap.style.top = (origTop + e.clientY - startY) + 'px';
-            }
-            function onUp() {
-                if (!dragging) return;
-                dragging = false;
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onUp);
-                saveImages();
-            }
-
-            let resizing = false, rsX = 0, rsY = 0, rsW = 0, rsH = 0;
-            const handle = wrap.querySelector('.resize-handle');
-            handle.addEventListener('mousedown', (e) => {
-                if (!isEditing) return;
-                e.preventDefault(); e.stopPropagation();
-                resizing = true;
-                rsX = e.clientX; rsY = e.clientY;
-                rsW = wrap.offsetWidth; rsH = wrap.offsetHeight;
-                document.addEventListener('mousemove', onResize);
-                document.addEventListener('mouseup', onResizeUp);
-            });
-            function onResize(e) {
-                if (!res
+  document.getElementById('export-textarea').value = fullPageHTML;
+  document.getElementById('export-modal').classList.remove('hidden');
+}
+function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
+function copyExportedCode() {
+  const t = document.getElementById('export-textarea');
+  t.select(); document.execCommand('copy');
+  alert('Code copied! Paste into index.html on GitHub.');
+}
+</script>
+</body>
+</html>
