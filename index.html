@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Interactive Canvas Page</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,7 +17,6 @@
             color: #f3f4f6;
         }
 
-        /* Focus rings and contenteditable styling */
         [contenteditable="true"]:focus {
             outline: 2px dashed rgba(99, 102, 241, 0.5);
             outline-offset: 4px;
@@ -37,25 +33,99 @@
             border-radius: 6px;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f11; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+        /* ===== IMAGE LAYER ===== */
+        #image-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;   /* clicks pass through to page */
+            z-index: 20;
         }
-        ::-webkit-scrollbar-track {
-            background: #0f0f11;
+        #image-layer .draggable-img {
+            position: absolute;
+            pointer-events: auto;   /* but images themselves catch clicks */
+            user-select: none;
+            touch-action: none;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #27272a;
-            border-radius: 4px;
+        #image-layer .draggable-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none;   /* so drag works from anywhere on the img */
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3f3f46;
+
+        /* Resize handle */
+        .resize-handle {
+            position: absolute;
+            right: -8px; bottom: -8px;
+            width: 18px; height: 18px;
+            background: #6366f1;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: nwse-resize;
+            display: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .delete-btn {
+            position: absolute;
+            right: -10px; top: -10px;
+            width: 24px; height: 24px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        body.is-editing #image-layer .draggable-img:hover .resize-handle,
+        body.is-editing #image-layer .draggable-img:hover .delete-btn,
+        body.is-editing #image-layer .draggable-img.selected .resize-handle,
+        body.is-editing #image-layer .draggable-img.selected .delete-btn {
+            display: flex;
+        }
+        body.is-editing #image-layer .draggable-img.selected img {
+            outline: 2px dashed #6366f1;
+            outline-offset: 2px;
+        }
+
+        /* Visitor mode: lock everything down */
+        body:not(.is-editing) #image-layer .draggable-img { cursor: default; }
+
+        /* Upload drop zone hint */
+        body.is-editing.dragover-file main::after {
+            content: "Drop image to add it";
+            position: fixed;
+            inset: 0;
+            background: rgba(99,102,241,0.15);
+            border: 3px dashed #6366f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #a5b4fc;
+            pointer-events: none;
+            z-index: 30;
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-    <!-- Top Bar Navigation / Admin Controls -->
+    <!-- Top Bar -->
     <header class="sticky top-0 z-40 bg-[#141417]/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
         <div class="max-w-5xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -63,19 +133,15 @@
                 <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
             </div>
 
-            <!-- Control Actions -->
-            <div class="flex items-center gap-3">
-                <!-- Export / Copy Code Button (Visible when editing) -->
+            <div class="flex items-center gap-3 flex-wrap">
                 <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
-                    <i class="fa-solid fa-code">prefix</i> Export Code for GitHub
+                    <i class="fa-solid fa-code"></i> Export Code
                 </button>
 
-                <!-- Reset Page Button -->
                 <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
 
-                <!-- Edit Mode Switcher -->
                 <button id="toggle-edit-btn" onclick="requestEditModeToggle()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2">
                     <i class="fa-solid fa-lock" id="lock-icon"></i> <span id="toggle-text">Admin Login</span>
                 </button>
@@ -83,8 +149,8 @@
         </div>
     </header>
 
-    <!-- Floating Formatting Toolbar for Admin Mode -->
-    <div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg">
+    <!-- Floating Toolbar -->
+    <div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg flex-wrap max-w-[95vw]">
         <button onclick="execCmd('bold')" title="Bold" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-bold"></i></button>
         <button onclick="execCmd('italic')" title="Italic" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
         <button onclick="execCmd('underline')" title="Underline" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
@@ -96,34 +162,40 @@
         <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
         <button onclick="execCmd('justifyLeft')" title="Align Left" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-left"></i></button>
         <button onclick="execCmd('justifyCenter')" title="Align Center" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
+        <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
+        <button onclick="triggerImageUpload()" title="Upload Image" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3">
+            <i class="fa-solid fa-image"></i> Add Image
+        </button>
+        <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
     </div>
 
-    <!-- Main Workspace Container -->
-    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
         <div id="document-canvas" class="space-y-6">
-            <!-- Initial Default Content -->
             <div class="edit-block group relative">
                 <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1>
             </div>
-            
+
             <div class="edit-block group relative">
-                <p class="text-lg text-zinc-400 font-light leading-relaxed">Click anywhere in Edit Mode to modify text or add new sections. Changes automatically save locally in your browser!</p>
+                <p class="text-lg text-zinc-400 font-light leading-relaxed">Click anywhere in Edit Mode to modify text or add new sections. In edit mode, use <strong class="text-indigo-400">Add Image</strong> to drop photos — then drag &amp; resize them anywhere on the page.</p>
             </div>
 
             <div class="edit-block group relative">
                 <blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">
-                    "Simple, modern dark mode canvas designed for instant editing and quick deployment."
+                    "Simple, modern dark mode canvas with draggable image layer."
                 </blockquote>
             </div>
         </div>
 
-        <!-- Add Block Trigger (Only visible in Edit Mode) -->
         <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
             <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto">
                 <i class="fa-solid fa-plus"></i> Click to add a new text block
             </button>
         </div>
     </main>
+
+    <!-- Floating image layer (images live here, independent from text flow) -->
+    <div id="image-layer"></div>
 
     <!-- Password Modal -->
     <div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -145,14 +217,14 @@
         </div>
     </div>
 
-    <!-- Export Code Modal -->
+    <!-- Export Modal -->
     <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
             <div class="flex justify-between items-center">
                 <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML Code for GitHub</h3>
                 <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-xs text-zinc-400">Copy the code below and paste it directly into your <span class="text-indigo-400 font-mono">index.html</span> file on GitHub to publish your changes online!</p>
+            <p class="text-xs text-zinc-400">Copy below and paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub.</p>
             <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
             <div class="flex justify-end gap-3">
                 <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
@@ -163,12 +235,13 @@
     </div>
 
     <script>
-        // App State
+        // ===== STATE =====
         let isEditing = false;
-        const ADMIN_PASS = "admin"; // Change your default passcode here
+        const ADMIN_PASS = "admin";
 
-        // Elements
+        // ===== ELEMENTS =====
         const canvas = document.getElementById('document-canvas');
+        const imageLayer = document.getElementById('image-layer');
         const statusBadge = document.getElementById('status-badge');
         const lockIcon = document.getElementById('lock-icon');
         const toggleText = document.getElementById('toggle-text');
@@ -176,17 +249,24 @@
         const resetBtn = document.getElementById('reset-btn');
         const addBlockContainer = document.getElementById('add-block-container');
         const formattingToolbar = document.getElementById('formatting-toolbar');
+        const imageUploadInput = document.getElementById('image-upload');
 
-        // Load saved state on launch
+        // ===== LOAD SAVED STATE =====
         window.addEventListener('DOMContentLoaded', () => {
             const savedContent = localStorage.getItem('canvas_doc_content');
-            if (savedContent) {
-                canvas.innerHTML = savedContent;
+            if (savedContent) canvas.innerHTML = savedContent;
+
+            const savedImages = localStorage.getItem('canvas_images');
+            if (savedImages) {
+                try {
+                    JSON.parse(savedImages).forEach(img => createImageElement(img));
+                } catch(e) { console.warn('Image load failed', e); }
             }
+
             disableEditing();
         });
 
-        // Request Password Modal or Exit Edit Mode
+        // ===== EDIT MODE TOGGLE =====
         function requestEditModeToggle() {
             if (isEditing) {
                 isEditing = false;
@@ -214,7 +294,6 @@
             }
         }
 
-        // Enable Edit Mode
         function enableEditing() {
             document.body.classList.add('is-editing');
             statusBadge.textContent = "Edit Mode Active";
@@ -230,7 +309,6 @@
             makeBlocksEditable();
         }
 
-        // Disable Edit Mode (Visitor View)
         function disableEditing() {
             document.body.classList.remove('is-editing');
             statusBadge.textContent = "Visitor View";
@@ -243,83 +321,304 @@
             addBlockContainer.classList.add('hidden');
             formattingToolbar.classList.add('hidden');
 
-            // Strip editable attributes
-            const blocks = canvas.querySelectorAll('.edit-block');
-            blocks.forEach(block => {
-                const element = block.firstElementChild;
-                if (element) element.removeAttribute('contenteditable');
+            canvas.querySelectorAll('.edit-block').forEach(block => {
+                const el = block.firstElementChild;
+                if (el) el.removeAttribute('contenteditable');
             });
+
+            // Deselect all images when leaving edit mode
+            document.querySelectorAll('.draggable-img').forEach(d => d.classList.remove('selected'));
         }
 
-        // Make all child blocks editable & add event listeners
         function makeBlocksEditable() {
-            const blocks = canvas.querySelectorAll('.edit-block');
-            blocks.forEach(block => {
-                const element = block.firstElementChild;
-                if (element) {
-                    element.contentEditable = "true";
-                    element.addEventListener('input', autoSave);
+            canvas.querySelectorAll('.edit-block').forEach(block => {
+                const el = block.firstElementChild;
+                if (el) {
+                    el.contentEditable = "true";
+                    el.addEventListener('input', autoSave);
                 }
             });
         }
 
-        // Add a new text block
+        // ===== TEXT BLOCKS =====
         function addBlock(type) {
             if (!isEditing) return;
-
             const div = document.createElement('div');
             div.className = "edit-block group relative";
-
             let inner;
-            if (type === 'h1') {
-                inner = `<h1 class="text-3xl font-bold text-white">New Title Header</h1>`;
-            } else if (type === 'h2') {
-                inner = `<h2 class="text-xl font-semibold text-zinc-200">New Subtitle</h2>`;
-            } else if (type === 'quote') {
-                inner = `<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
-            } else {
-                inner = `<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
-            }
+            if (type === 'h1')      inner = `<h1 class="text-3xl font-bold text-white">New Title Header</h1>`;
+            else if (type === 'h2') inner = `<h2 class="text-xl font-semibold text-zinc-200">New Subtitle</h2>`;
+            else if (type === 'quote') inner = `<blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">Quote text goes here...</blockquote>`;
+            else inner = `<p class="text-base text-zinc-400 font-light leading-relaxed">Click to edit this paragraph text...</p>`;
 
             div.innerHTML = inner;
             canvas.appendChild(div);
-
             const el = div.firstElementChild;
             el.contentEditable = "true";
             el.addEventListener('input', autoSave);
             el.focus();
-
             autoSave();
         }
 
-        // Auto Save Content to LocalStorage
         function autoSave() {
             localStorage.setItem('canvas_doc_content', canvas.innerHTML);
         }
 
-        // Format selected text
         function execCmd(command) {
             if (!isEditing) return;
             document.execCommand(command, false, null);
             autoSave();
         }
 
-        // Reset Page Content
         function resetCanvas() {
-            if (confirm("Are you sure you want to reset all content?")) {
+            if (confirm("Are you sure you want to reset ALL content and images?")) {
                 localStorage.removeItem('canvas_doc_content');
+                localStorage.removeItem('canvas_images');
                 location.reload();
             }
         }
 
-        // Export Clean HTML Modal
+        // ===== IMAGE HANDLING =====
+        function triggerImageUpload() {
+            if (!isEditing) return;
+            imageUploadInput.click();
+        }
+
+        imageUploadInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    // Position new image in center-ish with slight random offset so they don't stack
+                    const x = Math.max(40, window.innerWidth / 2 - 200 + (Math.random()*80 - 40));
+                    const y = 160 + (Math.random()*120);
+                    createImageElement({
+                        src: ev.target.result,
+                        x, y,
+                        width: 320,
+                        height: 240
+                    });
+                    saveImages();
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        });
+
+        // Allow pasting images too
+        document.addEventListener('paste', (e) => {
+            if (!isEditing) return;
+            const items = e.clipboardData?.items || [];
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        createImageElement({
+                            src: ev.target.result,
+                            x: window.innerWidth/2 - 160,
+                            y: 200,
+                            width: 320,
+                            height: 240
+                        });
+                        saveImages();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Drag & drop file from desktop
+        document.addEventListener('dragover', (e) => {
+            if (!isEditing) return;
+            if (e.dataTransfer?.types?.includes('Files')) {
+                e.preventDefault();
+                document.body.classList.add('dragover-file');
+            }
+        });
+        document.addEventListener('dragleave', (e) => {
+            if (e.relatedTarget === null) document.body.classList.remove('dragover-file');
+        });
+        document.addEventListener('drop', (e) => {
+            if (!isEditing) return;
+            if (e.dataTransfer?.files?.length) {
+                e.preventDefault();
+                document.body.classList.remove('dragover-file');
+                Array.from(e.dataTransfer.files).forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        createImageElement({
+                            src: ev.target.result,
+                            x: e.clientX - 160,
+                            y: e.clientY - 120,
+                            width: 320,
+                            height: 240
+                        });
+                        saveImages();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+
+        // Create a draggable image element
+        function createImageElement(data) {
+            const wrap = document.createElement('div');
+            wrap.className = 'draggable-img';
+            wrap.style.left   = data.x + 'px';
+            wrap.style.top    = data.y + 'px';
+            wrap.style.width  = (data.width  || 320) + 'px';
+            wrap.style.height = (data.height || 240) + 'px';
+            wrap.dataset.src = data.src;
+
+            wrap.innerHTML = `
+                <img src="${data.src}" draggable="false" alt="">
+                <div class="delete-btn" title="Delete"><i class="fa-solid fa-xmark"></i></div>
+                <div class="resize-handle" title="Resize"></div>
+            `;
+
+            // Delete
+            wrap.querySelector('.delete-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!isEditing) return;
+                if (confirm('Delete this image?')) {
+                    wrap.remove();
+                    saveImages();
+                }
+            });
+
+            // Drag to move
+            let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+
+            wrap.addEventListener('mousedown', (e) => {
+                if (!isEditing) return;
+                if (e.target.classList.contains('resize-handle')) return;
+                if (e.target.classList.contains('delete-btn')) return;
+
+                e.preventDefault();
+                dragging = true;
+                wrap.classList.add('selected');
+                // deselect others
+                document.querySelectorAll('.draggable-img').forEach(d => { if (d !== wrap) d.classList.remove('selected'); });
+
+                startX = e.clientX;
+                startY = e.clientY;
+                origLeft = parseFloat(wrap.style.left) || 0;
+                origTop  = parseFloat(wrap.style.top)  || 0;
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            function onMove(e) {
+                if (!dragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                wrap.style.left = (origLeft + dx) + 'px';
+                wrap.style.top  = (origTop  + dy) + 'px';
+            }
+            function onUp() {
+                if (!dragging) return;
+                dragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                saveImages();
+            }
+
+            // Touch support
+            wrap.addEventListener('touchstart', (e) => {
+                if (!isEditing) return;
+                if (e.target.classList.contains('resize-handle')) return;
+                const t = e.touches[0];
+                dragging = true;
+                wrap.classList.add('selected');
+                startX = t.clientX;
+                startY = t.clientY;
+                origLeft = parseFloat(wrap.style.left) || 0;
+                origTop  = parseFloat(wrap.style.top)  || 0;
+            }, {passive: true});
+
+            wrap.addEventListener('touchmove', (e) => {
+                if (!dragging) return;
+                const t = e.touches[0];
+                wrap.style.left = (origLeft + (t.clientX - startX)) + 'px';
+                wrap.style.top  = (origTop  + (t.clientY - startY)) + 'px';
+            }, {passive: true});
+
+            wrap.addEventListener('touchend', () => {
+                if (dragging) { dragging = false; saveImages(); }
+            });
+
+            // Resize
+            const handle = wrap.querySelector('.resize-handle');
+            let resizing = false, rsX = 0, rsY = 0, rsW = 0, rsH = 0;
+
+            handle.addEventListener('mousedown', (e) => {
+                if (!isEditing) return;
+                e.preventDefault();
+                e.stopPropagation();
+                resizing = true;
+                rsX = e.clientX;
+                rsY = e.clientY;
+                rsW = wrap.offsetWidth;
+                rsH = wrap.offsetHeight;
+                document.addEventListener('mousemove', onResize);
+                document.addEventListener('mouseup', onResizeUp);
+            });
+
+            function onResize(e) {
+                if (!resizing) return;
+                const w = Math.max(60, rsW + (e.clientX - rsX));
+                const h = Math.max(60, rsH + (e.clientY - rsY));
+                wrap.style.width  = w + 'px';
+                wrap.style.height = h + 'px';
+            }
+            function onResizeUp() {
+                if (!resizing) return;
+                resizing = false;
+                document.removeEventListener('mousemove', onResize);
+                document.removeEventListener('mouseup', onResizeUp);
+                saveImages();
+            }
+
+            imageLayer.appendChild(wrap);
+            return wrap;
+        }
+
+        function saveImages() {
+            const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(wrap => ({
+                src: wrap.dataset.src,
+                x: parseFloat(wrap.style.left) || 0,
+                y: parseFloat(wrap.style.top) || 0,
+                width: wrap.offsetWidth,
+                height: wrap.offsetHeight
+            }));
+            try {
+                localStorage.setItem('canvas_images', JSON.stringify(imgs));
+            } catch(e) {
+                alert('Storage full — images are too large. Try smaller files.');
+            }
+        }
+
+        // Click empty space to deselect
+        document.addEventListener('mousedown', (e) => {
+            if (!e.target.closest('.draggable-img')) {
+                document.querySelectorAll('.draggable-img').forEach(d => d.classList.remove('selected'));
+            }
+        });
+
+        // ===== EXPORT =====
         function exportHTML() {
-            // Create a clone of current document for clean export
-            const clone = canvas.cloneNode(true);
-            
-            // Clean contenteditable attributes from export text
-            const editableElements = clone.querySelectorAll('[contenteditable]');
-            editableElements.forEach(el => el.removeAttribute('contenteditable'));
+            // Build images HTML (as absolutely positioned elements inside a relative container)
+            const imagesHTML = Array.from(document.querySelectorAll('.draggable-img')).map(wrap => {
+                const x = wrap.style.left;
+                const y = wrap.style.top;
+                const w = wrap.offsetWidth;
+                const h = wrap.offsetHeight;
+                const src = wrap.dataset.src;
+                return `            <img src="${src}" alt="" style="position:absolute; left:${x}; top:${y}; width:${w}px; height:${h}px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />`;
+            }).join('\n');
 
             const fullPageHTML = `<!DOCTYPE html>
 <html lang="en">
@@ -330,15 +629,20 @@
     <script src="https://cdn.tailwindcss.com"><\/script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f0f11; color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f0f11; color: #f3f4f6; margin: 0; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
-    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
-        <div class="space-y-6">
-${clone.innerHTML}
+<body class="min-h-screen selection:bg-indigo-500 selection:text-white">
+    <div style="position:relative; min-height:100vh;">
+        <main class="max-w-4xl mx-auto w-full px-6 py-12 relative" style="z-index:10;">
+            <div class="space-y-6">
+${canvas.innerHTML}
+            </div>
+        </main>
+        <div style="position:absolute; inset:0; pointer-events:none;">
+${imagesHTML}
         </div>
-    </main>
+    </div>
 </body>
 </html>`;
 
