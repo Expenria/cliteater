@@ -33,17 +33,47 @@
     body.is-editing #image-layer .draggable-img.selected .delete-btn { display:flex; }
     body.is-editing #image-layer .draggable-img.selected img { outline:2px dashed #6366f1; outline-offset:2px; }
     body.is-editing.dragover-file main::after { content:"Drop image to add it"; position:fixed; inset:0; background:rgba(99,102,241,.15); border:3px dashed #6366f1; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; color:#a5b4fc; pointer-events:none; z-index:30; }
-    #star-gui { position:fixed; top:80px; right:16px; width:310px; max-height:calc(100vh - 100px); overflow-y:auto; background:#18181b; border:1px solid #27272a; border-radius:14px; z-index:60; font-size:11px; box-shadow:0 20px 50px rgba(0,0,0,.6); }
+
+    /* ===== STAR GUI ===== */
+    #star-gui {
+        position:fixed; top:80px; right:16px; width:340px;
+        max-height:calc(100vh - 100px); overflow-y:auto;
+        background:#18181b; border:1px solid #27272a; border-radius:14px;
+        z-index:60; font-size:11px; box-shadow:0 20px 50px rgba(0,0,0,.6);
+    }
     #star-gui.hidden { display:none; }
-    #star-gui .gui-header { padding:10px 12px; border-bottom:1px solid #27272a; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#18181b; z-index:2; }
-    #star-gui .gui-body { padding:10px 12px 16px; display:flex; flex-direction:column; gap:10px; }
-    #star-gui .row { display:flex; flex-direction:column; gap:3px; }
-    #star-gui label { color:#a1a1aa; font-weight:500; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; letter-spacing:.02em; }
-    #star-gui label .val { color:#818cf8; font-family:monospace; font-size:11px; }
-    #star-gui input[type="range"] { width:100%; accent-color:#6366f1; height:4px; }
-    #star-gui input[type="color"] { width:100%; height:28px; padding:2px; cursor:pointer; background:#0f0f11; border:1px solid #27272a; border-radius:6px; }
-    #star-gui .section-title { font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:#6366f1; font-weight:700; padding-top:8px; border-top:1px solid #27272a; margin-top:4px; }
-    #star-gui .section-title:first-child { border-top:none; margin-top:0; padding-top:0; }
+    #star-gui .gui-header {
+        padding:12px 14px; border-bottom:1px solid #27272a;
+        display:flex; align-items:center; justify-content:space-between;
+        position:sticky; top:0; background:#18181b; z-index:2;
+    }
+    #star-gui .gui-body { padding:12px 14px 20px; display:flex; flex-direction:column; gap:10px; }
+
+    /* Collapsible sections */
+    .gui-section { border:1px solid #27272a; border-radius:10px; overflow:hidden; }
+    .gui-section-header {
+        padding:8px 10px; background:#1f1f24; cursor:pointer;
+        display:flex; justify-content:space-between; align-items:center;
+        font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+        user-select:none;
+    }
+    .gui-section-header.base { color:#f0abfc; }
+    .gui-section-header.spawned { color:#a5b4fc; }
+    .gui-section-header.global { color:#6ee7b7; }
+    .gui-section-header .chev { transition:transform .2s; color:#71717a; font-size:9px; }
+    .gui-section.collapsed .gui-section-header .chev { transform:rotate(-90deg); }
+    .gui-section.collapsed .gui-section-body { display:none; }
+    .gui-section-body { padding:10px; display:flex; flex-direction:column; gap:9px; background:#161619; }
+
+    .row { display:flex; flex-direction:column; gap:3px; }
+    label { color:#a1a1aa; font-weight:500; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; letter-spacing:.02em; }
+    label .val { color:#818cf8; font-family:monospace; font-size:11px; }
+    input[type="range"] { width:100%; accent-color:#6366f1; height:4px; }
+    input[type="color"] { width:100%; height:28px; padding:2px; cursor:pointer; background:#0f0f11; border:1px solid #27272a; border-radius:6px; }
+    select {
+        width:100%; background:#0f0f11; border:1px solid #27272a; border-radius:6px;
+        padding:5px 6px; color:#e4e4e7; font-size:11px; font-family:inherit; cursor:pointer;
+    }
     .toggle-switch { position:relative; width:32px; height:18px; background:#3f3f46; border-radius:10px; cursor:pointer; transition:background .2s; flex-shrink:0; }
     .toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:#fff; border-radius:50%; transition:transform .2s; }
     .toggle-switch.on { background:#6366f1; }
@@ -101,36 +131,150 @@
   <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
 </div>
 
+<!-- ============ STAR GUI ============ -->
 <div id="star-gui" class="hidden">
   <div class="gui-header">
     <span class="text-xs font-bold text-white"><i class="fa-solid fa-star text-indigo-400 mr-1.5"></i>Star Settings</span>
     <button onclick="toggleStarGui()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="gui-body">
-    <div class="section-title">Base Spawning</div>
-    <div class="row"><label>Spawn interval (ms) <span class="val" id="v-spawnInt">800</span></label><input type="range" id="i-spawnInt" min="50" max="5000" step="50" value="800"></div>
-    <div class="row"><label>Base star lifespan (s) <span class="val" id="v-life">3.0</span></label><input type="range" id="i-life" min="0.3" max="20" step="0.1" value="3"></div>
 
-    <div class="section-title">Reproduction</div>
-    <div class="row"><label>Spawn chance w <span class="val" id="v-chance">5</span>%</label><input type="range" id="i-chance" min="0" max="100" step="1" value="5"></div>
-    <div class="row"><label>Tick interval z (ms) <span class="val" id="v-tick">200</span></label><input type="range" id="i-tick" min="20" max="2000" step="10" value="200"></div>
+    <!-- ===== GLOBAL ===== -->
+    <div class="gui-section" data-section="global">
+      <div class="gui-section-header global" onclick="toggleSection(this)">
+        <span><i class="fa-solid fa-globe mr-1.5"></i>Global</span>
+        <i class="fa-solid fa-chevron-down chev"></i>
+      </div>
+      <div class="gui-section-body">
+        <div class="row">
+          <label>Max stars N (triggers flash) <span class="val" id="v-max">500</span></label>
+          <input type="range" id="i-max" min="10" max="3000" step="10" value="500">
+        </div>
+        <div class="row">
+          <label><span>Flash + reset at N <span class="text-zinc-500 text-[10px]">(off by default)</span></span><div class="toggle-switch" id="t-trigger"></div></label>
+        </div>
+        <button class="gui-btn danger" onclick="resetStars()"><i class="fa-solid fa-bomb mr-1"></i> Reset All Stars</button>
+      </div>
+    </div>
 
-    <div class="section-title">Limits &amp; Trigger</div>
-    <div class="row"><label>Max stars N <span class="val" id="v-max">500</span></label><input type="range" id="i-max" min="10" max="3000" step="10" value="500"></div>
-    <div class="row"><label><span>Trigger at N (white flash + reset)</span><div class="toggle-switch" id="t-trigger"></div></label></div>
+    <!-- ===== BASE STARS ===== -->
+    <div class="gui-section" data-section="base">
+      <div class="gui-section-header base" onclick="toggleSection(this)">
+        <span><i class="fa-solid fa-circle-nodes mr-1.5"></i>Base Stars</span>
+        <i class="fa-solid fa-chevron-down chev"></i>
+      </div>
+      <div class="gui-section-body">
+        <div class="row">
+          <label><span>Base stars enabled</span><div class="toggle-switch on" id="t-baseEnabled"></div></label>
+        </div>
+        <div class="row">
+          <label>Initial delay after clear (ms) <span class="val" id="v-baseInitDelay">800</span></label>
+          <input type="range" id="i-baseInitDelay" min="0" max="10000" step="50" value="800">
+        </div>
+        <div class="row">
+          <label>Spawn interval (ms) <span class="val" id="v-baseInterval">400</span></label>
+          <input type="range" id="i-baseInterval" min="50" max="5000" step="50" value="400">
+        </div>
+        <div class="row">
+          <label>Repro chance per tick <span class="val" id="v-baseRepro">3</span>%</label>
+          <input type="range" id="i-baseRepro" min="0" max="100" step="1" value="3">
+        </div>
+        <div class="row">
+          <label>Tick BS (ms) <span class="val" id="v-baseTick">500</span></label>
+          <input type="range" id="i-baseTick" min="20" max="3000" step="10" value="500">
+        </div>
+        <div class="row">
+          <label>Lifespan (s) <span class="val" id="v-baseLife">5.0</span></label>
+          <input type="range" id="i-baseLife" min="0.3" max="30" step="0.1" value="5">
+        </div>
+        <div class="row">
+          <label>Colour</label>
+          <input type="color" id="i-baseColor" value="#ffffff">
+        </div>
+        <div class="row">
+          <label>Shape</label>
+          <select id="i-baseShape">
+            <option value="square" selected>Square</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="star">Star</option>
+            <option value="plus">Plus</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Size (px) <span class="val" id="v-baseSize">3</span></label>
+          <input type="range" id="i-baseSize" min="1" max="20" step="1" value="3">
+        </div>
+        <div class="row">
+          <label>Fade in (s) <span class="val" id="v-baseFadeIn">0.40</span></label>
+          <input type="range" id="i-baseFadeIn" min="0" max="3" step="0.05" value="0.4">
+        </div>
+        <div class="row">
+          <label>Fade out (s) <span class="val" id="v-baseFadeOut">0.50</span></label>
+          <input type="range" id="i-baseFadeOut" min="0" max="3" step="0.05" value="0.5">
+        </div>
+        <div class="row">
+          <label><span>Mini explosion on death</span><div class="toggle-switch on" id="t-baseFlashOut"></div></label>
+        </div>
+      </div>
+    </div>
 
-    <div class="section-title">Appearance</div>
-    <div class="row"><label>Star pixel size <span class="val" id="v-size">3</span></label><input type="range" id="i-size" min="1" max="16" step="1" value="3"></div>
-    <div class="row"><label>Base star color</label><input type="color" id="i-baseColor" value="#ffffff"></div>
-    <div class="row"><label>Spawned star color</label><input type="color" id="i-spawnColor" value="#a5b4fc"></div>
-    <div class="row"><label>Fade-in duration (s) <span class="val" id="v-fadeIn">0.4</span></label><input type="range" id="i-fadeIn" min="0" max="3" step="0.05" value="0.4"></div>
+    <!-- ===== SPAWNED STARS ===== -->
+    <div class="gui-section" data-section="spawned">
+      <div class="gui-section-header spawned" onclick="toggleSection(this)">
+        <span><i class="fa-solid fa-sparkles mr-1.5"></i>Spawned Stars</span>
+        <i class="fa-solid fa-chevron-down chev"></i>
+      </div>
+      <div class="gui-section-body">
+        <div class="row">
+          <label><span>Spawned stars enabled</span><div class="toggle-switch on" id="t-spawnedEnabled"></div></label>
+        </div>
+        <div class="row">
+          <label>Repro chance per tick <span class="val" id="v-spawnRepro">5</span>%</label>
+          <input type="range" id="i-spawnRepro" min="0" max="100" step="1" value="5">
+        </div>
+        <div class="row">
+          <label>Tick SS (ms) <span class="val" id="v-spawnTick">200</span></label>
+          <input type="range" id="i-spawnTick" min="20" max="3000" step="10" value="200">
+        </div>
+        <div class="row">
+          <label>Lifespan (s) <span class="val" id="v-spawnLife">3.0</span></label>
+          <input type="range" id="i-spawnLife" min="0.3" max="30" step="0.1" value="3">
+        </div>
+        <div class="row">
+          <label>Colour</label>
+          <input type="color" id="i-spawnColor" value="#a5b4fc">
+        </div>
+        <div class="row">
+          <label>Shape</label>
+          <select id="i-spawnShape">
+            <option value="square" selected>Square</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="star">Star</option>
+            <option value="plus">Plus</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Size (px) <span class="val" id="v-spawnSize">3</span></label>
+          <input type="range" id="i-spawnSize" min="1" max="20" step="1" value="3">
+        </div>
+        <div class="row">
+          <label>Fade in (s) <span class="val" id="v-spawnFadeIn">0.40</span></label>
+          <input type="range" id="i-spawnFadeIn" min="0" max="3" step="0.05" value="0.4">
+        </div>
+        <div class="row">
+          <label>Fade out (s) <span class="val" id="v-spawnFadeOut">0.50</span></label>
+          <input type="range" id="i-spawnFadeOut" min="0" max="3" step="0.05" value="0.5">
+        </div>
+        <div class="row">
+          <label><span>Mini explosion on death</span><div class="toggle-switch on" id="t-spawnFlashOut"></div></label>
+        </div>
+      </div>
+    </div>
 
-    <div class="section-title">Death Style</div>
-    <div class="row"><label><span>Flash out (mini explosion)</span><div class="toggle-switch on" id="t-flashOut"></div></label></div>
-    <div class="row"><label>Fade-out duration (s) <span class="val" id="v-fadeOut">0.5</span></label><input type="range" id="i-fadeOut" min="0" max="3" step="0.05" value="0.5"></div>
-
-    <div class="section-title">Controls</div>
-    <button class="gui-btn danger" onclick="resetStars()"><i class="fa-solid fa-bomb mr-1"></i> Reset All Stars</button>
   </div>
 </div>
 
@@ -372,34 +516,52 @@ document.addEventListener('mousedown', (e) => {
 });
 
 /* =========================================================
-   STAR SYSTEM
+   STAR SYSTEM — per type config
 ========================================================= */
 const cfg = {
-  spawnInterval: 800,     // ms between base spawn attempts
-  lifespan: 3,            // seconds a star lives before dying
-  spawnChance: 5,         // % per tick
-  tickInterval: 200,      // ms between repro rolls
-  maxStars: 500,          // N
-  triggerEnabled: false,  // default OFF, resets every reload
-  size: 3,
-  baseColor: '#ffffff',
-  spawnColor: '#a5b4fc',
-  fadeIn: 0.4,            // s
-  flashOut: true,
-  fadeOut: 0.5            // s
+  global: {
+    maxStars: 500,
+    triggerEnabled: false
+  },
+  base: {
+    enabled: true,
+    initialDelay: 800,    // ms after last spawned star disappears → first base spawn
+    spawnInterval: 400,   // ms between subsequent base spawns
+    reproChance: 3,       // % per BS tick
+    tickMs: 500,          // BS ms
+    lifespan: 5,          // seconds
+    color: '#ffffff',
+    shape: 'square',
+    size: 3,
+    fadeIn: 0.4,
+    fadeOut: 0.5,
+    flashOut: true
+  },
+  spawned: {
+    enabled: true,
+    reproChance: 5,       // % per SS tick
+    tickMs: 200,          // SS ms
+    lifespan: 3,
+    color: '#a5b4fc',
+    shape: 'square',
+    size: 3,
+    fadeIn: 0.4,
+    fadeOut: 0.5,
+    flashOut: true
+  }
 };
 
 let stars = [];
-let lastBaseSpawn = 0;
-let starCanvas, starCtx;
-let dpr = 1;
+let starCanvas, starCtx, dpr = 1;
+let baseSpawnArmed = false;
+let nextBaseSpawnAt = 0;
 
 function initStars() {
   starCanvas = document.getElementById('star-canvas');
   starCtx = starCanvas.getContext('2d');
   resizeStarCanvas();
   window.addEventListener('resize', resizeStarCanvas);
-  lastBaseSpawn = performance.now();
+  nextBaseSpawnAt = performance.now() + cfg.base.initialDelay;
   requestAnimationFrame(starLoop);
   bindGui();
 }
@@ -414,16 +576,15 @@ function resizeStarCanvas() {
 }
 
 function spawnStar(isBase) {
+  const type = isBase ? cfg.base : cfg.spawned;
   const now = performance.now();
-  const lifeMs = cfg.lifespan * 1000;
   stars.push({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
     isBase,
     birth: now,
-    deathStart: now + lifeMs,
-    nextTick: now + cfg.tickInterval,
-    color: isBase ? cfg.baseColor : cfg.spawnColor
+    deathStart: now + type.lifespan * 1000,
+    nextTick: now + type.tickMs
   });
 }
 
@@ -431,46 +592,56 @@ function starLoop() {
   requestAnimationFrame(starLoop);
   const now = performance.now();
 
-  // ---- Base spawning gate ----
-  // Base stars only spawn while there are NO spawned stars alive.
+  // ---------- Base spawning gate ----------
+  // Base stars only spawn while NO spawned stars are alive.
   const hasSpawned = stars.some(s => !s.isBase);
 
   if (hasSpawned) {
-    lastBaseSpawn = now;                 // pause: keep timer fresh
-  } else if (stars.length < cfg.maxStars) {
-    if (now - lastBaseSpawn >= cfg.spawnInterval) {
+    baseSpawnArmed = false;
+  } else {
+    if (!baseSpawnArmed) {
+      baseSpawnArmed = true;
+      const anyBaseAlive = stars.some(s => s.isBase);
+      // If base stars already present, resume at regular interval.
+      // If field is truly empty, wait the initial delay before the first one.
+      nextBaseSpawnAt = now + (anyBaseAlive ? 0 : cfg.base.initialDelay);
+    }
+    if (cfg.base.enabled && stars.length < cfg.global.maxStars && now >= nextBaseSpawnAt) {
       spawnStar(true);
-      lastBaseSpawn = now;
+      nextBaseSpawnAt = now + cfg.base.spawnInterval;
     }
   }
 
-  // ---- Per-star update ----
+  // ---------- Per-star update ----------
   for (let i = stars.length - 1; i >= 0; i--) {
     const s = stars[i];
+    const type = s.isBase ? cfg.base : cfg.spawned;
 
-    // Death?
-    if (now >= s.deathStart + cfg.fadeOut * 1000) {
+    // Death
+    if (now >= s.deathStart + type.fadeOut * 1000) {
       stars.splice(i, 1);
       continue;
     }
 
-    // Reproduction (only while alive, pre-death)
+    // Reproduction (only before death starts)
     if (now < s.deathStart && now >= s.nextTick) {
-      s.nextTick = now + cfg.tickInterval;
-      if (Math.random() * 100 < cfg.spawnChance && stars.length < cfg.maxStars) {
-        spawnStar(false);
+      s.nextTick = now + type.tickMs;
+      if (cfg.spawned.enabled && stars.length < cfg.global.maxStars) {
+        if (Math.random() * 100 < type.reproChance) {
+          spawnStar(false); // children are always spawned type
+        }
       }
     }
   }
 
-  // ---- N-star trigger ----
-  if (cfg.triggerEnabled && stars.length >= cfg.maxStars) {
+  // ---------- N-star trigger ----------
+  if (cfg.global.triggerEnabled && stars.length >= cfg.global.maxStars) {
     flashScreen();
     stars = [];
-    lastBaseSpawn = now;
+    baseSpawnArmed = false;
+    nextBaseSpawnAt = now + cfg.base.initialDelay;
   }
 
-  // ---- Render ----
   renderStars(now);
   updateStarCount();
 }
@@ -479,32 +650,81 @@ function renderStars(now) {
   const W = window.innerWidth, H = window.innerHeight;
   starCtx.clearRect(0, 0, W, H);
 
-  const fadeInMs = Math.max(1, cfg.fadeIn * 1000);
-  const fadeOutMs = Math.max(1, cfg.fadeOut * 1000);
-
   for (const s of stars) {
+    const type = s.isBase ? cfg.base : cfg.spawned;
+    const fadeInMs = Math.max(1, type.fadeIn * 1000);
+    const fadeOutMs = Math.max(1, type.fadeOut * 1000);
+
     let alpha = 1;
-    let size = cfg.size;
+    let size = type.size;
 
     if (now < s.birth + fadeInMs) {
       alpha = (now - s.birth) / fadeInMs;
     } else if (now >= s.deathStart) {
       const t = (now - s.deathStart) / fadeOutMs; // 0..1
-      if (cfg.flashOut) {
+      if (type.flashOut) {
         alpha = Math.pow(1 - t, 2);
-        size = cfg.size * (1 + t * 2.5);
+        size = type.size * (1 + t * 2.5);
       } else {
         alpha = 1 - t;
       }
     }
 
     if (alpha <= 0) continue;
-
     starCtx.globalAlpha = Math.min(1, alpha);
-    starCtx.fillStyle = s.color;
-    starCtx.fillRect(s.x - size/2, s.y - size/2, size, size);
+    starCtx.fillStyle = type.color;
+    drawShape(starCtx, s.x, s.y, size, type.shape);
   }
   starCtx.globalAlpha = 1;
+}
+
+function drawShape(ctx, x, y, s, shape) {
+  const half = s / 2;
+  ctx.beginPath();
+  switch (shape) {
+    case 'circle':
+      ctx.arc(x, y, half, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    case 'square':
+      ctx.fillRect(x - half, y - half, s, s);
+      return;
+    case 'triangle':
+      ctx.moveTo(x, y - s * 0.62);
+      ctx.lineTo(x + s * 0.58, y + s * 0.42);
+      ctx.lineTo(x - s * 0.58, y + s * 0.42);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    case 'diamond':
+      ctx.moveTo(x, y - s * 0.65);
+      ctx.lineTo(x + s * 0.65, y);
+      ctx.lineTo(x, y + s * 0.65);
+      ctx.lineTo(x - s * 0.65, y);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    case 'star':
+      for (let i = 0; i < 10; i++) {
+        const r = (i % 2 === 0) ? s * 0.72 : s * 0.30;
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const px = x + Math.cos(a) * r;
+        const py = y + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      return;
+    case 'plus': {
+      const t = Math.max(1, s * 0.34);
+      ctx.fillRect(x - t / 2, y - half, t, s);
+      ctx.fillRect(x - half, y - t / 2, s, t);
+      return;
+    }
+    default:
+      ctx.fillRect(x - half, y - half, s, s);
+  }
 }
 
 let lastCountShown = -1;
@@ -512,7 +732,8 @@ function updateStarCount() {
   if (stars.length !== lastCountShown) {
     lastCountShown = stars.length;
     const baseCount = stars.filter(s => s.isBase).length;
-    document.getElementById('star-count').textContent = `${stars.length}★ (${baseCount} base)`;
+    const spawnCount = stars.length - baseCount;
+    document.getElementById('star-count').textContent = `${stars.length}★ (${baseCount}B / ${spawnCount}S)`;
   }
 }
 
@@ -522,8 +743,11 @@ function flashScreen() {
   void el.offsetWidth;
   el.classList.add('flash');
 }
-
-function resetStars() { stars = []; lastBaseSpawn = performance.now(); }
+function resetStars() {
+  stars = [];
+  baseSpawnArmed = false;
+  nextBaseSpawnAt = performance.now() + cfg.base.initialDelay;
+}
 
 /* =========================================================
    STAR GUI WIRING
@@ -532,39 +756,74 @@ function toggleStarGui() {
   if (!isEditing) return;
   document.getElementById('star-gui').classList.toggle('hidden');
 }
+function toggleSection(headerEl) {
+  headerEl.parentElement.classList.toggle('collapsed');
+}
 
 function bindGui() {
-  const bindSlider = (id, key, fmt) => {
+  // ---- Slider binder ----
+  const bindSlider = (id, obj, key, fmt) => {
     const input = document.getElementById('i-' + id);
     const label = document.getElementById('v-' + id);
     const apply = () => {
-      cfg[key] = parseFloat(input.value);
-      label.textContent = fmt ? fmt(cfg[key]) : cfg[key];
+      obj[key] = parseFloat(input.value);
+      if (label) label.textContent = fmt ? fmt(obj[key]) : obj[key];
     };
     input.addEventListener('input', apply);
     apply();
   };
-  bindSlider('spawnInt', 'spawnInterval');
-  bindSlider('life',     'lifespan',    v => v.toFixed(1));
-  bindSlider('chance',   'spawnChance');
-  bindSlider('tick',     'tickInterval');
-  bindSlider('max',      'maxStars');
-  bindSlider('size',     'size');
-  bindSlider('fadeIn',   'fadeIn',      v => v.toFixed(2));
-  bindSlider('fadeOut',  'fadeOut',     v => v.toFixed(2));
-
-  document.getElementById('i-baseColor').addEventListener('input', e => cfg.baseColor = e.target.value);
-  document.getElementById('i-spawnColor').addEventListener('input', e => cfg.spawnColor = e.target.value);
-
-  const bindToggle = (id, key) => {
+  // ---- Color binder ----
+  const bindColor = (id, obj, key) => {
+    const input = document.getElementById('i-' + id);
+    input.addEventListener('input', () => obj[key] = input.value);
+    obj[key] = input.value;
+  };
+  // ---- Select binder ----
+  const bindSelect = (id, obj, key) => {
+    const el = document.getElementById('i-' + id);
+    el.addEventListener('change', () => obj[key] = el.value);
+    obj[key] = el.value;
+  };
+  // ---- Toggle binder ----
+  const bindToggle = (id, obj, key, initial) => {
     const el = document.getElementById('t-' + id);
+    if (initial) el.classList.add('on'); else el.classList.remove('on');
+    obj[key] = initial;
     el.addEventListener('click', () => {
       el.classList.toggle('on');
-      cfg[key] = el.classList.contains('on');
+      obj[key] = el.classList.contains('on');
     });
   };
-  bindToggle('trigger', 'triggerEnabled');
-  bindToggle('flashOut', 'flashOut');
+
+  // ---------- Global ----------
+  bindSlider('max', cfg.global, 'maxStars');
+  bindToggle('trigger', cfg.global, 'triggerEnabled', false);
+
+  // ---------- Base ----------
+  bindToggle('baseEnabled', cfg.base, 'enabled', true);
+  bindSlider('baseInitDelay', cfg.base, 'initialDelay');
+  bindSlider('baseInterval',  cfg.base, 'spawnInterval');
+  bindSlider('baseRepro',     cfg.base, 'reproChance');
+  bindSlider('baseTick',      cfg.base, 'tickMs');
+  bindSlider('baseLife',      cfg.base, 'lifespan',  v => v.toFixed(1));
+  bindSlider('baseSize',      cfg.base, 'size');
+  bindSlider('baseFadeIn',    cfg.base, 'fadeIn',    v => v.toFixed(2));
+  bindSlider('baseFadeOut',   cfg.base, 'fadeOut',   v => v.toFixed(2));
+  bindColor ('baseColor',     cfg.base, 'color');
+  bindSelect('baseShape',     cfg.base, 'shape');
+  bindToggle('baseFlashOut',  cfg.base, 'flashOut',  true);
+
+  // ---------- Spawned ----------
+  bindToggle('spawnedEnabled', cfg.spawned, 'enabled', true);
+  bindSlider('spawnRepro',     cfg.spawned, 'reproChance');
+  bindSlider('spawnTick',      cfg.spawned, 'tickMs');
+  bindSlider('spawnLife',      cfg.spawned, 'lifespan',  v => v.toFixed(1));
+  bindSlider('spawnSize',      cfg.spawned, 'size');
+  bindSlider('spawnFadeIn',    cfg.spawned, 'fadeIn',    v => v.toFixed(2));
+  bindSlider('spawnFadeOut',   cfg.spawned, 'fadeOut',   v => v.toFixed(2));
+  bindColor ('spawnColor',     cfg.spawned, 'color');
+  bindSelect('spawnShape',     cfg.spawned, 'shape');
+  bindToggle('spawnFlashOut',  cfg.spawned, 'flashOut',  true);
 }
 
 /* =========================================================
