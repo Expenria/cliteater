@@ -173,7 +173,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></div>
       <span class="text-sm font-semibold tracking-wide text-zinc-300" id="status-badge">Visitor View</span>
       <span class="text-[10px] text-zinc-500 font-mono" id="star-count">0★</span>
-      <span class="text-[10px] text-fuchsia-400/70 font-mono" id="page-badge"></span>
+      <a id="page-badge" href="index.html" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all">🔇 silencio</a>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
       <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"><i class="fa-solid fa-code"></i> Export Code</button>
@@ -329,8 +329,7 @@ const cfg={
 let snapEnabled = true;
 
 window.addEventListener('DOMContentLoaded',()=>{
-  const pb = document.getElementById('page-badge');
-  if (pb) pb.textContent = '🎧 ' + PAGE_NS;   // 🤫 in index.html
+
 
   const sc = localStorage.getItem(STORAGE.doc);
   if (sc) canvasEl.innerHTML = sc;
