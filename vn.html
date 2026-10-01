@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Interactive Canvas Page</title>
+<title>BLABLABLA 🎧</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -226,7 +226,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
-    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1></div>
+    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">BLABLABLA 🎧</h1></div>
     <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere.</p></div>
     <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Stars seed the field. Effects reshape it."</blockquote></div>
   </div>
@@ -276,12 +276,14 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 
 <script>
 /* =========================================================
-   PAGE NAMESPACE — derived from the current filename
-   index.html → "index",  page2.html → "page2",  etc.
-   Every localStorage key is suffixed with this so the same
-   file dropped in twice behaves as two independent pages.
+   PAGE NAMESPACE
+   Forced override so the two pages always keep distinct storage
+   even if GitHub Pages serves them under a different path.
+   index.html → "index",  vn.html → "vn"
 ========================================================= */
+const PAGE_NS_OVERRIDE = 'vn';   // ← change to 'index' in index.html
 const PAGE_NS = (function(){
+  if (PAGE_NS_OVERRIDE) return PAGE_NS_OVERRIDE;
   let path = location.pathname;
   if (path.endsWith('/')) path += 'index.html';
   const m = path.match(/\/([^\/]+?)(\.html?)?$/i);
@@ -328,7 +330,7 @@ let snapEnabled = true;
 
 window.addEventListener('DOMContentLoaded',()=>{
   const pb = document.getElementById('page-badge');
-  if (pb) pb.textContent = '📄 ' + PAGE_NS;
+  if (pb) pb.textContent = '🎧 ' + PAGE_NS;   // 🤫 in index.html
 
   const sc = localStorage.getItem(STORAGE.doc);
   if (sc) canvasEl.innerHTML = sc;
@@ -908,7 +910,7 @@ function openTbSettings(el){
   body.appendChild(tbField('Text (multi-line)', () => {
     const ta = document.createElement('textarea');
     ta.value = d.text;
-    ta.addEventListener('input', () => { d.text = ta.value; el.firstChild && (el.firstChild.nodeType === 3 ? (el.firstChild.nodeValue = ta.value) : null); restoreTextContent(el, ta.value); saveTextBoxes(); });
+    ta.addEventListener('input', () => { d.text = ta.value; restoreTextContent(el, ta.value); saveTextBoxes(); });
     return ta;
   }));
 
@@ -979,9 +981,7 @@ function openTbSettings(el){
 
 /* Safely update text content of a text-box without touching handles */
 function restoreTextContent(el, newText){
-  // Find the text node child (there will be one after applyTextBoxStyle set textContent)
-  // Easiest: re-set textContent then re-append all handles
-  const kids = Array.from(el.children); // these are handle divs
+  const kids = Array.from(el.children);
   el.textContent = newText;
   kids.forEach(k => el.appendChild(k));
 }
@@ -1565,7 +1565,6 @@ function buildEffectSettings(container,eff){
       {value:'avoid',label:'Avoid the letters (no stars inside)'},
       {value:'allow',label:'Ignore letters (stars can spawn inside)'}
     ]));
-    container.appendChild(widget_text('Text',eff,'text',()=>renderEffectList(),false));
 
     const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
     container.appendChild(charsLabel);
