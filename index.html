@@ -98,6 +98,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .status-tag.ok{background:#052e16;color:#86efac}
 .status-tag.err{background:#450a0a;color:#fca5a5}
 .status-tag.loading{background:#1e1b4b;color:#a5b4fc}
+.status-tag.warn{background:#422006;color:#fbbf24}
 #effect-picker{display:none;flex-direction:column;gap:6px;padding:8px;background:#1f1f24;border:1px dashed #3f3f46;border-radius:8px}
 #effect-picker.open{display:flex}
 #effect-picker button{text-align:left;padding:8px 10px;border-radius:6px;background:#27272a;color:#e4e4e7;font-size:11px;cursor:pointer;border:none;transition:background .15s}
@@ -184,17 +185,27 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
     <div class="flex justify-between items-center">
-      <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML for GitHub</h3>
+      <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Export Page</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub.</p>
-    <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
-    <div class="flex justify-end"><button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2"><i class="fa-regular fa-copy"></i> Copy to Clipboard</button></div>
+    <p class="text-xs text-zinc-400">Full page with text, images, <strong class="text-indigo-400">and all star settings</strong> baked in. Copy the code into <span class="text-indigo-400 font-mono">index.html</span> on GitHub, or download the file.</p>
+    <div id="export-status" class="hidden text-xs"></div>
+    <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600" placeholder="Generating..."></textarea>
+    <div class="flex justify-end gap-3">
+      <button onclick="downloadExportedHTML()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+        <i class="fa-solid fa-download"></i> Download as index.html
+      </button>
+      <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+        <i class="fa-regular fa-copy"></i> Copy to Clipboard
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
-/* ===== DOC EDIT MODE ===== */
+/* =========================================================
+   DOC EDIT MODE
+========================================================= */
 let isEditing = false;
 const ADMIN_PASS = "admin";
 const canvasEl=document.getElementById('document-canvas');
@@ -210,15 +221,131 @@ const formattingToolbar=document.getElementById('formatting-toolbar');
 const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 
+/* =========================================================
+   STAR CONFIG — declared up here so preload can populate it
+========================================================= */
+const cfg={
+  global:{maxStars:500,triggerEnabled:false},
+  base:{
+    enabled:true,initialDelay:800,spawnInterval:400,
+    reproChance:3,tickMs:500,lifespan:5,
+    color:'#ffffff',shape:'square',size:3,
+    fadeIn:0.4,fadeOut:0.5,flashOut:true,
+    randomRotation:false
+  },
+  spawned:{
+    enabled:true,reproChance:5,tickMs:200,lifespan:3,
+    color:'#a5b4fc',shape:'square',size:3,
+    fadeIn:0.4,fadeOut:0.5,flashOut:true,
+    randomRotation:false
+  },
+  effects:[],
+  activeEffectId:null
+};
+
+/* =========================================================
+   BOOTSTRAP — load saved state BEFORE GUI builds
+========================================================= */
 window.addEventListener('DOMContentLoaded',()=>{
-  const sc=localStorage.getItem('canvas_doc_content');
-  if(sc) canvasEl.innerHTML=sc;
-  const si=localStorage.getItem('canvas_images');
-  if(si){try{JSON.parse(si).forEach(img=>createImageElement(img))}catch(e){}}
+  // 1. Load doc content: localStorage first, then exported fallback
+  const sc = localStorage.getItem('canvas_doc_content');
+  if (sc) canvasEl.innerHTML = sc;
+  else if (window.__EXPORTED_DOC__) canvasEl.innerHTML = window.__EXPORTED_DOC__;
+
+  // 2. Load star config into cfg (localStorage > exported > defaults)
+  loadStarConfig();
+
+  // 3. Load page images
+  const si = localStorage.getItem('canvas_images');
+  if (si) { try{JSON.parse(si).forEach(img=>createImageElement(img))}catch(e){} }
+  else if (window.__EXPORTED_IMAGES__ && Array.isArray(window.__EXPORTED_IMAGES__)) {
+    window.__EXPORTED_IMAGES__.forEach(img=>createImageElement(img));
+  }
+
   disableEditing();
   initStars();
 });
 
+function loadStarConfig(){
+  // Priority 1: localStorage
+  const saved = localStorage.getItem('canvas_star_config');
+  if (saved) {
+    try {
+      const p = JSON.parse(saved);
+      applyConfigObject(p);
+      cfg.global.triggerEnabled = false; // safety: always off on load
+      return;
+    } catch(e) {}
+  }
+  // Priority 2: exported baked config
+  if (window.__EXPORTED_CFG__) {
+    try {
+      applyConfigObject(window.__EXPORTED_CFG__);
+      cfg.global.triggerEnabled = false;
+    } catch(e) {}
+  }
+}
+
+function applyConfigObject(p){
+  if (!p) return;
+  if (p.global) Object.assign(cfg.global, p.global);
+  if (p.base) Object.assign(cfg.base, p.base);
+  if (p.spawned) Object.assign(cfg.spawned, p.spawned);
+  if (Array.isArray(p.effects) && p.effects.length) {
+    // Recompute runtime-only fields for bubble effects
+    cfg.effects = p.effects.map(eff => {
+      if (eff.type === 'bubble') {
+        eff.spawnPoints = null;
+        eff.maskData = null;
+        eff.maskBounds = null;
+        eff.maskScale = 1;
+      }
+      if (eff.type === 'images') {
+        eff.imagePool = eff.imagePool || [];
+        eff.unusedPool = [];
+        eff.loaded = false;
+        eff.loadError = null;
+      }
+      return eff;
+    });
+    if (cfg.effects.some(e => e.id === p.activeEffectId)) {
+      cfg.activeEffectId = p.activeEffectId;
+    } else {
+      cfg.activeEffectId = cfg.effects[0].id;
+    }
+    return;
+  }
+  // If no effects were saved, create defaults
+  if (!cfg.effects || !cfg.effects.length) {
+    cfg.effects = [createEffect('none')];
+    cfg.activeEffectId = cfg.effects[0].id;
+  }
+}
+
+function serializeConfig(){
+  // Strip runtime-only fields before saving/exporting
+  const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
+    if (key === 'maskData' || key === 'spawnPoints') return undefined;
+    if (key === 'imagePool' || key === 'unusedPool') return undefined;
+    return value;
+  }));
+  clean.global.triggerEnabled = false; // never persist the trigger state
+  return clean;
+}
+
+let _saveStarTimer = null;
+function saveStarConfig(){
+  if (_saveStarTimer) clearTimeout(_saveStarTimer);
+  _saveStarTimer = setTimeout(() => {
+    try {
+      localStorage.setItem('canvas_star_config', JSON.stringify(serializeConfig()));
+    } catch(e) { console.warn('Failed to save star config:', e); }
+  }, 120);
+}
+
+/* =========================================================
+   EDIT MODE TOGGLE
+========================================================= */
 function requestEditModeToggle(){
   if(isEditing){isEditing=false;disableEditing()}
   else{document.getElementById('password-modal').classList.remove('hidden');document.getElementById('pass-input').focus()}
@@ -275,12 +402,17 @@ function addBlock(type){
 function autoSave(){localStorage.setItem('canvas_doc_content',canvasEl.innerHTML)}
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
-  if(confirm("Reset ALL content and images? (Stars are unaffected)")){
-    localStorage.removeItem('canvas_doc_content');localStorage.removeItem('canvas_images');location.reload();
+  if(confirm("Reset ALL page content, images, AND star settings?")){
+    localStorage.removeItem('canvas_doc_content');
+    localStorage.removeItem('canvas_images');
+    localStorage.removeItem('canvas_star_config');
+    location.reload();
   }
 }
 
-/* ===== PAGE IMAGES ===== */
+/* =========================================================
+   PAGE IMAGES
+========================================================= */
 function triggerImageUpload(){if(isEditing)imageUploadInput.click()}
 imageUploadInput.addEventListener('change',e=>{
   Array.from(e.target.files).forEach(file=>{
@@ -359,32 +491,15 @@ document.addEventListener('mousedown',e=>{
   if(!e.target.closest('.draggable-img'))document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'))
 });
 
-/* ===== STAR CONFIG ===== */
-const cfg={
-  global:{maxStars:500,triggerEnabled:false},
-  base:{
-    enabled:true,initialDelay:800,spawnInterval:400,
-    reproChance:3,tickMs:500,lifespan:5,
-    color:'#ffffff',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true,
-    randomRotation:false
-  },
-  spawned:{
-    enabled:true,reproChance:5,tickMs:200,lifespan:3,
-    color:'#a5b4fc',shape:'square',size:3,
-    fadeIn:0.4,fadeOut:0.5,flashOut:true,
-    randomRotation:false
-  },
-  effects:[],
-  activeEffectId:null
-};
+/* =========================================================
+   EFFECTS
+========================================================= */
 let stars=[];
 let starCanvas,starCtx,dpr=1;
 let baseSpawnArmed=false;
 let nextBaseSpawnAt=0;
 const imageCache={};
 
-/* ===== EFFECTS ===== */
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
 function defaultCharFor(i,total){
@@ -414,6 +529,7 @@ function createEffect(type){
   if(type==='images'){
     return {
       id,type,name:'Image Stars',
+      minStarsForImages:0,        // ← threshold for image replacement
       folder:'strimiges',
       defaultSize:60,
       explicitList:'',
@@ -424,11 +540,15 @@ function createEffect(type){
   }
   return {id,type:'none',name:'Plain Stars',flashColor:'#ffffff'};
 }
-cfg.effects=[createEffect('none')];
-cfg.activeEffectId=cfg.effects[0].id;
+if (!cfg.effects || !cfg.effects.length) {
+  cfg.effects=[createEffect('none')];
+  cfg.activeEffectId=cfg.effects[0].id;
+}
 function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)||cfg.effects[0]||null}
 
-/* ===== BUBBLE MASK ===== */
+/* =========================================================
+   BUBBLE MASK
+========================================================= */
 function computeBubbleMask(effect){
   if(!effect||effect.type!=='bubble')return;
   if(!effect.chars||!effect.chars.length){
@@ -469,7 +589,6 @@ function computeBubbleMask(effect){
   effect.maskScale=scale;
   effect.maskBounds=found?{minX:minX/scale,minY:minY/scale,maxX:maxX/scale,maxY:maxY/scale}:null;
 }
-
 function isInMask(effect,x,y){
   if(!effect||!effect.maskData)return false;
   const mx=Math.floor(x*effect.maskScale);
@@ -478,7 +597,9 @@ function isInMask(effect,x,y){
   return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
 }
 
-/* ===== CHARACTER BOUNDS (for editor) ===== */
+/* =========================================================
+   CHARACTER BOUNDS + EDITOR
+========================================================= */
 let _boundsCtx=null;
 function getCharBounds(ch){
   if(!ch.char)return {w:20,h:20};
@@ -494,8 +615,6 @@ function getCharBounds(ch){
   }
   return {w,h:Math.max(h,8)};
 }
-
-/* ===== BUBBLE EDITOR (canvas handles) ===== */
 function rebuildBubbleEditor(){
   const layer=document.getElementById('bubble-editor-layer');
   layer.innerHTML='';
@@ -543,6 +662,7 @@ function rebuildBubbleEditor(){
         document.removeEventListener('mouseup',up);
         computeBubbleMask(eff);
         renderEffectList();
+        saveStarConfig();
       };
       document.addEventListener('mousemove',mv);
       document.addEventListener('mouseup',up);
@@ -550,8 +670,7 @@ function rebuildBubbleEditor(){
 
     rot.addEventListener('mousedown',e=>{
       if(!isEditing)return;
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault();e.stopPropagation();
       const cx=ch.x,cy=ch.y;
       const startAngle=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI;
       const startRot=ch.rotation||0;
@@ -565,6 +684,7 @@ function rebuildBubbleEditor(){
         document.removeEventListener('mouseup',up);
         computeBubbleMask(eff);
         renderEffectList();
+        saveStarConfig();
       };
       document.addEventListener('mousemove',mv);
       document.addEventListener('mouseup',up);
@@ -573,7 +693,6 @@ function rebuildBubbleEditor(){
     layer.appendChild(div);
   });
 }
-
 function updateCharDiv(div,ch){
   const b=getCharBounds(ch);
   div.style.width=b.w+'px';
@@ -584,12 +703,16 @@ function updateCharDiv(div,ch){
   const label=div.querySelector('.char-label');
   if(label)label.textContent=`#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
 }
+function updateCharDivByIndex(idx,ch){
+  const layer=document.getElementById('bubble-editor-layer');
+  const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
+  if(div)updateCharDiv(div,ch);
+}
+window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
 
-window.addEventListener('resize',()=>{
-  if(isEditing)rebuildBubbleEditor();
-});
-
-/* ===== IMAGE LOADING ===== */
+/* =========================================================
+   IMAGE LOADING
+========================================================= */
 function preloadImage(url){
   return new Promise((resolve,reject)=>{
     if(imageCache[url]&&imageCache[url].complete)return resolve(imageCache[url]);
@@ -646,7 +769,9 @@ function pickNextImage(effect){
   return effect.unusedPool.pop();
 }
 
-/* ===== STAR SYSTEM ===== */
+/* =========================================================
+   STAR SYSTEM
+========================================================= */
 function initStars(){
   starCanvas=document.getElementById('star-canvas');
   starCtx=starCanvas.getContext('2d');
@@ -658,6 +783,11 @@ function initStars(){
   nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
   cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)});
   buildGui();
+  // If active effect is image-based, kick off load
+  const active = getActiveEffect();
+  if (active && active.type === 'images' && !active.loaded) {
+    loadEffectImages(active);
+  }
   requestAnimationFrame(starLoop);
 }
 function resizeStarCanvas(){
@@ -668,16 +798,12 @@ function resizeStarCanvas(){
   starCanvas.style.height=window.innerHeight+'px';
   starCtx.setTransform(dpr,0,0,dpr,0,0);
 }
-
 function getSpawnPoint(effect){
   const W=window.innerWidth,H=window.innerHeight;
-
   if(effect&&effect.type==='bubble'&&effect.chars&&effect.chars.length&&effect.maskData&&effect.maskBounds){
     const threshold=Number(effect.minStarsForBubble)||0;
     const overThreshold=stars.length>=threshold;
-
     if(overThreshold){
-      // Spawn ONLY inside letters
       const b=effect.maskBounds;
       const w=b.maxX-b.minX,h=b.maxY-b.minY;
       for(let t=0;t<40;t++){
@@ -685,25 +811,20 @@ function getSpawnPoint(effect){
         const y=b.minY+Math.random()*h;
         if(isInMask(effect,x,y))return{x,y};
       }
-      // Fallback: sample point grid
       if(effect.spawnPoints&&effect.spawnPoints.length){
         const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];
         return{x:p.x,y:p.y};
       }
     } else if(effect.beforeThresholdMode==='avoid'){
-      // Pre-threshold: spawn ANYWHERE EXCEPT inside letters
       for(let t=0;t<80;t++){
         const x=Math.random()*W;
         const y=Math.random()*H;
         if(!isInMask(effect,x,y))return{x,y};
       }
-      // Fallback: just random (rare — only if mask covers nearly everything)
     }
   }
-
   return{x:Math.random()*W,y:Math.random()*H};
 }
-
 function spawnStar(isBase){
   const type=isBase?cfg.base:cfg.spawned;
   const active=getActiveEffect();
@@ -711,7 +832,11 @@ function spawnStar(isBase){
   const pt=getSpawnPoint(active);
   let imgUrl=null;
   if(active&&active.type==='images'&&active.imagePool.length){
-    imgUrl=pickNextImage(active);
+    // Only replace with images once we hit the threshold
+    const threshold=Number(active.minStarsForImages)||0;
+    if(stars.length>=threshold){
+      imgUrl=pickNextImage(active);
+    }
   }
   stars.push({
     x:pt.x,y:pt.y,isBase,
@@ -854,7 +979,9 @@ function resetStars(){
   nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
 }
 
-/* ===== GUI WIDGETS ===== */
+/* =========================================================
+   GUI WIDGETS
+========================================================= */
 function el(tag,cls,html){
   const d=document.createElement(tag);
   if(cls)d.className=cls;
@@ -879,6 +1006,7 @@ function widget_numRange(labelText,obj,key,opts={}){
     if(fromSlider&&val>max)val=max;
     obj[key]=val;num.value=val;rng.value=Math.min(val,max);
     if(opts.onChange)opts.onChange(val);
+    saveStarConfig();
   };
   num.addEventListener('input',()=>apply(num.value,false));
   num.addEventListener('blur',()=>apply(num.value,false));
@@ -889,7 +1017,7 @@ function widget_color(labelText,obj,key,onChange){
   const row=el('div','row');
   const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const inp=el('input');inp.type='color';inp.value=obj[key];
-  inp.addEventListener('input',()=>{obj[key]=inp.value;if(onChange)onChange(inp.value)});
+  inp.addEventListener('input',()=>{obj[key]=inp.value;if(onChange)onChange(inp.value);saveStarConfig()});
   row.appendChild(wrap);row.appendChild(inp);return row;
 }
 function widget_select(labelText,obj,key,options,onChange){
@@ -901,7 +1029,7 @@ function widget_select(labelText,obj,key,options,onChange){
     if(obj[key]===o.value)opt.selected=true;
     sel.appendChild(opt);
   });
-  sel.addEventListener('change',()=>{obj[key]=sel.value;if(onChange)onChange(sel.value)});
+  sel.addEventListener('change',()=>{obj[key]=sel.value;if(onChange)onChange(sel.value);saveStarConfig()});
   row.appendChild(wrap);row.appendChild(sel);return row;
 }
 function widget_toggle(labelText,obj,key,onChange){
@@ -911,6 +1039,7 @@ function widget_toggle(labelText,obj,key,onChange){
   tog.addEventListener('click',()=>{
     tog.classList.toggle('on');obj[key]=tog.classList.contains('on');
     if(onChange)onChange(obj[key]);
+    saveStarConfig();
   });
   wrap.appendChild(tog);row.appendChild(wrap);return row;
 }
@@ -921,7 +1050,7 @@ function widget_text(labelText,obj,key,onChange,isArea){
   const inp=el(isArea?'textarea':'input');
   if(!isArea)inp.type='text';else inp.className='gui-text';
   inp.value=obj[key]||'';
-  inp.addEventListener('input',()=>{obj[key]=inp.value;if(onChange)onChange(inp.value)});
+  inp.addEventListener('input',()=>{obj[key]=inp.value;if(onChange)onChange(inp.value);saveStarConfig()});
   row.appendChild(inp);return row;
 }
 function makeSection(headerText,headerClass,sectionKey){
@@ -934,7 +1063,9 @@ function makeSection(headerText,headerClass,sectionKey){
   return {sec,body};
 }
 
-/* ===== GUI BUILDER ===== */
+/* =========================================================
+   GUI BUILDER
+========================================================= */
 function buildGui(){
   const body=document.getElementById('gui-body');
   body.innerHTML='';
@@ -993,7 +1124,9 @@ function buildGui(){
   renderEffectList();
 }
 
-/* ===== EFFECTS LIST ===== */
+/* =========================================================
+   EFFECTS LIST
+========================================================= */
 function renderEffectList(){
   const container=document.getElementById('effects-body');
   if(!container)return;
@@ -1047,6 +1180,7 @@ function renderEffectList(){
       activateEffect(eff.id);
       picker.classList.remove('open');
       renderEffectList();
+      saveStarConfig();
     });
   });
   container.appendChild(picker);
@@ -1057,17 +1191,13 @@ function buildEffectSettings(container,eff){
   container.appendChild(widget_color('Flash colour at N',eff,'flashColor'));
 
   if(eff.type==='bubble'){
-    // Threshold
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{
       min:0,max:100000000,step:1
     }));
-
-    // Pre-threshold behaviour
     container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[
       {value:'avoid',label:'Avoid the letters (no stars inside)'},
       {value:'allow',label:'Ignore letters (stars can spawn inside)'}
     ]));
-
     container.appendChild(widget_text('Text',eff,'text',()=>renderEffectList(),false));
 
     const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
@@ -1093,16 +1223,17 @@ function buildEffectSettings(container,eff){
         ch.char=glyph.value;
         computeBubbleMask(eff);
         updateCharDivByIndex(idx,ch);
+        saveStarConfig();
       });
 
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
-      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
+      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const yin=el('input','mini');yin.type='number';yin.step='any';yin.value=Math.round(ch.y);
-      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
+      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const sin=el('input','mini');sin.type='number';sin.step='any';sin.value=Math.round(ch.size);
-      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
+      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
-      rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch)});
+      rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
 
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.title='Remove character';
@@ -1111,6 +1242,7 @@ function buildEffectSettings(container,eff){
         computeBubbleMask(eff);
         renderEffectList();
         rebuildBubbleEditor();
+        saveStarConfig();
       });
 
       row.appendChild(glyph);
@@ -1122,14 +1254,13 @@ function buildEffectSettings(container,eff){
 
       charsBox.appendChild(row);
     });
-
     container.appendChild(charsBox);
 
     const addCharBtn=el('button','gui-btn ghost');
     addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
     addCharBtn.addEventListener('click',()=>{
       eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
     });
     container.appendChild(addCharBtn);
 
@@ -1140,7 +1271,7 @@ function buildEffectSettings(container,eff){
         const c=defaultCharFor(i,eff.chars.length);
         ch.x=c.x;ch.y=c.y;ch.rotation=0;
       });
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
     });
     container.appendChild(reloadLayoutBtn);
 
@@ -1148,7 +1279,7 @@ function buildEffectSettings(container,eff){
     clearRotBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations to 0';
     clearRotBtn.addEventListener('click',()=>{
       eff.chars.forEach(ch=>{ch.rotation=0});
-      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();
+      computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig();
     });
     container.appendChild(clearRotBtn);
 
@@ -1165,19 +1296,32 @@ function buildEffectSettings(container,eff){
 
     const info=el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`);
     container.appendChild(info);
-
-    const hint=el('div',null,'<span style="color:#71717a;font-size:10px;">Tip: on the page, drag the dashed box to move a letter, drag the blue circle to rotate.</span>');
-    container.appendChild(hint);
   }
 
   if(eff.type==='images'){
+    // Threshold — same idea as bubble
+    container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{
+      min:0,max:100000000,step:1
+    }));
+
+    const thresh = Number(eff.minStarsForImages)||0;
+    const threshInfo = el('div');
+    if (thresh === 0) {
+      threshInfo.innerHTML = `<span class="status-tag warn">Threshold = 0 → images from the very start</span>`;
+    } else {
+      threshInfo.innerHTML = `<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`;
+    }
+    container.appendChild(threshInfo);
+
     container.appendChild(widget_text('Folder name',eff,'folder',null,false));
     container.appendChild(widget_text('Manual file list (optional — one per line)',eff,'explicitList',null,true));
     container.appendChild(widget_numRange('Default image size (px)',eff,'defaultSize',{min:8,max:2000,step:1}));
+
     const rb=el('button','gui-btn primary');
     rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
     rb.addEventListener('click',()=>loadEffectImages(eff));
     container.appendChild(rb);
+
     const status=el('div');
     if(eff.loaded)status.innerHTML=`<span class="status-tag ok">Loaded ${eff.imagePool.length} images</span>`;
     else if(eff.loadError)status.innerHTML=`<span class="status-tag err">${eff.loadError} — falling back to plain stars</span>`;
@@ -1203,8 +1347,9 @@ function buildEffectSettings(container,eff){
         tog.addEventListener('change',()=>{
           if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}
           else{delete eff.exceptions[url];num.disabled=true}
+          saveStarConfig();
         });
-        num.addEventListener('input',()=>{if(tog.checked)eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize});
+        num.addEventListener('input',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;saveStarConfig()}});
         r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);
         exBox.appendChild(r);
       });
@@ -1218,12 +1363,6 @@ function buildEffectSettings(container,eff){
   }
 }
 
-function updateCharDivByIndex(idx,ch){
-  const layer=document.getElementById('bubble-editor-layer');
-  const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
-  if(div)updateCharDiv(div,ch);
-}
-
 function activateEffect(id){
   cfg.activeEffectId=id;
   const eff=getActiveEffect();
@@ -1233,6 +1372,7 @@ function activateEffect(id){
   resetStars();
   renderEffectList();
   rebuildBubbleEditor();
+  saveStarConfig();
 }
 function deleteEffect(id){
   if(cfg.effects.length<=1){alert('Must keep at least one effect.');return}
@@ -1247,6 +1387,7 @@ function deleteEffect(id){
     rebuildBubbleEditor();
   }
   renderEffectList();
+  saveStarConfig();
 }
 
 function toggleStarGui(){
@@ -1254,43 +1395,89 @@ function toggleStarGui(){
   document.getElementById('star-gui').classList.toggle('hidden');
 }
 
-/* ===== EXPORT ===== */
-function exportHTML(){
-  const imagesHTML=Array.from(document.querySelectorAll('.draggable-img')).map(w=>{
-    const x=w.style.left,y=w.style.top,wd=w.offsetWidth,ht=w.offsetHeight,src=w.dataset.src;
-    return `            <img src="${src}" alt="" style="position:absolute; left:${x}; top:${y}; width:${wd}px; height:${ht}px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);" />`;
-  }).join('\n');
-  const full=`<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Webpage</title>
-<script src="https://cdn.tailwindcss.com"><\/script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>body{font-family:'Inter',sans-serif;background:#0f0f11;color:#f3f4f6;margin:0}</style>
-</head>
-<body class="min-h-screen selection:bg-indigo-500 selection:text-white">
-    <div style="position:relative; min-height:100vh;">
-        <main class="max-w-4xl mx-auto w-full px-6 py-12 relative" style="z-index:10;">
-            <div class="space-y-6">
-${canvasEl.innerHTML}
-            </div>
-        </main>
-        <div style="position:absolute; inset:0; pointer-events:none;">
-${imagesHTML}
-        </div>
-    </div>
-</body>
-</html>`;
-  document.getElementById('export-textarea').value=full;
-  document.getElementById('export-modal').classList.remove('hidden');
+/* =========================================================
+   EXPORT — full page with config baked in
+========================================================= */
+async function exportHTML(){
+  const modal = document.getElementById('export-modal');
+  const ta = document.getElementById('export-textarea');
+  const statusEl = document.getElementById('export-status');
+  modal.classList.remove('hidden');
+  ta.value = '';
+  ta.placeholder = 'Generating export...';
+  statusEl.classList.add('hidden');
+
+  try {
+    // Fetch this page's source — this gives us the pristine index.html
+    const res = await fetch(window.location.href, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Could not fetch page source (' + res.status + ')');
+    let source = await res.text();
+
+    // Build the baked payload
+    const cfgJSON = JSON.stringify(serializeConfig());
+    const docContent = canvasEl.innerHTML;
+    const imgs = Array.from(document.querySelectorAll('.draggable-img')).map(w => ({
+      src: w.dataset.src,
+      x: parseFloat(w.style.left)||0,
+      y: parseFloat(w.style.top)||0,
+      width: w.offsetWidth,
+      height: w.offsetHeight
+    }));
+
+    // Escape < so JSON strings don't break out of the script tag
+    const safe = (str) => str.replace(/</g, '\\u003c');
+
+    const bakedBlock = `<!-- BAKED_CONFIG_START -->
+<script id="baked-config">
+window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
+window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};
+window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
+<\/script>
+<!-- BAKED_CONFIG_END -->`;
+
+    // Remove any existing baked block (idempotent re-export)
+    source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
+
+    // Inject fresh baked block right before </head>
+    if (source.includes('</head>')) {
+      source = source.replace('</head>', bakedBlock + '\n</head>');
+    } else {
+      throw new Error('Could not find </head> in source');
+    }
+
+    ta.value = source;
+    ta.placeholder = '';
+    statusEl.className = 'text-xs';
+    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} page image${imgs.length===1?'':'s'} · ${cfg.effects.length} effect${cfg.effects.length===1?'':'s'}</span>`;
+    statusEl.classList.remove('hidden');
+  } catch (e) {
+    ta.placeholder = 'Export failed.';
+    statusEl.className = 'text-xs';
+    statusEl.innerHTML = `<span class="status-tag err">${e.message}</span>`;
+    statusEl.classList.remove('hidden');
+  }
 }
+
+function downloadExportedHTML(){
+  const content = document.getElementById('export-textarea').value;
+  if (!content || content.length < 100) { alert('Nothing to download yet — wait for the export to finish.'); return; }
+  const blob = new Blob([content], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'index.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
 function closeExportModal(){document.getElementById('export-modal').classList.add('hidden')}
 function copyExportedCode(){
   const t=document.getElementById('export-textarea');
+  if (!t.value || t.value.length < 100) { alert('Nothing to copy yet — wait for the export to finish.'); return; }
   t.select();document.execCommand('copy');
-  alert('Code copied! Paste into index.html on GitHub.');
+  alert('Code copied! Paste it into index.html on GitHub.');
 }
 </script>
 </body>
