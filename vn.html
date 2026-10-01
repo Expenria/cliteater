@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+:root{--mp3-highlight:#fbbf24}
 body{font-family:'Inter',sans-serif;background:#0f0f11;color:#f3f4f6;overflow-x:hidden}
 [contenteditable="true"]:focus{outline:2px dashed rgba(99,102,241,.5);outline-offset:4px;border-radius:4px}
 .edit-block{position:relative;transition:all .2s ease}
@@ -70,7 +71,6 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 .tb-tool input[type="color"]{width:22px;height:22px;padding:0;border:none;background:transparent;cursor:pointer;border-radius:50%;overflow:hidden}
 .tb-tool input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
 .tb-tool input[type="color"]::-webkit-color-swatch{border:2px solid #52525b;border-radius:50%}
-.tb-tool input[type="color"]::-moz-color-swatch{border:2px solid #52525b;border-radius:50%}
 #tb-settings{position:fixed;width:300px;max-height:calc(100vh - 40px);overflow-y:auto;background:#18181b;border:1px solid #6366f1;border-radius:12px;z-index:70;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.7);display:none}
 #tb-settings.open{display:block}
 #tb-settings .tb-head{padding:8px 12px;background:#1f1f24;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;border-radius:12px 12px 0 0}
@@ -83,8 +83,6 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 #tb-settings input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
 #tb-settings input[type="color"]{width:100%;height:26px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:5px}
 #tb-settings textarea,#tb-settings select,#tb-settings input[type="text"]{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#e4e4e7;font-size:11px;font-family:inherit}
-#tb-settings textarea{resize:vertical;min-height:60px}
-#tb-settings textarea:focus,#tb-settings select:focus,#tb-settings input[type="text"]:focus{outline:none;border-color:#6366f1}
 .tb-sect{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#6366f1;font-weight:700;padding-top:6px;border-top:1px solid #27272a;margin-top:2px}
 .tb-sect:first-child{border-top:none;margin-top:0;padding-top:0}
 .tb-switch-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0}
@@ -115,7 +113,6 @@ input.num-inline:focus{outline:none;border-color:#6366f1}
 input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
 input[type="color"]{width:100%;height:28px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:6px}
 input[type="text"],textarea.gui-text{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#e4e4e7;font-size:11px;font-family:inherit}
-input[type="text"]:focus,textarea.gui-text:focus{outline:none;border-color:#6366f1}
 textarea.gui-text{resize:vertical;min-height:50px;font-family:ui-monospace,monospace}
 select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 6px;color:#e4e4e7;font-size:11px;font-family:inherit;cursor:pointer}
 .toggle-switch{position:relative;width:32px;height:18px;background:#3f3f46;border-radius:10px;cursor:pointer;transition:background .2s;flex-shrink:0}
@@ -132,8 +129,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .effect-item{display:flex;flex-direction:column;background:#1a1a1e;border:1px solid #27272a;border-radius:8px;overflow:hidden}
 .effect-item.active{border-color:#6366f1;background:#1a1938}
 .effect-head{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer}
-.effect-head:hover{background:rgba(255,255,255,.03)}
-.eff-radio{width:14px;height:14px;border-radius:50%;border:2px solid #52525b;flex-shrink:0;position:relative;transition:border-color .15s}
+.eff-radio{width:14px;height:14px;border-radius:50%;border:2px solid #52525b;flex-shrink:0;position:relative}
 .effect-item.active .eff-radio{border-color:#818cf8}
 .effect-item.active .eff-radio::after{content:'';position:absolute;inset:2px;background:#818cf8;border-radius:50%}
 .effect-name{flex:1;font-size:11.5px;color:#e4e4e7;font-weight:500}
@@ -141,12 +137,11 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .effect-del{color:#71717a;font-size:12px;padding:2px 4px;cursor:pointer}
 .effect-del:hover{color:#ef4444}
 .effect-settings{padding:10px;display:flex;flex-direction:column;gap:9px;border-top:1px solid #27272a;background:#141416}
-.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:0 1px}
+.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
 .char-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;align-items:center;margin-bottom:3px}
 .char-row input.mini{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:4px;padding:3px 2px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace}
-.char-row input.mini:focus{outline:none;border-color:#6366f1}
 .char-row input.char-glyph{color:#f0abfc;font-weight:700}
-.char-del{width:20px;height:22px;font-size:11px;background:#3f3f46;color:#a1a1aa;border:none;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.char-del{width:20px;height:22px;font-size:11px;background:#3f3f46;color:#a1a1aa;border:none;border-radius:4px;cursor:pointer}
 .char-del:hover{background:#7f1d1d;color:#fecaca}
 .status-tag{font-size:9.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px}
 .status-tag.ok{background:#052e16;color:#86efac}
@@ -155,8 +150,71 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .status-tag.warn{background:#422006;color:#fbbf24}
 #effect-picker{display:none;flex-direction:column;gap:6px;padding:8px;background:#1f1f24;border:1px dashed #3f3f46;border-radius:8px}
 #effect-picker.open{display:flex}
-#effect-picker button{text-align:left;padding:8px 10px;border-radius:6px;background:#27272a;color:#e4e4e7;font-size:11px;cursor:pointer;border:none;transition:background .15s}
-#effect-picker button:hover{background:#3f3f46}
+#effect-picker button{text-align:left;padding:8px 10px;border-radius:6px;background:#27272a;color:#e4e4e7;font-size:11px;cursor:pointer;border:none}
+
+/* ===================== MP3 STYLES ===================== */
+.mp3-word{cursor:pointer;transition:background-color .06s;border-radius:2px;padding:0 1px}
+.mp3-word:hover{background-color:rgba(251,191,36,.15)}
+.mp3-word.highlighted{background-color:var(--mp3-highlight);color:#111}
+.mp3-word.mp3-period{cursor:pointer}
+body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important;color:inherit !important}
+
+#mp3-controls{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:45;background:#18181b;border:1px solid #27272a;border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:11px;color:#d4d4d8}
+#mp3-controls.hidden{display:none}
+#mp3-controls button{background:#27272a;color:#e4e4e7;border:none;border-radius:999px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px}
+#mp3-controls button:hover{background:#3f3f46}
+#mp3-controls .mp3-speed-wrap{display:flex;align-items:center;gap:6px}
+#mp3-controls input[type="range"]{width:80px;accent-color:#6366f1}
+#mp3-controls .mp3-sep{width:1px;height:18px;background:#27272a}
+#mp3-controls label{display:flex;align-items:center;gap:4px;cursor:pointer}
+#mp3-controls .mp3-time{font-family:ui-monospace,monospace;color:#a5b4fc;min-width:92px;text-align:center}
+
+#mp3-panel{position:fixed;top:80px;right:16px;width:460px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:62;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:none}
+#mp3-panel.open{display:block}
+#mp3-panel .mp3-head{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:3;border-radius:14px 14px 0 0}
+#mp3-panel .mp3-body{padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px}
+.mp3-sect{border:1px solid #27272a;border-radius:10px;overflow:hidden}
+.mp3-sect-head{padding:8px 10px;background:#1f1f24;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;user-select:none}
+.mp3-sect-head.tracks{color:#6ee7b7}
+.mp3-sect-head.words{color:#f0abfc}
+.mp3-sect-head.labelling{color:#a5b4fc}
+.mp3-sect-head.playback{color:#fbbf24}
+.mp3-sect-head.danger{color:#fca5a5}
+.mp3-sect-body{padding:10px;display:flex;flex-direction:column;gap:9px;background:#161619}
+.mp3-sect.collapsed .mp3-sect-body{display:none}
+.mp3-sect.collapsed .chev{transform:rotate(-90deg)}
+.mp3-track-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:#0f0f11;border:1px solid #27272a;border-radius:6px;font-size:11px}
+.mp3-track-item.active{border-color:#6366f1;background:#1a1938}
+.mp3-track-item .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e4e4e7}
+.mp3-track-item .dur{color:#71717a;font-family:ui-monospace,monospace;font-size:10px}
+.mp3-track-item button{background:#27272a;color:#d4d4d8;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer}
+.mp3-track-item button:hover{background:#3f3f46}
+.mp3-track-item button.del:hover{background:#7f1d1d;color:#fecaca}
+.mp3-word-list{max-height:220px;overflow-y:auto;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:1px}
+.mp3-word-row{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;font-size:10.5px;cursor:pointer;font-family:ui-monospace,monospace}
+.mp3-word-row:hover{background:#1a1a1e}
+.mp3-word-row.focused{background:#1a1938;outline:1px solid #6366f1}
+.mp3-word-row .idx{color:#52525b;width:26px;text-align:right;flex-shrink:0}
+.mp3-word-row .tok{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e4e4e7}
+.mp3-word-row .lbl{color:#71717a;font-size:9.5px;flex-shrink:0}
+.mp3-word-row.labelled .lbl{color:#6ee7b7}
+.mp3-word-row.focused .tok{color:#f0abfc;font-weight:700}
+.mp3-big-word{padding:12px;background:#0f0f11;border:1px solid #27272a;border-radius:8px;font-family:ui-monospace,monospace;font-size:20px;text-align:center;color:#f0abfc;font-weight:700;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-all}
+.mp3-nav{display:flex;gap:6px}
+.mp3-nav button{flex:1;background:#27272a;color:#d4d4d8;border:none;border-radius:6px;padding:6px;font-size:11px;cursor:pointer;font-weight:500}
+.mp3-nav button:hover{background:#3f3f46}
+.mp3-nav button.primary{background:#6366f1;color:#fff}
+.mp3-nav button.primary:hover{background:#818cf8}
+.mp3-time-row{display:flex;gap:6px;align-items:center}
+.mp3-time-row input[type="number"]{flex:1;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
+.mp3-time-row button{background:#27272a;color:#d4d4d8;border:none;border-radius:6px;padding:5px 8px;font-size:10.5px;cursor:pointer;white-space:nowrap}
+.mp3-time-row button:hover{background:#3f3f46}
+.mp3-audio-pos{font-family:ui-monospace,monospace;font-size:10px;color:#71717a;text-align:center;padding:4px;background:#0f0f11;border-radius:4px;border:1px solid #27272a}
+.mp3-hint{font-size:10px;color:#71717a;line-height:1.4}
+.mp3-tag{font-size:9.5px;padding:2px 6px;border-radius:4px;display:inline-block}
+.mp3-tag.ok{background:#052e16;color:#86efac}
+.mp3-tag.err{background:#450a0a;color:#fca5a5}
+.mp3-tag.warn{background:#422006;color:#fbbf24}
 </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
@@ -179,32 +237,30 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"><i class="fa-solid fa-code"></i> Export Code</button>
       <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-rotate-left"></i> Reset</button>
       <button id="star-gui-btn" onclick="toggleStarGui()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-star"></i> Star Settings</button>
+      <button id="mp3-panel-btn" onclick="toggleMp3Panel()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-headphones"></i> MP3 Sync</button>
       <button id="toggle-edit-btn" onclick="requestEditModeToggle()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-lock" id="lock-icon"></i> <span id="toggle-text">Admin Login</span></button>
     </div>
   </div>
 </header>
 
 <div id="formatting-toolbar" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c21] border border-zinc-700/80 shadow-2xl rounded-xl p-1.5 flex items-center gap-1 backdrop-blur-lg flex-wrap max-w-[95vw]">
-  <button onclick="execCmd('bold')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-bold"></i></button>
-  <button onclick="execCmd('italic')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-italic"></i></button>
-  <button onclick="execCmd('underline')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-underline"></i></button>
+  <button onclick="execCmd('bold')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-bold"></i></button>
+  <button onclick="execCmd('italic')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-italic"></i></button>
+  <button onclick="execCmd('underline')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-underline"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-  <label class="tb-tool" title="Text colour (selection or block)">
-    <i class="fa-solid fa-palette"></i>
-    <input type="color" id="text-color-input" value="#f3f4f6">
-  </label>
-  <button onclick="clearContentColor()" title="Clear colour on selection/block" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all text-xs"><i class="fa-solid fa-eraser"></i></button>
+  <label class="tb-tool" title="Text colour"><i class="fa-solid fa-palette"></i><input type="color" id="text-color-input" value="#f3f4f6"></label>
+  <button onclick="clearContentColor()" title="Clear colour" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-eraser"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-  <button onclick="addBlock('h1')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H1</button>
-  <button onclick="addBlock('h2')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">H2</button>
-  <button onclick="addBlock('p')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold transition-all">Text</button>
-  <button onclick="addBlock('quote')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-quote-left"></i></button>
+  <button onclick="addBlock('h1')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold">H1</button>
+  <button onclick="addBlock('h2')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold">H2</button>
+  <button onclick="addBlock('p')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold">Text</button>
+  <button onclick="addBlock('quote')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-quote-left"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-  <button onclick="execCmd('justifyLeft')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-left"></i></button>
-  <button onclick="execCmd('justifyCenter')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"><i class="fa-solid fa-align-center"></i></button>
+  <button onclick="execCmd('justifyLeft')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-align-left"></i></button>
+  <button onclick="execCmd('justifyCenter')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-align-center"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-  <button onclick="triggerImageUpload()" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-image"></i> Add Image</button>
-  <button onclick="addTextBox()" class="p-2 text-fuchsia-400 hover:text-white hover:bg-fuchsia-600 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-font"></i> Add Text Box</button>
+  <button onclick="triggerImageUpload()" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-image"></i> Add Image</button>
+  <button onclick="addTextBox()" class="p-2 text-fuchsia-400 hover:text-white hover:bg-fuchsia-600 rounded-lg flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-font"></i> Add Text Box</button>
   <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
 </div>
 
@@ -216,8 +272,16 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
   <div class="gui-body" id="gui-body"></div>
 </div>
 
+<div id="mp3-panel">
+  <div class="mp3-head">
+    <span class="text-xs font-bold text-white"><i class="fa-solid fa-headphones text-emerald-400 mr-1.5"></i>MP3 Sync</span>
+    <button onclick="toggleMp3Panel()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="mp3-body" id="mp3-body"></div>
+</div>
+
 <div id="tb-settings">
-  <div class="tb-head" id="tb-head">
+  <div class="tb-head">
     <span class="text-xs font-bold text-white"><i class="fa-solid fa-font text-fuchsia-400 mr-1.5"></i>Text Box Settings</span>
     <button onclick="closeTbSettings()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
   </div>
@@ -227,7 +291,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
     <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">BLABLABLA 🎧</h1></div>
-    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere.</p></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere. Click any word to hear it.</p></div>
     <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Stars seed the field. Effects reshape it."</blockquote></div>
   </div>
   <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
@@ -237,6 +301,21 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 
 <div id="image-layer"></div>
 
+<div id="mp3-controls" class="hidden">
+  <button id="mp3-play-btn" title="Play / Pause"><i class="fa-solid fa-play"></i></button>
+  <div class="mp3-sep"></div>
+  <div class="mp3-speed-wrap">
+    <i class="fa-solid fa-gauge-high" style="color:#a1a1aa"></i>
+    <input type="range" id="mp3-speed-slider" min="0.25" max="4" step="0.05" value="1">
+    <span id="mp3-speed-label" class="mp3-time">1.00×</span>
+  </div>
+  <div class="mp3-sep"></div>
+  <label title="Click any word to hear it">
+    <input type="checkbox" id="mp3-wordclick-toggle" checked>
+    <span>Click words</span>
+  </label>
+</div>
+
 <div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="bg-[#18181b] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
     <div class="text-center">
@@ -245,10 +324,10 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <p class="text-xs text-zinc-400 mt-1">Default is <span class="text-indigo-400 font-mono">admin</span></p>
     </div>
     <form onsubmit="handlePasswordSubmit(event)" class="space-y-3">
-      <input type="password" id="pass-input" placeholder="Password..." class="w-full bg-[#0f0f11] border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all">
+      <input type="password" id="pass-input" placeholder="Password..." class="w-full bg-[#0f0f11] border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
       <div class="flex gap-2">
-        <button type="button" onclick="closeModal()" class="w-1/2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium py-2 rounded-xl transition-all">Cancel</button>
-        <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-xl transition-all">Unlock</button>
+        <button type="button" onclick="closeModal()" class="w-1/2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium py-2 rounded-xl">Cancel</button>
+        <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-xl">Unlock</button>
       </div>
     </form>
   </div>
@@ -260,16 +339,12 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
       <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Export Page</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, <strong class="text-indigo-400">and all star settings</strong> baked in.</p>
+    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, star settings, <strong class="text-emerald-400">and MP3 labels</strong> baked in. MP3 audio files are <em>not</em> baked — re-import them or use URL sources.</p>
     <div id="export-status" class="hidden text-xs"></div>
-    <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600" placeholder="Generating..."></textarea>
+    <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none" placeholder="Generating..."></textarea>
     <div class="flex justify-end gap-3">
-      <button onclick="downloadExportedHTML()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
-        <i class="fa-solid fa-download"></i> Download as index.html
-      </button>
-      <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2">
-        <i class="fa-regular fa-copy"></i> Copy to Clipboard
-      </button>
+      <button onclick="downloadExportedHTML()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-4 py-2 rounded-xl flex items-center gap-2"><i class="fa-solid fa-download"></i> Download as vn.html</button>
+      <button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl flex items-center gap-2"><i class="fa-regular fa-copy"></i> Copy to Clipboard</button>
     </div>
   </div>
 </div>
@@ -277,11 +352,8 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 <script>
 /* =========================================================
    PAGE NAMESPACE
-   Forced override so the two pages always keep distinct storage
-   even if GitHub Pages serves them under a different path.
-   index.html → "index",  vn.html → "vn"
 ========================================================= */
-const PAGE_NS_OVERRIDE = 'vn';   // ← change to 'index' in index.html
+const PAGE_NS_OVERRIDE = 'vn';
 const PAGE_NS = (function(){
   if (PAGE_NS_OVERRIDE) return PAGE_NS_OVERRIDE;
   let path = location.pathname;
@@ -297,7 +369,10 @@ const STORAGE = {
   images:    `canvas_images__${PAGE_NS}`,
   textboxes: `canvas_textboxes__${PAGE_NS}`,
   star:      `canvas_star_config__${PAGE_NS}`,
-  snap:      `canvas_snap_enabled__${PAGE_NS}`
+  snap:      `canvas_snap_enabled__${PAGE_NS}`,
+  mp3_tracks:`vn_mp3_tracks__${PAGE_NS}`,
+  mp3_labels:`vn_mp3_labels__${PAGE_NS}`,
+  mp3_cfg:   `vn_mp3_cfg__${PAGE_NS}`
 };
 
 /* =========================================================
@@ -318,6 +393,7 @@ const addBlockContainer=document.getElementById('add-block-container');
 const formattingToolbar=document.getElementById('formatting-toolbar');
 const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
+const mp3PanelBtn=document.getElementById('mp3-panel-btn');
 
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
@@ -328,9 +404,7 @@ const cfg={
 };
 let snapEnabled = true;
 
-window.addEventListener('DOMContentLoaded',()=>{
-
-
+window.addEventListener('DOMContentLoaded', async ()=>{
   const sc = localStorage.getItem(STORAGE.doc);
   if (sc) canvasEl.innerHTML = sc;
   else if (window.__EXPORTED_DOC__) canvasEl.innerHTML = window.__EXPORTED_DOC__;
@@ -355,6 +429,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   disableEditing();
   initStars();
 
+  // MP3 boot
+  await mp3Boot();
+
   document.getElementById('text-color-input').addEventListener('input', e => {
     if (!isEditing) return;
     applyTextColor(e.target.value);
@@ -370,13 +447,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 
 /* =========================================================
-   STAR CONFIG LOAD/SAVE
+   STAR CONFIG (unchanged)
 ========================================================= */
 function loadStarConfig(){
   const saved = localStorage.getItem(STORAGE.star);
   if (saved) {
-    try { const p = JSON.parse(saved); applyConfigObject(p); cfg.global.triggerEnabled = false; return; }
-    catch(e) {}
+    try { const p = JSON.parse(saved); applyConfigObject(p); cfg.global.triggerEnabled = false; return; } catch(e) {}
   }
   if (window.__EXPORTED_CFG__) {
     try { applyConfigObject(window.__EXPORTED_CFG__); cfg.global.triggerEnabled = false; } catch(e) {}
@@ -397,9 +473,7 @@ function applyConfigObject(p){
     else cfg.activeEffectId = cfg.effects[0].id;
     return;
   }
-  if (!cfg.effects || !cfg.effects.length) {
-    cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id;
-  }
+  if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 }
 function serializeConfig(){
   const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
@@ -414,8 +488,7 @@ let _saveStarTimer = null;
 function saveStarConfig(){
   if (_saveStarTimer) clearTimeout(_saveStarTimer);
   _saveStarTimer = setTimeout(() => {
-    try { localStorage.setItem(STORAGE.star, JSON.stringify(serializeConfig())); }
-    catch(e) { console.warn('Failed to save star config:', e); }
+    try { localStorage.setItem(STORAGE.star, JSON.stringify(serializeConfig())); } catch(e) {}
   }, 120);
 }
 
@@ -433,6 +506,8 @@ function handlePasswordSubmit(e){
   else alert('Incorrect password!');
 }
 function enableEditing(){
+  // Unwrap words first so editing isn't broken by spans
+  mp3UnwrapWords();
   document.body.classList.add('is-editing');
   statusBadge.textContent="Edit Mode Active";
   statusDot.className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse";
@@ -441,8 +516,10 @@ function enableEditing(){
   exportBtn.classList.remove('hidden');resetBtn.classList.remove('hidden');
   addBlockContainer.classList.remove('hidden');formattingToolbar.classList.remove('hidden');
   starGuiBtn.classList.remove('hidden');
+  mp3PanelBtn.classList.remove('hidden');
   makeBlocksEditable();
   rebuildBubbleEditor();
+  mp3RenderPanel();
 }
 function disableEditing(){
   document.body.classList.remove('is-editing');
@@ -453,7 +530,9 @@ function disableEditing(){
   exportBtn.classList.add('hidden');resetBtn.classList.add('hidden');
   addBlockContainer.classList.add('hidden');formattingToolbar.classList.add('hidden');
   starGuiBtn.classList.add('hidden');
+  mp3PanelBtn.classList.add('hidden');
   document.getElementById('star-gui').classList.add('hidden');
+  document.getElementById('mp3-panel').classList.remove('open');
   canvasEl.querySelectorAll('.block-del').forEach(b=>b.remove());
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
     const e = blockContentEl(b);
@@ -463,24 +542,19 @@ function disableEditing(){
   document.getElementById('bubble-editor-layer').innerHTML='';
   closeTbSettings();
   deselectAllTextBoxes();
+  // Re-wrap words for visitor mode
+  mp3TokenizeAndWrap();
+  mp3RefreshControls();
 }
-
-/* Get the content element inside an .edit-block, skipping the delete button */
-function blockContentEl(block){
-  for (const c of block.children) {
-    if (!c.classList.contains('block-del')) return c;
-  }
-  return null;
-}
-
-/* Clean HTML for save/export — strips block-del buttons */
+function blockContentEl(block){ for (const c of block.children) { if (!c.classList.contains('block-del')) return c; } return null; }
 function getCleanDocHTML(){
   const clone = canvasEl.cloneNode(true);
   clone.querySelectorAll('.block-del').forEach(b=>b.remove());
+  clone.querySelectorAll('.mp3-word').forEach(el=>{
+    el.parentNode.replaceChild(document.createTextNode(el.textContent), el);
+  });
   return clone.innerHTML;
 }
-
-/* Attach the red X delete button to a block */
 function attachBlockDel(block){
   if (block.querySelector(':scope > .block-del')) return;
   const btn = document.createElement('div');
@@ -496,20 +570,17 @@ function attachBlockDel(block){
     if (confirm(`Delete this block?${preview ? `\n"${preview}${preview.length>=40?'…':''}"` : ''}`)) {
       block.remove();
       autoSave();
+      mp3RenderPanel();
     }
   });
   block.appendChild(btn);
 }
-
 function makeBlocksEditable(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
     const e = blockContentEl(b);
     if(e){
       e.contentEditable="true";
-      if (!e.dataset.hasInputListener) {
-        e.addEventListener('input', autoSave);
-        e.dataset.hasInputListener = '1';
-      }
+      if (!e.dataset.hasInputListener) { e.addEventListener('input', autoSave); e.dataset.hasInputListener = '1'; }
     }
     attachBlockDel(b);
   });
@@ -533,17 +604,15 @@ function addBlock(type){
 function autoSave(){ try{ localStorage.setItem(STORAGE.doc, getCleanDocHTML()); }catch(e){} }
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
-  if(confirm(`Reset ALL content on this page (${PAGE_NS})?\n\nPage text, images, text boxes, AND star settings will be wiped.`)){
-    localStorage.removeItem(STORAGE.doc);
-    localStorage.removeItem(STORAGE.images);
-    localStorage.removeItem(STORAGE.textboxes);
-    localStorage.removeItem(STORAGE.star);
+  if(confirm(`Reset ALL content on this page (${PAGE_NS})?\n\nPage text, images, text boxes, star settings, AND MP3 sync data will be wiped.`)){
+    [STORAGE.doc,STORAGE.images,STORAGE.textboxes,STORAGE.star,STORAGE.mp3_tracks,STORAGE.mp3_labels,STORAGE.mp3_cfg]
+      .forEach(k=>localStorage.removeItem(k));
     location.reload();
   }
 }
 
 /* =========================================================
-   TEXT COLOUR FOR REGULAR CONTENT
+   TEXT COLOUR
 ========================================================= */
 function applyTextColor(color){
   const sel = window.getSelection();
@@ -577,11 +646,7 @@ function clearContentColor(){
   if (!isEditing) return;
   const sel = window.getSelection();
   const hasSelection = sel && sel.rangeCount && !sel.isCollapsed;
-  if (hasSelection) {
-    document.execCommand('removeFormat', false, null);
-    autoSave();
-    return;
-  }
+  if (hasSelection) { document.execCommand('removeFormat', false, null); autoSave(); return; }
   let node = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
   while (node && node.nodeType !== 1) node = node.parentNode;
   if (!node) return;
@@ -673,52 +738,31 @@ document.addEventListener('mousedown',e=>{
 });
 
 /* =========================================================
-   TEXT BOXES
+   TEXT BOXES (unchanged)
 ========================================================= */
 const TB_DEFAULTS = {
   text: 'Your text here',
   x: 200, y: 200, width: 260, height: 100,
-  fontSize: 24,
-  fontFamily: "'Inter', sans-serif",
-  fontWeight: '600',
-  color: '#ffffff',
-  background: '#000000',
-  backgroundOpacity: 0,
-  outlineColor: '#6366f1',
-  outlineWidth: 0,
-  borderRadius: 8,
-  padding: 10,
-  textAlign: 'left',
-  lineHeight: 1.3,
-  letterSpacing: 0
+  fontSize: 24, fontFamily: "'Inter', sans-serif", fontWeight: '600',
+  color: '#ffffff', background: '#000000', backgroundOpacity: 0,
+  outlineColor: '#6366f1', outlineWidth: 0, borderRadius: 8, padding: 10,
+  textAlign: 'left', lineHeight: 1.3, letterSpacing: 0
 };
 const TB_MIN_W = 40, TB_MIN_H = 24;
-
 function addTextBox(){
   if(!isEditing) return;
-  const data = {
-    ...TB_DEFAULTS,
-    x: window.innerWidth/2 - 130 + (Math.random()*80 - 40),
-    y: window.innerHeight/2 - 50 + (Math.random()*80 - 40)
-  };
+  const data = { ...TB_DEFAULTS, x: window.innerWidth/2 - 130 + (Math.random()*80 - 40), y: window.innerHeight/2 - 50 + (Math.random()*80 - 40) };
   const el = createTextBox(data);
-  saveTextBoxes();
-  selectTextBox(el);
-  openTbSettings(el);
+  saveTextBoxes(); selectTextBox(el); openTbSettings(el);
 }
-
 function applyTextBoxStyle(el, d){
   el.style.left = d.x + 'px'; el.style.top = d.y + 'px';
   el.style.width = d.width + 'px'; el.style.height = d.height + 'px';
   el.style.fontSize = d.fontSize + 'px';
-  el.style.fontFamily = d.fontFamily;
-  el.style.fontWeight = d.fontWeight;
-  el.style.color = d.color;
-  el.style.padding = d.padding + 'px';
-  el.style.textAlign = d.textAlign;
-  el.style.lineHeight = d.lineHeight;
-  el.style.letterSpacing = d.letterSpacing + 'px';
-  el.style.borderRadius = d.borderRadius + 'px';
+  el.style.fontFamily = d.fontFamily; el.style.fontWeight = d.fontWeight;
+  el.style.color = d.color; el.style.padding = d.padding + 'px';
+  el.style.textAlign = d.textAlign; el.style.lineHeight = d.lineHeight;
+  el.style.letterSpacing = d.letterSpacing + 'px'; el.style.borderRadius = d.borderRadius + 'px';
   el.style.background = hexToRgba(d.background, d.backgroundOpacity);
   el.style.border = d.outlineWidth > 0 ? `${d.outlineWidth}px solid ${d.outlineColor}` : 'none';
   el.style.boxSizing = 'border-box';
@@ -729,7 +773,6 @@ function hexToRgba(hex, alpha){
   const r = (n>>16)&255, g = (n>>8)&255, b = n&255;
   return `rgba(${r},${g},${b},${alpha})`;
 }
-
 function createTextBox(data){
   const d = { ...TB_DEFAULTS, ...data };
   const el = document.createElement('div');
@@ -738,25 +781,19 @@ function createTextBox(data){
   el.__config = d;
   el.textContent = d.text || '';
   applyTextBoxStyle(el, d);
-
   const gear = document.createElement('div'); gear.className='tb-handle tb-gear'; gear.title='Settings'; gear.innerHTML='<i class="fa-solid fa-gear"></i>';
   const del = document.createElement('div'); del.className='tb-handle tb-del'; del.title='Delete'; del.innerHTML='<i class="fa-solid fa-xmark"></i>';
   el.appendChild(gear); el.appendChild(del);
-
   ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
     const h = document.createElement('div');
-    h.className = 'tb-rz tb-rz-' + dir;
-    h.dataset.dir = dir;
-    attachResizeHandler(el, d, h, dir);
-    el.appendChild(h);
+    h.className = 'tb-rz tb-rz-' + dir; h.dataset.dir = dir;
+    attachResizeHandler(el, d, h, dir); el.appendChild(h);
   });
-
   el.addEventListener('mousedown', e => {
     if (!isEditing) return;
     if (e.target.closest('.tb-handle, .tb-rz')) return;
     selectTextBox(el);
   });
-
   el.addEventListener('mousedown', e => {
     if (!isEditing) return;
     if (e.target.closest('.tb-handle, .tb-rz')) return;
@@ -767,47 +804,26 @@ function createTextBox(data){
       const rawY = oy + (ev.clientY - sy);
       const snap = computeSnapPosition(el, rawX, rawY, d.width, d.height);
       d.x = snap.x; d.y = snap.y;
-      el.style.left = d.x + 'px';
-      el.style.top = d.y + 'px';
+      el.style.left = d.x + 'px'; el.style.top = d.y + 'px';
       renderSnapGuides(snap.guides);
     };
-    const up = () => {
-      document.removeEventListener('mousemove', mv);
-      document.removeEventListener('mouseup', up);
-      hideSnapGuides();
-      saveTextBoxes();
-    };
-    document.addEventListener('mousemove', mv);
-    document.addEventListener('mouseup', up);
+    const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); hideSnapGuides(); saveTextBoxes(); };
+    document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
   });
-
-  del.addEventListener('click', e => {
-    e.stopPropagation(); if(!isEditing) return;
-    if(confirm('Delete this text box?')) { el.remove(); saveTextBoxes(); closeTbSettings(); }
-  });
-  gear.addEventListener('click', e => {
-    e.stopPropagation(); if(!isEditing) return;
-    selectTextBox(el); openTbSettings(el);
-  });
-  el.addEventListener('dblclick', e => {
-    if (!isEditing) return;
-    e.preventDefault(); selectTextBox(el); openTbSettings(el);
-  });
-
+  del.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; if(confirm('Delete this text box?')) { el.remove(); saveTextBoxes(); closeTbSettings(); } });
+  gear.addEventListener('click', e => { e.stopPropagation(); if(!isEditing) return; selectTextBox(el); openTbSettings(el); });
+  el.addEventListener('dblclick', e => { if (!isEditing) return; e.preventDefault(); selectTextBox(el); openTbSettings(el); });
   textboxLayer.appendChild(el);
   return el;
 }
-
 function attachResizeHandler(el, d, handle, dir){
   handle.addEventListener('mousedown', e => {
     if (!isEditing) return;
-    e.preventDefault(); e.stopPropagation();
-    selectTextBox(el);
+    e.preventDefault(); e.stopPropagation(); selectTextBox(el);
     const sx=e.clientX, sy=e.clientY;
     const ox=d.x, oy=d.y, ow=d.width, oh=d.height;
     const mv = ev => {
-      const dx = ev.clientX - sx;
-      const dy = ev.clientY - sy;
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
       let nx=ox, ny=oy, nw=ow, nh=oh;
       if (dir.includes('e')) nw = Math.max(TB_MIN_W, ow + dx);
       if (dir.includes('w')) { const cdx = Math.min(dx, ow - TB_MIN_W); nw = ow - cdx; nx = ox + cdx; }
@@ -817,126 +833,85 @@ function attachResizeHandler(el, d, handle, dir){
       el.style.left = nx + 'px'; el.style.top = ny + 'px';
       el.style.width = nw + 'px'; el.style.height = nh + 'px';
     };
-    const up = () => {
-      document.removeEventListener('mousemove', mv);
-      document.removeEventListener('mouseup', up);
-      saveTextBoxes();
-    };
-    document.addEventListener('mousemove', mv);
-    document.addEventListener('mouseup', up);
+    const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); saveTextBoxes(); };
+    document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
   });
 }
-
 function computeSnapPosition(el, rawX, rawY, w, h){
   const guides = [];
   if (!snapEnabled) return { x: rawX, y: rawY, guides };
-  const threshold = 6;
-  const vw = window.innerWidth, vh = window.innerHeight;
-
-  const xCands = [
-    {x: 0, guideAt: 0},
-    {x: vw/2 - w/2, guideAt: vw/2},
-    {x: vw - w, guideAt: vw}
-  ];
+  const threshold = 6; const vw = window.innerWidth, vh = window.innerHeight;
+  const xCands = [{x:0,guideAt:0},{x:vw/2-w/2,guideAt:vw/2},{x:vw-w,guideAt:vw}];
   const others = Array.from(document.querySelectorAll('#textbox-layer .text-box')).filter(o => o !== el);
   others.forEach(o => {
-    const od = o.__config;
-    const oL = od.x, oR = od.x + od.width, oC = od.x + od.width/2;
-    xCands.push({x: oL, guideAt: oL}, {x: oC, guideAt: oC}, {x: oR, guideAt: oR});
-    xCands.push({x: oL - w/2, guideAt: oL}, {x: oC - w/2, guideAt: oC}, {x: oR - w/2, guideAt: oR});
-    xCands.push({x: oL - w, guideAt: oL}, {x: oC - w, guideAt: oC}, {x: oR - w, guideAt: oR});
+    const od = o.__config; const oL = od.x, oR = od.x + od.width, oC = od.x + od.width/2;
+    xCands.push({x:oL,guideAt:oL},{x:oC,guideAt:oC},{x:oR,guideAt:oR});
+    xCands.push({x:oL-w/2,guideAt:oL},{x:oC-w/2,guideAt:oC},{x:oR-w/2,guideAt:oR});
+    xCands.push({x:oL-w,guideAt:oL},{x:oC-w,guideAt:oC},{x:oR-w,guideAt:oR});
   });
-  let bestX = null, bestXDist = threshold;
-  xCands.forEach(c => { const dist = Math.abs(rawX - c.x); if (dist < bestXDist) { bestXDist = dist; bestX = c; } });
-
-  const yCands = [
-    {y: 0, guideAt: 0},
-    {y: vh/2 - h/2, guideAt: vh/2},
-    {y: vh - h, guideAt: vh}
-  ];
+  let bestX=null,bestXDist=threshold;
+  xCands.forEach(c=>{const d=Math.abs(rawX-c.x);if(d<bestXDist){bestXDist=d;bestX=c}});
+  const yCands = [{y:0,guideAt:0},{y:vh/2-h/2,guideAt:vh/2},{y:vh-h,guideAt:vh}];
   others.forEach(o => {
-    const od = o.__config;
-    const oT = od.y, oB = od.y + od.height, oM = od.y + od.height/2;
-    yCands.push({y: oT, guideAt: oT}, {y: oM, guideAt: oM}, {y: oB, guideAt: oB});
-    yCands.push({y: oT - h/2, guideAt: oT}, {y: oM - h/2, guideAt: oM}, {y: oB - h/2, guideAt: oB});
-    yCands.push({y: oT - h, guideAt: oT}, {y: oM - h, guideAt: oM}, {y: oB - h, guideAt: oB});
+    const od = o.__config; const oT = od.y, oB = od.y + od.height, oM = od.y + od.height/2;
+    yCands.push({y:oT,guideAt:oT},{y:oM,guideAt:oM},{y:oB,guideAt:oB});
+    yCands.push({y:oT-h/2,guideAt:oT},{y:oM-h/2,guideAt:oM},{y:oB-h/2,guideAt:oB});
+    yCands.push({y:oT-h,guideAt:oT},{y:oM-h,guideAt:oM},{y:oB-h,guideAt:oB});
   });
-  let bestY = null, bestYDist = threshold;
-  yCands.forEach(c => { const dist = Math.abs(rawY - c.y); if (dist < bestYDist) { bestYDist = dist; bestY = c; } });
-
-  const finalX = bestX ? bestX.x : rawX;
-  const finalY = bestY ? bestY.y : rawY;
+  let bestY=null,bestYDist=threshold;
+  yCands.forEach(c=>{const d=Math.abs(rawY-c.y);if(d<bestYDist){bestYDist=d;bestY=c}});
+  const finalX = bestX ? bestX.x : rawX; const finalY = bestY ? bestY.y : rawY;
   if (bestX) guides.push({ type: 'v', pos: bestX.guideAt });
   if (bestY) guides.push({ type: 'h', pos: bestY.guideAt });
   return { x: finalX, y: finalY, guides };
 }
 function renderSnapGuides(guides){
-  const c = document.getElementById('snap-guides');
-  c.innerHTML = '';
+  const c = document.getElementById('snap-guides'); c.innerHTML = '';
   guides.forEach(g => {
     const l = document.createElement('div');
     l.className = 'sg ' + (g.type === 'v' ? 'sg-v' : 'sg-h');
-    if (g.type === 'v') l.style.left = g.pos + 'px';
-    else l.style.top = g.pos + 'px';
+    if (g.type === 'v') l.style.left = g.pos + 'px'; else l.style.top = g.pos + 'px';
     c.appendChild(l);
   });
 }
 function hideSnapGuides(){ document.getElementById('snap-guides').innerHTML = ''; }
-
 function selectTextBox(el){
   document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected'));
   el.classList.add('selected');
 }
 function deselectAllTextBoxes(){ document.querySelectorAll('#textbox-layer .text-box').forEach(t => t.classList.remove('selected')); }
 function getTextBoxesData(){ return Array.from(document.querySelectorAll('#textbox-layer .text-box')).map(el => ({ ...el.__config })); }
-function saveTextBoxes(){
-  try { localStorage.setItem(STORAGE.textboxes, JSON.stringify(getTextBoxesData())); }
-  catch(e) { console.warn('Textbox save failed:', e); }
-}
+function saveTextBoxes(){ try { localStorage.setItem(STORAGE.textboxes, JSON.stringify(getTextBoxesData())); } catch(e) {} }
 
-/* =========================================================
-   TEXT BOX SETTINGS
-========================================================= */
 let tbActiveEl = null;
 function openTbSettings(el){
   tbActiveEl = el;
   const panel = document.getElementById('tb-settings');
   const body = document.getElementById('tb-body');
-  const d = el.__config;
-  body.innerHTML = '';
-
+  const d = el.__config; body.innerHTML = '';
   body.appendChild(sect('Content'));
   body.appendChild(tbField('Text (multi-line)', () => {
-    const ta = document.createElement('textarea');
-    ta.value = d.text;
+    const ta = document.createElement('textarea'); ta.value = d.text;
     ta.addEventListener('input', () => { d.text = ta.value; restoreTextContent(el, ta.value); saveTextBoxes(); });
     return ta;
   }));
-
   body.appendChild(sect('Typography'));
   body.appendChild(tbNumRange('Font size (px)', d, 'fontSize', 6, 400, 1, v => { el.style.fontSize = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbSelect('Font family', d, 'fontFamily', [
-    {value:"'Inter', sans-serif", label:'Inter'},
-    {value:"'Arial Black', Arial, sans-serif", label:'Arial Black'},
-    {value:"Arial, sans-serif", label:'Arial'},
-    {value:"Georgia, serif", label:'Georgia'},
-    {value:"'Courier New', monospace", label:'Courier'},
-    {value:"'Times New Roman', serif", label:'Times'},
-    {value:"'Comic Sans MS', cursive", label:'Comic Sans'},
-    {value:"Impact, sans-serif", label:'Impact'}
+    {value:"'Inter', sans-serif", label:'Inter'},{value:"'Arial Black', Arial, sans-serif", label:'Arial Black'},
+    {value:"Arial, sans-serif", label:'Arial'},{value:"Georgia, serif", label:'Georgia'},
+    {value:"'Courier New', monospace", label:'Courier'},{value:"'Times New Roman', serif", label:'Times'},
+    {value:"'Comic Sans MS', cursive", label:'Comic Sans'},{value:"Impact, sans-serif", label:'Impact'}
   ], v => { el.style.fontFamily = v; saveTextBoxes(); }));
   body.appendChild(tbSelect('Font weight', d, 'fontWeight', [
-    {value:'300', label:'Light'},{value:'400', label:'Regular'},
-    {value:'500', label:'Medium'},{value:'600', label:'Semi-bold'},
-    {value:'700', label:'Bold'},{value:'800', label:'Extra bold'},{value:'900', label:'Black'}
+    {value:'300', label:'Light'},{value:'400', label:'Regular'},{value:'500', label:'Medium'},
+    {value:'600', label:'Semi-bold'},{value:'700', label:'Bold'},{value:'800', label:'Extra bold'},{value:'900', label:'Black'}
   ], v => { el.style.fontWeight = v; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Line height', d, 'lineHeight', 0.5, 4, 0.05, v => { el.style.lineHeight = v; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Letter spacing (px)', d, 'letterSpacing', -5, 30, 0.1, v => { el.style.letterSpacing = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbSelect('Text align', d, 'textAlign', [
-    {value:'left',label:'Left'},{value:'center',label:'Center'},
-    {value:'right',label:'Right'},{value:'justify',label:'Justify'}
+    {value:'left',label:'Left'},{value:'center',label:'Center'},{value:'right',label:'Right'},{value:'justify',label:'Justify'}
   ], v => { el.style.textAlign = v; saveTextBoxes(); }));
-
   body.appendChild(sect('Colours'));
   body.appendChild(tbColor('Text colour', d, 'color', v => { el.style.color = v; saveTextBoxes(); }));
   body.appendChild(tbColor('Background', d, 'background', v => { el.style.background = hexToRgba(v, d.backgroundOpacity); saveTextBoxes(); }));
@@ -945,46 +920,30 @@ function openTbSettings(el){
   body.appendChild(tbNumRange('Outline width (px)', d, 'outlineWidth', 0, 30, 0.5, v => { el.style.border = v > 0 ? `${v}px solid ${d.outlineColor}` : 'none'; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Border radius (px)', d, 'borderRadius', 0, 200, 1, v => { el.style.borderRadius = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Padding (px)', d, 'padding', 0, 100, 1, v => { el.style.padding = v + 'px'; saveTextBoxes(); }));
-
   body.appendChild(sect('Position & size'));
   body.appendChild(tbNumRange('X', d, 'x', -5000, 5000, 1, v => { el.style.left = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Y', d, 'y', -5000, 5000, 1, v => { el.style.top = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Width', d, 'width', TB_MIN_W, 3000, 1, v => { el.style.width = v + 'px'; saveTextBoxes(); }));
   body.appendChild(tbNumRange('Height', d, 'height', TB_MIN_H, 3000, 1, v => { el.style.height = v + 'px'; saveTextBoxes(); }));
-
   body.appendChild(sect('Behaviour'));
   const snapRow = document.createElement('div'); snapRow.className='tb-switch-row';
   const snapLbl = document.createElement('span'); snapLbl.textContent = 'Snap while dragging';
   const snapSw = document.createElement('div'); snapSw.className = 'tb-switch' + (snapEnabled ? ' on' : '');
-  snapSw.addEventListener('click', () => {
-    snapEnabled = !snapEnabled;
-    snapSw.classList.toggle('on', snapEnabled);
-    localStorage.setItem(STORAGE.snap, snapEnabled ? '1' : '0');
-  });
-  snapRow.appendChild(snapLbl); snapRow.appendChild(snapSw);
-  body.appendChild(snapRow);
-
+  snapSw.addEventListener('click', () => { snapEnabled = !snapEnabled; snapSw.classList.toggle('on', snapEnabled); localStorage.setItem(STORAGE.snap, snapEnabled ? '1' : '0'); });
+  snapRow.appendChild(snapLbl); snapRow.appendChild(snapSw); body.appendChild(snapRow);
   panel.classList.add('open');
   const rect = el.getBoundingClientRect();
   const pw = panel.offsetWidth || 300;
   const ph = Math.min(window.innerHeight - 40, 600);
-  let px = rect.right + 14;
-  if (px + pw > window.innerWidth - 10) px = rect.left - pw - 14;
-  if (px < 10) px = 10;
-  let py = rect.top;
-  if (py + ph > window.innerHeight - 10) py = window.innerHeight - ph - 10;
-  if (py < 10) py = 10;
-  panel.style.left = px + 'px';
-  panel.style.top = py + 'px';
+  let px = rect.right + 14; if (px + pw > window.innerWidth - 10) px = rect.left - pw - 14; if (px < 10) px = 10;
+  let py = rect.top; if (py + ph > window.innerHeight - 10) py = window.innerHeight - ph - 10; if (py < 10) py = 10;
+  panel.style.left = px + 'px'; panel.style.top = py + 'px';
 }
-
-/* Safely update text content of a text-box without touching handles */
 function restoreTextContent(el, newText){
   const kids = Array.from(el.children);
   el.textContent = newText;
   kids.forEach(k => el.appendChild(k));
 }
-
 function closeTbSettings(){ document.getElementById('tb-settings').classList.remove('open'); tbActiveEl = null; }
 function sect(label){ const d = document.createElement('div'); d.className = 'tb-sect'; d.textContent = label; return d; }
 function tbField(label, buildFn){
@@ -997,10 +956,8 @@ function tbNumRange(label, obj, key, min, max, step, onChange){
   const lab = document.createElement('label');
   const span = document.createElement('span'); span.className='lbl-text'; span.textContent = label;
   const num = document.createElement('input'); num.type='number'; num.className='num-inline'; num.step='any'; num.value = obj[key];
-  lab.appendChild(span); lab.appendChild(num);
-  row.appendChild(lab);
-  const rng = document.createElement('input'); rng.type='range';
-  rng.min=min; rng.max=max; rng.step=step; rng.value=Math.min(Math.max(obj[key],min),max);
+  lab.appendChild(span); lab.appendChild(num); row.appendChild(lab);
+  const rng = document.createElement('input'); rng.type='range'; rng.min=min; rng.max=max; rng.step=step; rng.value=Math.min(Math.max(obj[key],min),max);
   row.appendChild(rng);
   const apply = (v, fromSlider) => {
     let val = parseFloat(v); if(isNaN(val)) return;
@@ -1019,8 +976,7 @@ function tbColor(label, obj, key, onChange){
   lab.appendChild(span); row.appendChild(lab);
   const inp = document.createElement('input'); inp.type='color'; inp.value = obj[key];
   inp.addEventListener('input', ()=>{ obj[key] = inp.value; onChange && onChange(inp.value); });
-  row.appendChild(inp);
-  return row;
+  row.appendChild(inp); return row;
 }
 function tbSelect(label, obj, key, options, onChange){
   const row = document.createElement('div'); row.className='row';
@@ -1030,23 +986,20 @@ function tbSelect(label, obj, key, options, onChange){
   const sel = document.createElement('select');
   options.forEach(o=>{
     const opt = document.createElement('option'); opt.value=o.value; opt.textContent=o.label;
-    if (obj[key] === o.value) opt.selected = true;
-    sel.appendChild(opt);
+    if (obj[key] === o.value) opt.selected = true; sel.appendChild(opt);
   });
   sel.addEventListener('change', ()=>{ obj[key] = sel.value; onChange && onChange(sel.value); });
-  row.appendChild(sel);
-  return row;
+  row.appendChild(sel); return row;
 }
 
 /* =========================================================
-   EFFECTS
+   EFFECTS / STARS (unchanged)
 ========================================================= */
 let stars=[];
 let starCanvas,starCtx,dpr=1;
 let baseSpawnArmed=false;
 let nextBaseSpawnAt=0;
 const imageCache={};
-
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
 function defaultCharFor(i,total){
@@ -1069,7 +1022,6 @@ function createEffect(type){
 }
 if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)||cfg.effects[0]||null}
-
 function computeBubbleMask(effect){
   if(!effect||effect.type!=='bubble')return;
   if(!effect.chars||!effect.chars.length){effect.spawnPoints=[];effect.maskData=null;effect.maskBounds=null;return}
@@ -1109,7 +1061,6 @@ function isInMask(effect,x,y){
   if(mx<0||my<0||mx>=effect.maskData.width||my>=effect.maskData.height)return false;
   return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
 }
-
 let _boundsCtx=null;
 function getCharBounds(ch){
   if(!ch.char)return {w:20,h:20};
@@ -1130,17 +1081,14 @@ function rebuildBubbleEditor(){
   if(!eff||eff.type!=='bubble')return;
   if(!eff.showHandles)return;
   if(!eff.chars||!eff.chars.length)return;
-
   eff.chars.forEach((ch,idx)=>{
     const b=getCharBounds(ch);
     const div=document.createElement('div');div.className='char-editor';div.dataset.idx=idx;
     div.style.width=b.w+'px';div.style.height=b.h+'px';
     div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
     div.style.transform=`rotate(${ch.rotation||0}deg)`;
-
     const label=document.createElement('div');label.className='char-label';label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
-    const rot=document.createElement('div');rot.className='char-rotate-handle';rot.title='Rotate (drag)';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
-
+    const rot=document.createElement('div');rot.className='char-rotate-handle';rot.title='Rotate';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
     div.addEventListener('mousedown',e=>{
       if(e.target.closest('.char-rotate-handle'))return;
       if(!isEditing)return;
@@ -1181,7 +1129,6 @@ function updateCharDivByIndex(idx,ch){
   if(div)updateCharDiv(div,ch);
 }
 window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
-
 function preloadImage(url){
   return new Promise((resolve,reject)=>{
     if(imageCache[url]&&imageCache[url].complete)return resolve(imageCache[url]);
@@ -1192,22 +1139,12 @@ function preloadImage(url){
   });
 }
 async function loadEffectImages(effect){
-  effect.loadError=null;effect.loaded=false;
-  effect.imagePool=[];effect.unusedPool=[];
+  effect.loadError=null;effect.loaded=false;effect.imagePool=[];effect.unusedPool=[];
   let filenames=[];
   if(effect.explicitList&&effect.explicitList.trim()){filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
+  if(!filenames.length){try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}}
   if(!filenames.length){
-    try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}
-  }
-  if(!filenames.length){
-    try{
-      const r=await fetch(effect.folder+'/',{cache:'no-store'});
-      if(r.ok){
-        const html=await r.text();
-        const re=/href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;
-        let m;while((m=re.exec(html))!==null)filenames.push(m[1]);
-      }
-    }catch(e){}
+    try{const r=await fetch(effect.folder+'/',{cache:'no-store'});if(r.ok){const html=await r.text();const re=/href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;let m;while((m=re.exec(html))!==null)filenames.push(m[1])}}catch(e){}
   }
   if(!filenames.length){effect.loadError='No images found in "'+effect.folder+'/"';renderEffectList();return}
   const urls=filenames.map(f=>/^https?:\/\//.test(f)||f.startsWith('/')?f:effect.folder+'/'+f);
@@ -1225,7 +1162,6 @@ function pickNextImage(effect){
   }
   return effect.unusedPool.pop();
 }
-
 function initStars(){
   starCanvas=document.getElementById('star-canvas');
   starCtx=starCanvas.getContext('2d');
@@ -1371,22 +1307,14 @@ function updateStarCount(){
     document.getElementById('star-count').textContent=`${stars.length}★ (${b}B / ${sp}S)`;
   }
 }
-function flashScreen(c){
-  const el=document.getElementById('flash-overlay');
-  el.style.background=c||'#ffffff';
-  el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
-}
+function flashScreen(c){const el=document.getElementById('flash-overlay');el.style.background=c||'#ffffff';el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}
 function resetStars(){stars=[];baseSpawnArmed=false;nextBaseSpawnAt=performance.now()+cfg.base.initialDelay}
 
-/* =========================================================
-   GUI WIDGETS
-========================================================= */
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
 function widget_numRange(labelText,obj,key,opts={}){
   const row=el('div','row');
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
-  const wrap=el('label');
-  const txt=el('span','lbl-text',labelText);
+  const wrap=el('label');const txt=el('span','lbl-text',labelText);
   const num=el('input');num.type='number';num.className='num-inline';num.step='any';num.value=obj[key];
   wrap.appendChild(txt);wrap.appendChild(num);
   const rng=el('input');rng.type='range';rng.min=min;rng.max=max;rng.step=step;rng.value=Math.min(obj[key],max);
@@ -1398,30 +1326,26 @@ function widget_numRange(labelText,obj,key,opts={}){
   return row;
 }
 function widget_color(labelText,obj,key,onChange){
-  const row=el('div','row');
-  const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
+  const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const inp=el('input');inp.type='color';inp.value=obj[key];
   inp.addEventListener('input',()=>{obj[key]=inp.value;if(onChange)onChange(inp.value);saveStarConfig()});
   row.appendChild(wrap);row.appendChild(inp);return row;
 }
 function widget_select(labelText,obj,key,options,onChange){
-  const row=el('div','row');
-  const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
+  const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const sel=el('select');
   options.forEach(o=>{const opt=el('option',null,o.label);opt.value=o.value;if(obj[key]===o.value)opt.selected=true;sel.appendChild(opt)});
   sel.addEventListener('change',()=>{obj[key]=sel.value;if(onChange)onChange(sel.value);saveStarConfig()});
   row.appendChild(wrap);row.appendChild(sel);return row;
 }
 function widget_toggle(labelText,obj,key,onChange){
-  const row=el('div','row');
-  const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
+  const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const tog=el('div','toggle-switch'+(obj[key]?' on':''));
   tog.addEventListener('click',()=>{tog.classList.toggle('on');obj[key]=tog.classList.contains('on');if(onChange)onChange(obj[key]);saveStarConfig()});
   wrap.appendChild(tog);row.appendChild(wrap);return row;
 }
 function widget_text(labelText,obj,key,onChange,isArea){
-  const row=el('div','row');
-  const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
+  const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   row.appendChild(wrap);
   const inp=el(isArea?'textarea':'input');
   if(!isArea)inp.type='text';else inp.className='gui-text';
@@ -1438,23 +1362,14 @@ function makeSection(headerText,headerClass,sectionKey){
   sec.appendChild(head);sec.appendChild(body);
   return {sec,body};
 }
-
-/* =========================================================
-   GUI BUILDER
-========================================================= */
 function buildGui(){
   const body=document.getElementById('gui-body');
   body.innerHTML='';
-
   const g=makeSection('<i class="fa-solid fa-globe mr-1.5"></i>Global','global','global');
   g.body.appendChild(widget_numRange('Max stars N (trigger point)',cfg.global,'maxStars',{min:10,max:100000000,step:100}));
   g.body.appendChild(widget_toggle('Flash + reset at N (off by default)',cfg.global,'triggerEnabled'));
-  const rst=el('button','gui-btn danger');
-  rst.innerHTML='<i class="fa-solid fa-bomb mr-1"></i> Reset All Stars';
-  rst.addEventListener('click',resetStars);
-  g.body.appendChild(rst);
+  const rst=el('button','gui-btn danger');rst.innerHTML='<i class="fa-solid fa-bomb mr-1"></i> Reset All Stars';rst.addEventListener('click',resetStars);g.body.appendChild(rst);
   body.appendChild(g.sec);
-
   const b=makeSection('<i class="fa-solid fa-circle-nodes mr-1.5"></i>Base Stars','base','base');
   b.body.appendChild(widget_toggle('Base stars enabled',cfg.base,'enabled'));
   b.body.appendChild(widget_numRange('Initial delay after clear (ms)',cfg.base,'initialDelay',{min:0,max:120000,step:50}));
@@ -1463,125 +1378,68 @@ function buildGui(){
   b.body.appendChild(widget_numRange('BS ms (base tick)',cfg.base,'tickMs',{min:1,max:120000,step:10}));
   b.body.appendChild(widget_numRange('Lifespan (s)',cfg.base,'lifespan',{min:0.1,max:600,step:0.1}));
   b.body.appendChild(widget_color('Colour',cfg.base,'color'));
-  b.body.appendChild(widget_select('Shape',cfg.base,'shape',[
-    {value:'square',label:'Square'},{value:'circle',label:'Circle'},
-    {value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},
-    {value:'star',label:'Star'},{value:'plus',label:'Plus'}
-  ]));
+  b.body.appendChild(widget_select('Shape',cfg.base,'shape',[{value:'square',label:'Square'},{value:'circle',label:'Circle'},{value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},{value:'star',label:'Star'},{value:'plus',label:'Plus'}]));
   b.body.appendChild(widget_numRange('Size (px)',cfg.base,'size',{min:1,max:500,step:1}));
   b.body.appendChild(widget_numRange('Fade in (s)',cfg.base,'fadeIn',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_numRange('Fade out (s)',cfg.base,'fadeOut',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_toggle('Mini explosion on death',cfg.base,'flashOut'));
   b.body.appendChild(widget_toggle('Random rotation',cfg.base,'randomRotation'));
   body.appendChild(b.sec);
-
   const s=makeSection('<i class="fa-solid fa-sparkles mr-1.5"></i>Spawned Stars','spawned','spawned');
   s.body.appendChild(widget_toggle('Spawned stars enabled',cfg.spawned,'enabled'));
   s.body.appendChild(widget_numRange('Repro chance per tick (%)',cfg.spawned,'reproChance',{min:0,max:100,step:0.1}));
   s.body.appendChild(widget_numRange('SS ms (spawned tick)',cfg.spawned,'tickMs',{min:1,max:120000,step:10}));
   s.body.appendChild(widget_numRange('Lifespan (s)',cfg.spawned,'lifespan',{min:0.1,max:600,step:0.1}));
   s.body.appendChild(widget_color('Colour',cfg.spawned,'color'));
-  s.body.appendChild(widget_select('Shape',cfg.spawned,'shape',[
-    {value:'square',label:'Square'},{value:'circle',label:'Circle'},
-    {value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},
-    {value:'star',label:'Star'},{value:'plus',label:'Plus'}
-  ]));
+  s.body.appendChild(widget_select('Shape',cfg.spawned,'shape',[{value:'square',label:'Square'},{value:'circle',label:'Circle'},{value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},{value:'star',label:'Star'},{value:'plus',label:'Plus'}]));
   s.body.appendChild(widget_numRange('Size (px)',cfg.spawned,'size',{min:1,max:500,step:1}));
   s.body.appendChild(widget_numRange('Fade in (s)',cfg.spawned,'fadeIn',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_numRange('Fade out (s)',cfg.spawned,'fadeOut',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_toggle('Mini explosion on death',cfg.spawned,'flashOut'));
   s.body.appendChild(widget_toggle('Random rotation',cfg.spawned,'randomRotation'));
   body.appendChild(s.sec);
-
   const e=makeSection('<i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Effects (one active)','effects','effects');
-  e.body.id='effects-body';
-  body.appendChild(e.sec);
-
+  e.body.id='effects-body';body.appendChild(e.sec);
   renderEffectList();
 }
-
-/* =========================================================
-   EFFECTS LIST
-========================================================= */
 function renderEffectList(){
   const container=document.getElementById('effects-body');
   if(!container)return;
   container.innerHTML='';
-
   cfg.effects.forEach(eff=>{
     const item=el('div','effect-item'+(eff.id===cfg.activeEffectId?' active':''));
     const head=el('div','effect-head');
-    head.innerHTML=`
-      <div class="eff-radio"></div>
-      <div class="effect-name">${eff.name}</div>
-      <div class="effect-type">${eff.type}</div>
-      <div class="effect-del" title="Delete"><i class="fa-solid fa-trash-can"></i></div>
-    `;
+    head.innerHTML=`<div class="eff-radio"></div><div class="effect-name">${eff.name}</div><div class="effect-type">${eff.type}</div><div class="effect-del" title="Delete"><i class="fa-solid fa-trash-can"></i></div>`;
     head.addEventListener('click',ev=>{if(ev.target.closest('.effect-del'))return;activateEffect(eff.id)});
     head.querySelector('.effect-del').addEventListener('click',ev=>{ev.stopPropagation();deleteEffect(eff.id)});
     item.appendChild(head);
-
-    if(eff.id===cfg.activeEffectId){
-      const settings=el('div','effect-settings');
-      buildEffectSettings(settings,eff);
-      item.appendChild(settings);
-    }
+    if(eff.id===cfg.activeEffectId){const settings=el('div','effect-settings');buildEffectSettings(settings,eff);item.appendChild(settings);}
     container.appendChild(item);
   });
-
-  const addBtn=el('button','gui-btn ghost');
-  addBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add Effect';
+  const addBtn=el('button','gui-btn ghost');addBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add Effect';
   addBtn.addEventListener('click',()=>{const p=document.getElementById('effect-picker');p.classList.toggle('open')});
   container.appendChild(addBtn);
-
-  const picker=el('div');
-  picker.id='effect-picker';
-  picker.innerHTML=`
-    <button data-type="bubble"><i class="fa-solid fa-font mr-2"></i> Bubble Text</button>
-    <button data-type="images"><i class="fa-solid fa-images mr-2"></i> Image Stars</button>
-    <button data-type="none"><i class="fa-solid fa-circle mr-2"></i> Plain Stars (None)</button>
-  `;
+  const picker=el('div');picker.id='effect-picker';
+  picker.innerHTML=`<button data-type="bubble"><i class="fa-solid fa-font mr-2"></i> Bubble Text</button><button data-type="images"><i class="fa-solid fa-images mr-2"></i> Image Stars</button><button data-type="none"><i class="fa-solid fa-circle mr-2"></i> Plain Stars (None)</button>`;
   picker.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const eff=createEffect(btn.dataset.type);
-      cfg.effects.push(eff);
-      activateEffect(eff.id);
-      picker.classList.remove('open');
-      renderEffectList();
-      saveStarConfig();
-    });
+    btn.addEventListener('click',()=>{const eff=createEffect(btn.dataset.type);cfg.effects.push(eff);activateEffect(eff.id);picker.classList.remove('open');renderEffectList();saveStarConfig()});
   });
   container.appendChild(picker);
 }
-
 function buildEffectSettings(container,eff){
   container.appendChild(widget_text('Name',eff,'name',()=>renderEffectList(),false));
   container.appendChild(widget_color('Flash colour at N',eff,'flashColor'));
-
   if(eff.type==='bubble'){
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{min:0,max:100000000,step:1}));
-    container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[
-      {value:'avoid',label:'Avoid the letters (no stars inside)'},
-      {value:'allow',label:'Ignore letters (stars can spawn inside)'}
-    ]));
-
-    const charsLabel=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>');
-    container.appendChild(charsLabel);
-
-    const hdr=el('div','char-header-row',`<span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>`);
-    container.appendChild(hdr);
-
+    container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[{value:'avoid',label:'Avoid the letters'},{value:'allow',label:'Ignore letters'}]));
+    container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>'));
+    container.appendChild(el('div','char-header-row',`<span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>`));
     const charsBox=el('div');
-    charsBox.style.display='flex';charsBox.style.flexDirection='column';
-    charsBox.style.maxHeight='340px';charsBox.style.overflowY='auto';
-    charsBox.style.padding='4px';charsBox.style.background='#0f0f11';
-    charsBox.style.borderRadius='6px';charsBox.style.border='1px solid #27272a';
-
+    charsBox.style.cssText='display:flex;flex-direction:column;max-height:340px;overflow-y:auto;padding:4px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
     eff.chars.forEach((ch,idx)=>{
       const row=el('div','char-row');
       const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{ch.char=glyph.value;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
-
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
       xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const yin=el('input','mini');yin.type='number';yin.step='any';yin.value=Math.round(ch.y);
@@ -1590,110 +1448,70 @@ function buildEffectSettings(container,eff){
       sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
       rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
-
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
-      del.title='Remove character';
       del.addEventListener('click',()=>{eff.chars.splice(idx,1);computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
-
       row.appendChild(glyph);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(del);
       charsBox.appendChild(row);
     });
     container.appendChild(charsBox);
-
-    const addCharBtn=el('button','gui-btn ghost');
-    addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
+    const addCharBtn=el('button','gui-btn ghost');addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
     addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(addCharBtn);
-
-    const reloadLayoutBtn=el('button','gui-btn ghost');
-    reloadLayoutBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
-    reloadLayoutBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
-    container.appendChild(reloadLayoutBtn);
-
-    const clearRotBtn=el('button','gui-btn ghost');
-    clearRotBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations to 0';
-    clearRotBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
-    container.appendChild(clearRotBtn);
-
-    const outlineHeader=el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>');
-    container.appendChild(outlineHeader);
+    const reBtn=el('button','gui-btn ghost');reBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
+    reBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+    container.appendChild(reBtn);
+    const crBtn=el('button','gui-btn ghost');crBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations';
+    crBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+    container.appendChild(crBtn);
+    container.appendChild(el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>'));
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
     container.appendChild(widget_numRange('Outline opacity',eff,'outlineOpacity',{min:0,max:1,step:0.01}));
     container.appendChild(widget_numRange('Outline width',eff,'outlineWidth',{min:0,max:60,step:0.5}));
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
-
-    const editorHeader=el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>');
-    container.appendChild(editorHeader);
+    container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>'));
     container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
-
-    const info=el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`);
-    container.appendChild(info);
+    container.appendChild(el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`));
   }
-
   if(eff.type==='images'){
     container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{min:0,max:100000000,step:1}));
-    const thresh = Number(eff.minStarsForImages)||0;
-    const threshInfo = el('div');
-    if (thresh === 0) threshInfo.innerHTML = `<span class="status-tag warn">Threshold = 0 → images from the very start</span>`;
-    else threshInfo.innerHTML = `<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`;
-    container.appendChild(threshInfo);
-
+    const thresh=Number(eff.minStarsForImages)||0;
+    container.appendChild(el('div',null,thresh===0?`<span class="status-tag warn">Threshold = 0 → images from the very start</span>`:`<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`));
     container.appendChild(widget_text('Folder name',eff,'folder',null,false));
-    container.appendChild(widget_text('Manual file list (optional — one per line)',eff,'explicitList',null,true));
+    container.appendChild(widget_text('Manual file list (optional)',eff,'explicitList',null,true));
     container.appendChild(widget_numRange('Default image size (px)',eff,'defaultSize',{min:8,max:2000,step:1}));
-
-    const rb=el('button','gui-btn primary');
-    rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
-    rb.addEventListener('click',()=>loadEffectImages(eff));
-    container.appendChild(rb);
-
+    const rb=el('button','gui-btn primary');rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
+    rb.addEventListener('click',()=>loadEffectImages(eff));container.appendChild(rb);
     const status=el('div');
     if(eff.loaded)status.innerHTML=`<span class="status-tag ok">Loaded ${eff.imagePool.length} images</span>`;
-    else if(eff.loadError)status.innerHTML=`<span class="status-tag err">${eff.loadError} — falling back to plain stars</span>`;
-    else status.innerHTML=`<span class="status-tag loading">Not loaded yet — click Reload</span>`;
+    else if(eff.loadError)status.innerHTML=`<span class="status-tag err">${eff.loadError}</span>`;
+    else status.innerHTML=`<span class="status-tag loading">Not loaded yet</span>`;
     container.appendChild(status);
-
     if(eff.imagePool&&eff.imagePool.length){
-      const exH=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions (custom sizes)</span>');
+      const exH=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions</span>');
       container.appendChild(exH);
       const exBox=el('div');
-      exBox.style.maxHeight='160px';exBox.style.overflowY='auto';
-      exBox.style.display='flex';exBox.style.flexDirection='column';exBox.style.gap='4px';
-      exBox.style.padding='6px';exBox.style.background='#0f0f11';
-      exBox.style.borderRadius='6px';exBox.style.border='1px solid #27272a';
+      exBox.style.cssText='max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:6px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
       eff.imagePool.forEach(url=>{
         const fn=url.split('/').pop();
-        const r=el('div');r.style.display='flex';r.style.alignItems='center';r.style.gap='6px';r.style.fontSize='10.5px';
+        const r=el('div');r.style.cssText='display:flex;align-items:center;gap:6px;font-size:10.5px';
         const isEx=eff.exceptions[url]!==undefined;
         const tog=el('input');tog.type='checkbox';tog.checked=isEx;tog.style.accentColor='#6366f1';
-        const lbl=el('span',null,fn);lbl.style.flex='1';lbl.style.color='#a1a1aa';lbl.style.overflow='hidden';lbl.style.textOverflow='ellipsis';lbl.style.whiteSpace='nowrap';
-        const num=el('input');num.type='number';num.className='num-inline';num.step='any';
-        num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=10000;num.disabled=!isEx;
+        const lbl=el('span',null,fn);lbl.style.cssText='flex:1;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+        const num=el('input');num.type='number';num.className='num-inline';num.step='any';num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=10000;num.disabled=!isEx;
         tog.addEventListener('change',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}else{delete eff.exceptions[url];num.disabled=true}saveStarConfig()});
         num.addEventListener('input',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;saveStarConfig()}});
-        r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);
-        exBox.appendChild(r);
+        r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);exBox.appendChild(r);
       });
       container.appendChild(exBox);
     }
   }
-
-  if(eff.type==='none'){
-    const info=el('div',null,'<span class="status-tag ok">Plain star spawning — no special behaviour</span>');
-    container.appendChild(info);
-  }
+  if(eff.type==='none'){container.appendChild(el('div',null,'<span class="status-tag ok">Plain star spawning — no special behaviour</span>'));}
 }
-
 function activateEffect(id){
-  cfg.activeEffectId=id;
-  const eff=getActiveEffect();
-  if(!eff)return;
+  cfg.activeEffectId=id;const eff=getActiveEffect();if(!eff)return;
   if(eff.type==='images'&&!eff.loaded)loadEffectImages(eff);
   if(eff.type==='bubble')computeBubbleMask(eff);
-  resetStars();
-  renderEffectList();
-  rebuildBubbleEditor();
-  saveStarConfig();
+  resetStars();renderEffectList();rebuildBubbleEditor();saveStarConfig();
 }
 function deleteEffect(id){
   if(cfg.effects.length<=1){alert('Must keep at least one effect.');return}
@@ -1707,11 +1525,811 @@ function deleteEffect(id){
     if(f&&f.type==='bubble')computeBubbleMask(f);
     rebuildBubbleEditor();
   }
-  renderEffectList();
-  saveStarConfig();
+  renderEffectList();saveStarConfig();
+}
+function toggleStarGui(){if(!isEditing)return;document.getElementById('star-gui').classList.toggle('hidden')}
+
+/* =========================================================
+   ███████  MP3 MODULE  ███████
+========================================================= */
+
+// ---------- State ----------
+let mp3Tracks = [];          // [{id, name, duration, source:'file'|'url', url?}]
+let mp3Labels = {};          // { [tokenIdx]: { trackId, time } }
+let mp3TokenSnapshot = [];   // snapshot of token strings at labelling time
+let mp3Cfg = {
+  highlightColor: '#fbbf24',
+  wordClickEnabled: true,
+  playbackRate: 1.0
+};
+let mp3Audio = null;
+let mp3Playing = false;
+let mp3CurrentIdx = -1;
+let mp3PreviewUntil = -1;
+let mp3CurrentTrackId = null;
+let mp3NextIdxCounter = 0;   // used during wrapping
+let mp3FocusedIdx = -1;      // word focused in admin panel
+const mp3UrlCache = {};      // trackId -> objectURL (for file-sourced tracks)
+
+// ---------- IndexedDB for MP3 blobs ----------
+const MP3_IDB_NAME = 'vn_mp3_blobs';
+const MP3_IDB_STORE = 'blobs';
+let mp3Db = null;
+function mp3OpenDb(){
+  if (mp3Db) return Promise.resolve(mp3Db);
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(MP3_IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(MP3_IDB_STORE); };
+    req.onsuccess = () => { mp3Db = req.result; res(mp3Db); };
+    req.onerror = () => rej(req.error);
+  });
+}
+async function mp3IdbPut(key, blob){
+  const db = await mp3OpenDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MP3_IDB_STORE, 'readwrite');
+    tx.objectStore(MP3_IDB_STORE).put(blob, key);
+    tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
+  });
+}
+async function mp3IdbGet(key){
+  const db = await mp3OpenDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MP3_IDB_STORE, 'readonly');
+    const req = tx.objectStore(MP3_IDB_STORE).get(key);
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  });
+}
+async function mp3IdbDel(key){
+  const db = await mp3OpenDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MP3_IDB_STORE, 'readwrite');
+    tx.objectStore(MP3_IDB_STORE).delete(key);
+    tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
+  });
+}
+async function mp3IdbKeys(){
+  const db = await mp3OpenDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MP3_IDB_STORE, 'readonly');
+    const req = tx.objectStore(MP3_IDB_STORE).getAllKeys();
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  });
 }
 
-function toggleStarGui(){if(!isEditing)return;document.getElementById('star-gui').classList.toggle('hidden')}
+// ---------- Storage ----------
+function mp3SaveTracks(){ try { localStorage.setItem(STORAGE.mp3_tracks, JSON.stringify(mp3Tracks)); } catch(e){} }
+function mp3SaveLabels(){ try { localStorage.setItem(STORAGE.mp3_labels, JSON.stringify({ tokens: mp3TokenSnapshot, labels: mp3Labels })); } catch(e){} }
+function mp3SaveCfg(){ try { localStorage.setItem(STORAGE.mp3_cfg, JSON.stringify(mp3Cfg)); } catch(e){} }
+
+function mp3LoadState(){
+  try { const t = localStorage.getItem(STORAGE.mp3_tracks); if (t) mp3Tracks = JSON.parse(t); } catch(e){}
+  try {
+    const l = localStorage.getItem(STORAGE.mp3_labels);
+    if (l) { const p = JSON.parse(l); mp3Labels = p.labels || {}; mp3TokenSnapshot = p.tokens || []; }
+  } catch(e){}
+  try { const c = localStorage.getItem(STORAGE.mp3_cfg); if (c) mp3Cfg = Object.assign(mp3Cfg, JSON.parse(c)); } catch(e){}
+  // From export
+  if (window.__EXPORTED_MP3__ && typeof window.__EXPORTED_MP3__ === 'object') {
+    const e = window.__EXPORTED_MP3__;
+    if (!mp3Tracks.length && Array.isArray(e.tracks)) mp3Tracks = e.tracks;
+    if (!Object.keys(mp3Labels).length && e.labels && e.labels.labels) { mp3Labels = e.labels.labels; mp3TokenSnapshot = e.labels.tokens || []; }
+    if (e.config) mp3Cfg = Object.assign(mp3Cfg, e.config);
+  }
+}
+
+// ---------- Utility ----------
+function fmtTime(s){
+  if (!isFinite(s)) return '–:––';
+  s = Math.max(0, s);
+  const m = Math.floor(s / 60);
+  const r = (s - m * 60);
+  return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
+}
+function getTrack(id){ return mp3Tracks.find(t => t.id === id) || null; }
+function trackName(id){ const t = getTrack(id); return t ? t.name : '(missing)'; }
+
+// ---------- Tokenization ----------
+function mp3TokenizeText(text){
+  const tokens = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (/\s/.test(ch)) {
+      let j = i;
+      while (j < text.length && /\s/.test(text[j])) j++;
+      tokens.push({ type: 'sep', text: text.slice(i, j) });
+      i = j;
+    } else {
+      let j = i;
+      while (j < text.length && !/\s/.test(text[j])) j++;
+      const chunk = text.slice(i, j);
+      const sub = chunk.split(/(\.)/);
+      for (const sp of sub) {
+        if (sp === '') continue;
+        if (sp === '.') tokens.push({ type: 'period', text: '.' });
+        else tokens.push({ type: 'word', text: sp });
+      }
+      i = j;
+    }
+  }
+  return tokens;
+}
+
+// ---------- Wrapping / Unwrapping ----------
+function mp3UnwrapWords(){
+  document.querySelectorAll('.mp3-word').forEach(el => {
+    const txt = el.textContent;
+    el.parentNode.replaceChild(document.createTextNode(txt), el);
+  });
+  document.querySelectorAll('#document-canvas .edit-block > *').forEach(e => e.normalize());
+}
+function mp3TokenizeAndWrap(){
+  // Must be called in visitor mode (no contenteditable).
+  if (isEditing) return;
+  mp3UnwrapWords();  // just in case
+  mp3NextIdxCounter = 0;
+  const blocks = document.querySelectorAll('#document-canvas .edit-block');
+  blocks.forEach(b => {
+    const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, null);
+    const textNodes = [];
+    let n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+    for (const tn of textNodes) {
+      const text = tn.nodeValue;
+      if (!text || !text.trim()) continue;
+      if (tn.parentElement && tn.parentElement.classList.contains('mp3-word')) continue;
+      const tokens = mp3TokenizeText(text);
+      const frag = document.createDocumentFragment();
+      for (const tok of tokens) {
+        if (tok.type === 'sep') {
+          frag.appendChild(document.createTextNode(tok.text));
+        } else {
+          const span = document.createElement('span');
+          span.className = 'mp3-word';
+          if (tok.type === 'period') span.classList.add('mp3-period');
+          span.dataset.idx = mp3NextIdxCounter++;
+          span.textContent = tok.text;
+          frag.appendChild(span);
+        }
+      }
+      tn.parentNode.replaceChild(frag, tn);
+    }
+  });
+  // Snapshot
+  mp3TokenSnapshot = [];
+  document.querySelectorAll('.mp3-word').forEach(el => {
+    mp3TokenSnapshot[parseInt(el.dataset.idx)] = el.textContent;
+  });
+  // Apply highlight to current
+  if (mp3CurrentIdx >= 0) mp3ApplyHighlight(mp3CurrentIdx);
+}
+
+// ---------- Audio ----------
+function mp3BootAudio(){
+  if (mp3Audio) return;
+  mp3Audio = document.createElement('audio');
+  mp3Audio.preload = 'auto';
+  mp3Audio.addEventListener('timeupdate', mp3OnTick);
+  mp3Audio.addEventListener('ended', mp3OnEnded);
+  mp3Audio.addEventListener('loadedmetadata', () => mp3UpdateAudioPos());
+  document.body.appendChild(mp3Audio);
+}
+async function mp3ResolveUrl(trackId){
+  if (mp3UrlCache[trackId]) return mp3UrlCache[trackId];
+  const t = getTrack(trackId);
+  if (!t) return null;
+  if (t.source === 'url' && t.url) return t.url;
+  if (t.source === 'file') {
+    try {
+      const blob = await mp3IdbGet(trackId);
+      if (!blob) return null;
+      const url = URL.createObjectURL(blob);
+      mp3UrlCache[trackId] = url;
+      return url;
+    } catch(e) { return null; }
+  }
+  return null;
+}
+async function mp3LoadTrack(trackId){
+  if (mp3CurrentTrackId === trackId && mp3Audio.src && mp3Audio.readyState >= 1) return true;
+  const url = await mp3ResolveUrl(trackId);
+  if (!url) return false;
+  mp3Audio.src = url;
+  mp3CurrentTrackId = trackId;
+  // Wait for metadata
+  await new Promise(res => {
+    if (mp3Audio.readyState >= 1) return res();
+    const h = () => { mp3Audio.removeEventListener('loadedmetadata', h); res(); };
+    mp3Audio.addEventListener('loadedmetadata', h);
+    setTimeout(res, 2000); // fallback
+  });
+  mp3ApplyPlaybackRate();
+  return true;
+}
+function mp3ApplyPlaybackRate(){
+  if (mp3Audio) mp3Audio.playbackRate = mp3Cfg.playbackRate;
+}
+
+// ---------- Playback engine ----------
+function mp3WordsOnTrack(trackId){
+  const out = [];
+  for (const k in mp3Labels) {
+    if (mp3Labels[k].trackId === trackId) out.push({ idx: parseInt(k), time: mp3Labels[k].time });
+  }
+  out.sort((a, b) => a.time - b.time);
+  return out;
+}
+function mp3WordAtTime(trackId, t){
+  const list = mp3WordsOnTrack(trackId);
+  let best = null;
+  for (const w of list) { if (w.time <= t) best = w; else break; }
+  return best;
+}
+function mp3FirstLabelIdx(){
+  const ks = Object.keys(mp3Labels).map(Number).sort((a, b) => a - b);
+  return ks.length ? ks[0] : -1;
+}
+function mp3NextLabelIdx(fromIdx){
+  const ks = Object.keys(mp3Labels).map(Number).sort((a, b) => a - b);
+  for (const k of ks) if (k > fromIdx) return k;
+  return -1;
+}
+function mp3PrevLabelIdx(fromIdx){
+  const ks = Object.keys(mp3Labels).map(Number).sort((a, b) => a - b);
+  let prev = -1;
+  for (const k of ks) { if (k >= fromIdx) break; prev = k; }
+  return prev;
+}
+
+async function mp3PlayFrom(idx){
+  const label = mp3Labels[idx];
+  if (!label) return;
+  const ok = await mp3LoadTrack(label.trackId);
+  if (!ok) { alert('Cannot load track: ' + trackName(label.trackId)); return; }
+  mp3Audio.currentTime = Math.max(0, label.time);
+  mp3ApplyPlaybackRate();
+  try { await mp3Audio.play(); } catch(e) { console.warn(e); }
+  mp3Playing = true;
+  mp3PreviewUntil = -1;
+  mp3CurrentIdx = idx;
+  mp3ApplyHighlight(idx);
+  mp3UpdatePlayBtn();
+  mp3Loop();
+}
+async function mp3Resume(){
+  if (mp3CurrentIdx >= 0 && mp3Labels[mp3CurrentIdx]) {
+    const label = mp3Labels[mp3CurrentIdx];
+    if (mp3CurrentTrackId === label.trackId && mp3Audio.src && mp3Audio.currentTime >= label.time - 0.15) {
+      mp3ApplyPlaybackRate();
+      try { await mp3Audio.play(); } catch(e){}
+      mp3Playing = true;
+      mp3PreviewUntil = -1;
+      mp3UpdatePlayBtn();
+      mp3Loop();
+      return;
+    }
+    await mp3PlayFrom(mp3CurrentIdx);
+  } else {
+    const first = mp3FirstLabelIdx();
+    if (first >= 0) await mp3PlayFrom(first);
+    else alert('No words are labelled yet.');
+  }
+}
+function mp3Pause(){
+  if (mp3Audio) mp3Audio.pause();
+  mp3Playing = false;
+  mp3PreviewUntil = -1;
+  mp3UpdatePlayBtn();
+}
+async function mp3PreviewWord(idx){
+  const label = mp3Labels[idx];
+  if (!label) return;
+  mp3Pause();
+  const ok = await mp3LoadTrack(label.trackId);
+  if (!ok) { alert('Cannot load track: ' + trackName(label.trackId)); return; }
+  mp3Audio.currentTime = Math.max(0, label.time);
+  mp3ApplyPlaybackRate();
+  const list = mp3WordsOnTrack(label.trackId);
+  const next = list.find(w => w.time > label.time);
+  mp3PreviewUntil = next ? next.time : -1;
+  try { await mp3Audio.play(); } catch(e){}
+  mp3Playing = true;
+  mp3CurrentIdx = idx;
+  mp3ApplyHighlight(idx);
+  mp3UpdatePlayBtn();
+  mp3Loop();
+}
+function mp3OnTick(){
+  if (!mp3Playing) return;
+  const t = mp3Audio.currentTime;
+  if (mp3PreviewUntil >= 0 && t >= mp3PreviewUntil) { mp3Pause(); return; }
+  if (!mp3CurrentTrackId) return;
+  const w = mp3WordAtTime(mp3CurrentTrackId, t);
+  if (w && w.idx !== mp3CurrentIdx) {
+    mp3CurrentIdx = w.idx;
+    mp3ApplyHighlight(w.idx);
+    mp3RefreshPanelWordDisplay();
+  }
+  mp3UpdateAudioPos();
+}
+async function mp3OnEnded(){
+  if (!mp3Playing) return;
+  // Preview mode — just stop
+  if (mp3PreviewUntil >= 0) { mp3Pause(); return; }
+  // Advance to next labelled word
+  const nextIdx = mp3NextLabelIdx(mp3CurrentIdx);
+  if (nextIdx >= 0) {
+    const nextLabel = mp3Labels[nextIdx];
+    if (nextLabel.trackId !== mp3CurrentTrackId) {
+      await mp3PlayFrom(nextIdx);
+      return;
+    }
+  }
+  mp3Pause();
+}
+function mp3Loop(){
+  if (!mp3Playing) return;
+  mp3OnTick();
+  if (mp3Playing) requestAnimationFrame(mp3Loop);
+}
+
+// ---------- Highlight ----------
+function mp3ApplyHighlight(idx){
+  document.querySelectorAll('.mp3-word.highlighted').forEach(el => el.classList.remove('highlighted'));
+  if (idx < 0) return;
+  const el = document.querySelector(`.mp3-word[data-idx="${idx}"]`);
+  if (el) el.classList.add('highlighted');
+}
+
+// ---------- User controls ----------
+function mp3UpdatePlayBtn(){
+  const btn = document.getElementById('mp3-play-btn');
+  if (!btn) return;
+  btn.innerHTML = mp3Playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+}
+function mp3UpdateAudioPos(){
+  const el = document.getElementById('mp3-audio-pos-admin');
+  if (!el || !mp3Audio) return;
+  const cur = mp3Audio.currentTime || 0;
+  const dur = mp3Audio.duration || 0;
+  el.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
+}
+function mp3RefreshControls(){
+  const controls = document.getElementById('mp3-controls');
+  if (!controls) return;
+  const hasTracks = mp3Tracks.length > 0;
+  controls.classList.toggle('hidden', !hasTracks);
+  const slider = document.getElementById('mp3-speed-slider');
+  const label = document.getElementById('mp3-speed-label');
+  if (slider) slider.value = mp3Cfg.playbackRate;
+  if (label) label.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
+  const toggle = document.getElementById('mp3-wordclick-toggle');
+  if (toggle) toggle.checked = !!mp3Cfg.wordClickEnabled;
+  mp3UpdatePlayBtn();
+}
+function mp3InitControls(){
+  document.getElementById('mp3-play-btn').addEventListener('click', () => {
+    if (mp3Playing) mp3Pause();
+    else mp3Resume();
+  });
+  const slider = document.getElementById('mp3-speed-slider');
+  const label = document.getElementById('mp3-speed-label');
+  slider.addEventListener('input', () => {
+    mp3Cfg.playbackRate = parseFloat(slider.value) || 1;
+    label.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
+    mp3ApplyPlaybackRate();
+    mp3SaveCfg();
+  });
+  const wc = document.getElementById('mp3-wordclick-toggle');
+  wc.addEventListener('change', () => {
+    mp3Cfg.wordClickEnabled = wc.checked;
+    mp3SaveCfg();
+  });
+  // Word click (visitor mode)
+  document.addEventListener('click', e => {
+    if (isEditing) return;
+    if (!mp3Cfg.wordClickEnabled) return;
+    const w = e.target.closest('.mp3-word');
+    if (!w) return;
+    const idx = parseInt(w.dataset.idx);
+    if (!mp3Labels[idx]) return;
+    e.preventDefault();
+    mp3PreviewWord(idx);
+  });
+}
+
+// ---------- Admin panel ----------
+function toggleMp3Panel(){
+  if (!isEditing) return;
+  const p = document.getElementById('mp3-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) mp3RenderPanel();
+}
+function mp3RefreshPanelWordDisplay(){
+  const big = document.getElementById('mp3-big-word');
+  if (!big) return;
+  if (mp3FocusedIdx < 0 || mp3FocusedIdx >= mp3TokenSnapshot.length) {
+    big.textContent = '(no word selected)';
+    return;
+  }
+  big.textContent = mp3TokenSnapshot[mp3FocusedIdx] || '(empty)';
+  // Update word-list focused highlight
+  document.querySelectorAll('.mp3-word-row').forEach(r => r.classList.remove('focused'));
+  const row = document.querySelector(`.mp3-word-row[data-idx="${mp3FocusedIdx}"]`);
+  if (row) { row.classList.add('focused'); row.scrollIntoView({ block: 'nearest' }); }
+}
+function mp3RenderPanel(){
+  const body = document.getElementById('mp3-body');
+  if (!body) return;
+  const prevScrollTop = body.scrollTop;
+  body.innerHTML = '';
+
+  // ---- TRACKS ----
+  const t = mp3MakeSection('Tracks', 'tracks');
+  const imp = el('button', 'gui-btn primary');
+  imp.innerHTML = '<i class="fa-solid fa-file-audio mr-1"></i> Import MP3 file(s)';
+  imp.addEventListener('click', () => document.getElementById('mp3-file-input').click());
+  t.body.appendChild(imp);
+
+  const urlBtn = el('button', 'gui-btn ghost');
+  urlBtn.innerHTML = '<i class="fa-solid fa-link mr-1"></i> Add track by URL';
+  urlBtn.addEventListener('click', async () => {
+    const url = prompt('Paste a URL to an MP3 file:');
+    if (!url) return;
+    const name = prompt('Display name for this track:', url.split('/').pop() || 'track.mp3') || 'track.mp3';
+    const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    // Probe duration
+    const probe = new Audio();
+    probe.preload = 'metadata';
+    probe.src = url;
+    probe.addEventListener('loadedmetadata', () => {
+      mp3Tracks.push({ id, name, source: 'url', url, duration: probe.duration || 0 });
+      mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
+    });
+    probe.addEventListener('error', () => {
+      if (confirm('Could not load that URL for duration. Add anyway?')) {
+        mp3Tracks.push({ id, name, source: 'url', url, duration: 0 });
+        mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
+      }
+    });
+  });
+  t.body.appendChild(urlBtn);
+
+  if (!mp3Tracks.length) {
+    t.body.appendChild(el('div','mp3-hint','No tracks yet. Import or add by URL.'));
+  } else {
+    const list = el('div'); list.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+    mp3Tracks.forEach(tr => {
+      const row = el('div', 'mp3-track-item' + (tr.id === mp3CurrentTrackId ? ' active' : ''));
+      const srcBadge = tr.source === 'url' ? '🔗' : '💾';
+      row.innerHTML = `
+        <span>${srcBadge}</span>
+        <span class="name">${tr.name}</span>
+        <span class="dur">${fmtTime(tr.duration)}</span>
+        <button class="sel">Select</button>
+        <button class="del">✕</button>
+      `;
+      row.querySelector('.sel').addEventListener('click', () => {
+        mp3CurrentTrackId = tr.id;
+        mp3RenderPanel();
+      });
+      row.querySelector('.del').addEventListener('click', () => {
+        if (!confirm('Delete this track? Labels using it will be cleared.')) return;
+        if (tr.source === 'file') mp3IdbDel(tr.id).catch(()=>{});
+        delete mp3UrlCache[tr.id];
+        mp3Tracks = mp3Tracks.filter(x => x.id !== tr.id);
+        for (const k in mp3Labels) if (mp3Labels[k].trackId === tr.id) delete mp3Labels[k];
+        if (mp3CurrentTrackId === tr.id) mp3CurrentTrackId = null;
+        mp3SaveTracks(); mp3SaveLabels(); mp3RenderPanel(); mp3RefreshControls();
+      });
+      list.appendChild(row);
+    });
+    t.body.appendChild(list);
+  }
+  body.appendChild(t.sec);
+
+  // ---- WORDS ----
+  const w = mp3MakeSection('Words', 'words');
+  const wordCount = mp3TokenSnapshot.length;
+  const labelCount = Object.keys(mp3Labels).length;
+  w.body.appendChild(el('div','mp3-hint',`${wordCount} tokens · ${labelCount} labelled`));
+
+  // Warning if text changed
+  if (mp3TokenSnapshot.length) {
+    const currentTokens = [];
+    // In edit mode, spans are unwrapped; but the panel is only open in edit mode.
+    // Rebuild a temporary token list from the current text.
+    const blocks = document.querySelectorAll('#document-canvas .edit-block');
+    let idx = 0;
+    blocks.forEach(b => {
+      const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, null);
+      let n;
+      while ((n = walker.nextNode())) {
+        const text = n.nodeValue;
+        if (!text || !text.trim()) continue;
+        const toks = mp3TokenizeText(text);
+        for (const tok of toks) if (tok.type !== 'sep') currentTokens[idx++] = tok.text;
+      }
+    });
+    let changed = false;
+    const maxLen = Math.max(currentTokens.length, mp3TokenSnapshot.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (currentTokens[i] !== mp3TokenSnapshot[i]) { changed = true; break; }
+    }
+    if (changed) {
+      const warn = el('div');
+      warn.innerHTML = '<span class="mp3-tag warn">⚠ Text changed since labelling — labels may be off. Re-label or clear.</span>';
+      w.body.appendChild(warn);
+    }
+  }
+
+  if (!wordCount) {
+    w.body.appendChild(el('div','mp3-hint','No words tokenized yet.'));
+  } else {
+    const list = el('div','mp3-word-list');
+    for (let i = 0; i < mp3TokenSnapshot.length; i++) {
+      const tok = mp3TokenSnapshot[i];
+      const lab = mp3Labels[i];
+      const row = el('div','mp3-word-row' + (lab ? ' labelled':'') + (i === mp3FocusedIdx ? ' focused':''));
+      row.dataset.idx = i;
+      const trackAbbr = lab ? (getTrack(lab.trackId) ? getTrack(lab.trackId).name.slice(0,10) : 'missing') : '';
+      row.innerHTML = `<span class="idx">${i}</span><span class="tok">${tok.replace(/</g,'&lt;')}</span><span class="lbl">${lab ? trackAbbr + ' ' + lab.time.toFixed(2) : '—'}</span>`;
+      row.addEventListener('click', () => {
+        mp3FocusedIdx = i;
+        mp3RefreshPanelWordDisplay();
+        // Seek audio to that word if labelled
+        if (mp3Labels[i]) {
+          mp3SeekToFocused();
+        }
+      });
+      list.appendChild(row);
+    }
+    w.body.appendChild(list);
+  }
+  body.appendChild(w.sec);
+
+  // ---- LABELLING ----
+  const l = mp3MakeSection('Labelling', 'labelling');
+
+  // Big current word
+  const big = el('div','mp3-big-word'); big.id = 'mp3-big-word';
+  l.body.appendChild(big);
+
+  // Nav row
+  const nav = el('div','mp3-nav');
+  const prevBtn = el('button'); prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left mr-1"></i> Prev';
+  prevBtn.addEventListener('click', () => { if (mp3FocusedIdx > 0) { mp3FocusedIdx--; mp3RefreshPanelWordDisplay(); mp3SeekToFocused(); } });
+  const nextBtn = el('button'); nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right ml-1"></i>';
+  nextBtn.addEventListener('click', () => { if (mp3FocusedIdx < mp3TokenSnapshot.length - 1) { mp3FocusedIdx++; mp3RefreshPanelWordDisplay(); mp3SeekToFocused(); } });
+  nav.appendChild(prevBtn); nav.appendChild(nextBtn);
+  l.body.appendChild(nav);
+
+  // Time input row
+  const trow = el('div','mp3-time-row');
+  const timeIn = el('input'); timeIn.type = 'number'; timeIn.step = '0.01'; timeIn.min = '0'; timeIn.id = 'mp3-time-input';
+  const lab = mp3Labels[mp3FocusedIdx];
+  timeIn.value = lab ? lab.time.toFixed(2) : '0.00';
+  if (lab) {
+    const tr = getTrack(lab.trackId);
+    if (tr && tr.duration) timeIn.max = tr.duration.toFixed(2);
+  }
+  trow.appendChild(timeIn);
+  const useCurBtn = el('button'); useCurBtn.textContent = '⏱ Use current';
+  useCurBtn.addEventListener('click', () => {
+    if (!mp3Audio || !mp3Audio.duration) return alert('Load a track first.');
+    timeIn.value = mp3Audio.currentTime.toFixed(2);
+  });
+  trow.appendChild(useCurBtn);
+  l.body.appendChild(trow);
+
+  // Play from here
+  const prow = el('div','mp3-nav');
+  const playBtn = el('button'); playBtn.className = 'primary';
+  playBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Play from here';
+  playBtn.addEventListener('click', async () => {
+    if (!mp3CurrentTrackId) return alert('Select a track first.');
+    const ok = await mp3LoadTrack(mp3CurrentTrackId);
+    if (!ok) return alert('Cannot load track.');
+    const tval = parseFloat(timeIn.value) || 0;
+    mp3Audio.currentTime = Math.max(0, Math.min(tval, (mp3Audio.duration || 0) - 0.01));
+    mp3ApplyPlaybackRate();
+    try { await mp3Audio.play(); } catch(e){}
+    mp3Playing = true;
+    mp3PreviewUntil = -1;
+    mp3UpdatePlayBtn();
+    mp3Loop();
+  });
+  prow.appendChild(playBtn);
+  const stopBtn = el('button'); stopBtn.innerHTML = '<i class="fa-solid fa-stop mr-1"></i> Stop';
+  stopBtn.addEventListener('click', () => mp3Pause());
+  prow.appendChild(stopBtn);
+  l.body.appendChild(prow);
+
+  // Audio position
+  const pos = el('div','mp3-audio-pos'); pos.id = 'mp3-audio-pos-admin'; pos.textContent = '0:00.00 / 0:00.00';
+  l.body.appendChild(pos);
+
+  // Save label button
+  const saveBtn = el('button','gui-btn primary');
+  saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Save label for this word';
+  saveBtn.addEventListener('click', () => {
+    if (mp3FocusedIdx < 0 || mp3FocusedIdx >= mp3TokenSnapshot.length) return alert('Select a word first.');
+    if (!mp3CurrentTrackId) return alert('Select a track first.');
+    const tval = parseFloat(timeIn.value);
+    if (isNaN(tval) || tval < 0) return alert('Invalid time.');
+    const tr = getTrack(mp3CurrentTrackId);
+    if (tr && tr.duration && tval > tr.duration) return alert('Time exceeds track duration.');
+    // Duplicate check
+    for (const k in mp3Labels) {
+      const lb = mp3Labels[k];
+      if (parseInt(k) !== mp3FocusedIdx && lb.trackId === mp3CurrentTrackId && Math.abs(lb.time - tval) < 0.005) {
+        return alert(`Time ${tval.toFixed(2)}s is already used by word #${k}: "${mp3TokenSnapshot[k]}"`);
+      }
+    }
+    mp3Labels[mp3FocusedIdx] = { trackId: mp3CurrentTrackId, time: tval };
+    mp3SaveLabels();
+    mp3RenderPanel();
+    // Advance to next word for efficiency
+    if (mp3FocusedIdx < mp3TokenSnapshot.length - 1) {
+      mp3FocusedIdx++;
+      mp3RefreshPanelWordDisplay();
+      const t2 = document.getElementById('mp3-time-input');
+      if (t2) {
+        const l2 = mp3Labels[mp3FocusedIdx];
+        t2.value = l2 ? l2.time.toFixed(2) : (mp3Audio && mp3Audio.currentTime ? mp3Audio.currentTime.toFixed(2) : '0.00');
+      }
+    }
+  });
+  l.body.appendChild(saveBtn);
+
+  l.body.appendChild(el('div','mp3-hint','Tip: Play the track, then hit "Use current" to capture the audio\'s current position. Save, and it auto-advances to the next word.'));
+
+  body.appendChild(l.sec);
+
+  // ---- PLAYBACK ----
+  const pb = mp3MakeSection('Playback', 'playback');
+  // Speed
+  const spRow = el('div','mp3-time-row');
+  const spLabel = el('span',null,'Speed');
+  spLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex-shrink:0;width:46px';
+  const spSlider = el('input'); spSlider.type = 'range'; spSlider.min = '0.25'; spSlider.max = '4'; spSlider.step = '0.05'; spSlider.value = mp3Cfg.playbackRate;
+  spSlider.style.flex = '1'; spSlider.style.accentColor = '#6366f1';
+  const spVal = el('span'); spVal.className = 'mp3-time'; spVal.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
+  spSlider.addEventListener('input', () => {
+    mp3Cfg.playbackRate = parseFloat(spSlider.value) || 1;
+    spVal.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
+    mp3ApplyPlaybackRate();
+    mp3SaveCfg();
+    mp3RefreshControls();
+  });
+  spRow.appendChild(spLabel); spRow.appendChild(spSlider); spRow.appendChild(spVal);
+  pb.body.appendChild(spRow);
+
+  // Highlight colour
+  const cRow = el('div','mp3-time-row');
+  const cLabel = el('span',null,'Highlight colour');
+  cLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
+  const cInp = el('input'); cInp.type = 'color'; cInp.value = mp3Cfg.highlightColor;
+  cInp.style.cssText = 'width:60px;height:28px;padding:2px;background:#0f0f11;border:1px solid #27272a;border-radius:6px;cursor:pointer';
+  cInp.addEventListener('input', () => {
+    mp3Cfg.highlightColor = cInp.value;
+    document.documentElement.style.setProperty('--mp3-highlight', cInp.value);
+    mp3SaveCfg();
+  });
+  cRow.appendChild(cLabel); cRow.appendChild(cInp);
+  pb.body.appendChild(cRow);
+
+  // Word click toggle
+  const wcRow = el('div','mp3-time-row');
+  const wcLabel = el('span',null,'Click words to play them (visitor)');
+  wcLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
+  const wcSwitch = el('div','toggle-switch' + (mp3Cfg.wordClickEnabled ? ' on':''));
+  wcSwitch.addEventListener('click', () => {
+    mp3Cfg.wordClickEnabled = !mp3Cfg.wordClickEnabled;
+    wcSwitch.classList.toggle('on', mp3Cfg.wordClickEnabled);
+    mp3SaveCfg(); mp3RefreshControls();
+  });
+  wcRow.appendChild(wcLabel); wcRow.appendChild(wcSwitch);
+  pb.body.appendChild(wcRow);
+
+  body.appendChild(pb.sec);
+
+  // ---- DANGER ----
+  const d = mp3MakeSection('Danger', 'danger');
+  const clrLabels = el('button','gui-btn danger');
+  clrLabels.innerHTML = '<i class="fa-solid fa-eraser mr-1"></i> Clear all word labels';
+  clrLabels.addEventListener('click', () => {
+    if (!confirm('Clear ALL word labels? Tracks are kept.')) return;
+    mp3Labels = {}; mp3SaveLabels(); mp3RenderPanel();
+  });
+  d.body.appendChild(clrLabels);
+  const clrTracks = el('button','gui-btn danger');
+  clrTracks.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Delete all tracks';
+  clrTracks.addEventListener('click', async () => {
+    if (!confirm('Delete ALL imported tracks and their labels?')) return;
+    for (const tr of mp3Tracks) {
+      if (tr.source === 'file') try { await mp3IdbDel(tr.id); } catch(e){}
+    }
+    mp3Tracks = []; mp3Labels = {}; mp3CurrentTrackId = null;
+    for (const k in mp3UrlCache) delete mp3UrlCache[k];
+    mp3SaveTracks(); mp3SaveLabels(); mp3RenderPanel(); mp3RefreshControls();
+  });
+  d.body.appendChild(clrTracks);
+  body.appendChild(d.sec);
+
+  // Hidden file input (one per panel build)
+  const fi = el('input'); fi.type = 'file'; fi.accept = 'audio/*,.mp3'; fi.multiple = true;
+  fi.id = 'mp3-file-input'; fi.style.display = 'none';
+  fi.addEventListener('change', async e => {
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+      const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+      try {
+        await mp3IdbPut(id, file);
+      } catch(err) {
+        alert('Could not store "' + file.name + '": ' + err.message);
+        continue;
+      }
+      // Probe duration
+      const url = URL.createObjectURL(file);
+      mp3UrlCache[id] = url;
+      const duration = await new Promise(res => {
+        const a = new Audio();
+        a.preload = 'metadata';
+        a.src = url;
+        a.addEventListener('loadedmetadata', () => res(a.duration || 0));
+        a.addEventListener('error', () => res(0));
+        setTimeout(() => res(0), 3000);
+      });
+      mp3Tracks.push({ id, name: file.name, source: 'file', duration });
+    }
+    mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
+    e.target.value = '';
+  });
+  body.appendChild(fi);
+
+  // Restore scroll
+  body.scrollTop = prevScrollTop;
+
+  // Init word focus
+  if (mp3FocusedIdx < 0 && mp3TokenSnapshot.length) mp3FocusedIdx = 0;
+  mp3RefreshPanelWordDisplay();
+}
+function mp3MakeSection(title, cls){
+  const sec = el('div','mp3-sect');
+  const head = el('div','mp3-sect-head ' + cls);
+  head.innerHTML = `<span>${title}</span><i class="fa-solid fa-chevron-down chev"></i>`;
+  head.addEventListener('click', () => sec.classList.toggle('collapsed'));
+  const body = el('div','mp3-sect-body');
+  sec.appendChild(head); sec.appendChild(body);
+  return { sec, body };
+}
+async function mp3SeekToFocused(){
+  if (mp3FocusedIdx < 0) return;
+  const lab = mp3Labels[mp3FocusedIdx];
+  if (!lab) return;
+  const ok = await mp3LoadTrack(lab.trackId);
+  if (!ok) return;
+  mp3Audio.currentTime = Math.max(0, lab.time);
+  mp3UpdateAudioPos();
+  // Update time input
+  const t = document.getElementById('mp3-time-input');
+  if (t) t.value = lab.time.toFixed(2);
+  mp3CurrentIdx = mp3FocusedIdx;
+  mp3ApplyHighlight(mp3FocusedIdx);
+}
+
+// ---------- Boot ----------
+async function mp3Boot(){
+  mp3LoadState();
+  document.documentElement.style.setProperty('--mp3-highlight', mp3Cfg.highlightColor);
+  mp3BootAudio();
+  mp3InitControls();
+  // Tokenize (in visitor mode — the page boots in visitor mode)
+  mp3TokenizeAndWrap();
+  mp3RefreshControls();
+}
 
 /* =========================================================
    EXPORT
@@ -1721,10 +2339,8 @@ async function exportHTML(){
   const ta = document.getElementById('export-textarea');
   const statusEl = document.getElementById('export-status');
   modal.classList.remove('hidden');
-  ta.value = '';
-  ta.placeholder = 'Generating export...';
+  ta.value = ''; ta.placeholder = 'Generating export...';
   statusEl.classList.add('hidden');
-
   try {
     const res = await fetch(window.location.href, { cache: 'no-store' });
     if (!res.ok) throw new Error('Could not fetch page source (' + res.status + ')');
@@ -1737,30 +2353,30 @@ async function exportHTML(){
       width: w.offsetWidth, height: w.offsetHeight
     }));
     const textboxes = getTextBoxesData();
+    const mp3Export = {
+      tracks: mp3Tracks.map(t => ({ id: t.id, name: t.name, source: t.source, url: t.url || null, duration: t.duration || 0 })),
+      labels: { tokens: mp3TokenSnapshot, labels: mp3Labels },
+      config: mp3Cfg
+    };
 
     const safe = (str) => str.replace(/</g, '\\u003c');
-
     const bakedBlock = `<!-- BAKED_CONFIG_START -->
 <script id="baked-config">
 window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
 window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};
 window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
 window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
+window.__EXPORTED_MP3__ = ${safe(JSON.stringify(mp3Export))};
 <\/script>
 <!-- BAKED_CONFIG_END -->`;
 
     source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
+    if (source.includes('</head>')) source = source.replace('</head>', bakedBlock + '\n</head>');
+    else throw new Error('Could not find </head> in source');
 
-    if (source.includes('</head>')) {
-      source = source.replace('</head>', bakedBlock + '\n</head>');
-    } else {
-      throw new Error('Could not find </head> in source');
-    }
-
-    ta.value = source;
-    ta.placeholder = '';
+    ta.value = source; ta.placeholder = '';
     statusEl.className = 'text-xs';
-    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} image${imgs.length===1?'':'s'} · ${textboxes.length} text box${textboxes.length===1?'':'es'} · ${cfg.effects.length} effect${cfg.effects.length===1?'':'s'}</span>`;
+    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} img · ${textboxes.length} tb · ${cfg.effects.length} eff · ${mp3Tracks.length} mp3 trk · ${Object.keys(mp3Labels).length} labels</span>`;
     statusEl.classList.remove('hidden');
   } catch (e) {
     ta.placeholder = 'Export failed.';
@@ -1771,20 +2387,20 @@ window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
 }
 function downloadExportedHTML(){
   const content = document.getElementById('export-textarea').value;
-  if (!content || content.length < 100) { alert('Nothing to download yet — wait for the export to finish.'); return; }
+  if (!content || content.length < 100) { alert('Nothing to download yet.'); return; }
   const blob = new Blob([content], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'index.html';
+  a.href = url; a.download = 'vn.html';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
 }
 function closeExportModal(){document.getElementById('export-modal').classList.add('hidden')}
 function copyExportedCode(){
   const t=document.getElementById('export-textarea');
-  if (!t.value || t.value.length < 100) { alert('Nothing to copy yet — wait for the export to finish.'); return; }
+  if (!t.value || t.value.length < 100) { alert('Nothing to copy yet.'); return; }
   t.select();document.execCommand('copy');
-  alert('Code copied! Paste it into index.html on GitHub.');
+  alert('Code copied! Paste it into vn.html on GitHub.');
 }
 </script>
 </body>
