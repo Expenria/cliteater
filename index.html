@@ -19,7 +19,7 @@
     ::-webkit-scrollbar-thumb { background:#27272a; border-radius:4px; }
     ::-webkit-scrollbar-thumb:hover { background:#3f3f46; }
     #star-canvas { position:fixed; inset:0; width:100vw; height:100vh; z-index:1; pointer-events:none; }
-    #flash-overlay { position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:200; }
+    #flash-overlay { position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:200; transition:background .15s; }
     #flash-overlay.flash { animation:flashAnim 700ms ease-out; }
     @keyframes flashAnim { 0%{opacity:0} 12%{opacity:.95} 100%{opacity:0} }
     #image-layer { position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:20; }
@@ -36,7 +36,7 @@
 
     /* ===== STAR GUI ===== */
     #star-gui {
-        position:fixed; top:80px; right:16px; width:340px;
+        position:fixed; top:80px; right:16px; width:370px;
         max-height:calc(100vh - 100px); overflow-y:auto;
         background:#18181b; border:1px solid #27272a; border-radius:14px;
         z-index:60; font-size:11px; box-shadow:0 20px 50px rgba(0,0,0,.6);
@@ -49,7 +49,6 @@
     }
     #star-gui .gui-body { padding:12px 14px 20px; display:flex; flex-direction:column; gap:10px; }
 
-    /* Collapsible sections */
     .gui-section { border:1px solid #27272a; border-radius:10px; overflow:hidden; }
     .gui-section-header {
         padding:8px 10px; background:#1f1f24; cursor:pointer;
@@ -60,16 +59,36 @@
     .gui-section-header.base { color:#f0abfc; }
     .gui-section-header.spawned { color:#a5b4fc; }
     .gui-section-header.global { color:#6ee7b7; }
+    .gui-section-header.effects { color:#fbbf24; }
     .gui-section-header .chev { transition:transform .2s; color:#71717a; font-size:9px; }
     .gui-section.collapsed .gui-section-header .chev { transform:rotate(-90deg); }
     .gui-section.collapsed .gui-section-body { display:none; }
     .gui-section-body { padding:10px; display:flex; flex-direction:column; gap:9px; background:#161619; }
 
     .row { display:flex; flex-direction:column; gap:3px; }
-    label { color:#a1a1aa; font-weight:500; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; letter-spacing:.02em; }
-    label .val { color:#818cf8; font-family:monospace; font-size:11px; }
+    .row > label { color:#a1a1aa; font-weight:500; display:flex; justify-content:space-between; align-items:center; font-size:10.5px; letter-spacing:.02em; gap:8px; }
+    .row > label .lbl-text { flex:1; }
+
+    input.num-inline {
+        width:68px;
+        background:#0f0f11;
+        border:1px solid #27272a;
+        border-radius:5px;
+        padding:2px 6px;
+        color:#a5b4fc;
+        font-family: ui-monospace, monospace;
+        font-size:11px;
+        text-align:right;
+    }
+    input.num-inline:focus { outline:none; border-color:#6366f1; }
     input[type="range"] { width:100%; accent-color:#6366f1; height:4px; }
     input[type="color"] { width:100%; height:28px; padding:2px; cursor:pointer; background:#0f0f11; border:1px solid #27272a; border-radius:6px; }
+    input[type="text"], textarea.gui-text {
+        width:100%; background:#0f0f11; border:1px solid #27272a; border-radius:6px;
+        padding:5px 7px; color:#e4e4e7; font-size:11px; font-family:inherit;
+    }
+    input[type="text"]:focus, textarea.gui-text:focus { outline:none; border-color:#6366f1; }
+    textarea.gui-text { resize:vertical; min-height:50px; font-family: ui-monospace, monospace; }
     select {
         width:100%; background:#0f0f11; border:1px solid #27272a; border-radius:6px;
         padding:5px 6px; color:#e4e4e7; font-size:11px; font-family:inherit; cursor:pointer;
@@ -81,6 +100,51 @@
     .gui-btn { width:100%; padding:7px; border-radius:8px; font-size:11px; font-weight:500; cursor:pointer; transition:all .15s; border:none; }
     .gui-btn.danger { background:#7f1d1d; color:#fecaca; }
     .gui-btn.danger:hover { background:#991b1b; }
+    .gui-btn.primary { background:#6366f1; color:#fff; }
+    .gui-btn.primary:hover { background:#818cf8; }
+    .gui-btn.ghost { background:#27272a; color:#d4d4d8; }
+    .gui-btn.ghost:hover { background:#3f3f46; }
+
+    /* Effects list */
+    .effect-item { display:flex; flex-direction:column; gap:0; background:#1a1a1e; border:1px solid #27272a; border-radius:8px; overflow:hidden; }
+    .effect-item.active { border-color:#6366f1; background:#1a1938; }
+    .effect-head {
+        display:flex; align-items:center; gap:8px; padding:8px 10px; cursor:pointer;
+    }
+    .effect-head:hover { background:rgba(255,255,255,.03); }
+    .eff-radio {
+        width:14px; height:14px; border-radius:50%;
+        border:2px solid #52525b; flex-shrink:0;
+        position:relative; transition:border-color .15s;
+    }
+    .effect-item.active .eff-radio { border-color:#818cf8; }
+    .effect-item.active .eff-radio::after {
+        content:''; position:absolute; inset:2px; background:#818cf8; border-radius:50%;
+    }
+    .effect-name { flex:1; font-size:11.5px; color:#e4e4e7; font-weight:500; }
+    .effect-type { font-size:9px; color:#71717a; text-transform:uppercase; letter-spacing:.08em; padding:2px 6px; background:#27272a; border-radius:4px; }
+    .effect-del { color:#71717a; font-size:12px; padding:2px 4px; cursor:pointer; }
+    .effect-del:hover { color:#ef4444; }
+    .effect-settings { padding:10px; display:flex; flex-direction:column; gap:9px; border-top:1px solid #27272a; background:#141416; }
+    .effect-settings.hidden { display:none; }
+
+    .status-tag { font-size:9.5px; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:4px; }
+    .status-tag.ok { background:#052e16; color:#86efac; }
+    .status-tag.err { background:#450a0a; color:#fca5a5; }
+    .status-tag.loading { background:#1e1b4b; color:#a5b4fc; }
+
+    /* Effect picker */
+    #effect-picker {
+        display:none; flex-direction:column; gap:6px; padding:8px;
+        background:#1f1f24; border:1px dashed #3f3f46; border-radius:8px;
+    }
+    #effect-picker.open { display:flex; }
+    #effect-picker button {
+        text-align:left; padding:8px 10px; border-radius:6px;
+        background:#27272a; color:#e4e4e7; font-size:11px; cursor:pointer;
+        border:none; transition:background .15s;
+    }
+    #effect-picker button:hover { background:#3f3f46; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
@@ -137,152 +201,14 @@
     <span class="text-xs font-bold text-white"><i class="fa-solid fa-star text-indigo-400 mr-1.5"></i>Star Settings</span>
     <button onclick="toggleStarGui()" class="text-zinc-500 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  <div class="gui-body">
-
-    <!-- ===== GLOBAL ===== -->
-    <div class="gui-section" data-section="global">
-      <div class="gui-section-header global" onclick="toggleSection(this)">
-        <span><i class="fa-solid fa-globe mr-1.5"></i>Global</span>
-        <i class="fa-solid fa-chevron-down chev"></i>
-      </div>
-      <div class="gui-section-body">
-        <div class="row">
-          <label>Max stars N (triggers flash) <span class="val" id="v-max">500</span></label>
-          <input type="range" id="i-max" min="10" max="3000" step="10" value="500">
-        </div>
-        <div class="row">
-          <label><span>Flash + reset at N <span class="text-zinc-500 text-[10px]">(off by default)</span></span><div class="toggle-switch" id="t-trigger"></div></label>
-        </div>
-        <button class="gui-btn danger" onclick="resetStars()"><i class="fa-solid fa-bomb mr-1"></i> Reset All Stars</button>
-      </div>
-    </div>
-
-    <!-- ===== BASE STARS ===== -->
-    <div class="gui-section" data-section="base">
-      <div class="gui-section-header base" onclick="toggleSection(this)">
-        <span><i class="fa-solid fa-circle-nodes mr-1.5"></i>Base Stars</span>
-        <i class="fa-solid fa-chevron-down chev"></i>
-      </div>
-      <div class="gui-section-body">
-        <div class="row">
-          <label><span>Base stars enabled</span><div class="toggle-switch on" id="t-baseEnabled"></div></label>
-        </div>
-        <div class="row">
-          <label>Initial delay after clear (ms) <span class="val" id="v-baseInitDelay">800</span></label>
-          <input type="range" id="i-baseInitDelay" min="0" max="10000" step="50" value="800">
-        </div>
-        <div class="row">
-          <label>Spawn interval (ms) <span class="val" id="v-baseInterval">400</span></label>
-          <input type="range" id="i-baseInterval" min="50" max="5000" step="50" value="400">
-        </div>
-        <div class="row">
-          <label>Repro chance per tick <span class="val" id="v-baseRepro">3</span>%</label>
-          <input type="range" id="i-baseRepro" min="0" max="100" step="1" value="3">
-        </div>
-        <div class="row">
-          <label>Tick BS (ms) <span class="val" id="v-baseTick">500</span></label>
-          <input type="range" id="i-baseTick" min="20" max="3000" step="10" value="500">
-        </div>
-        <div class="row">
-          <label>Lifespan (s) <span class="val" id="v-baseLife">5.0</span></label>
-          <input type="range" id="i-baseLife" min="0.3" max="30" step="0.1" value="5">
-        </div>
-        <div class="row">
-          <label>Colour</label>
-          <input type="color" id="i-baseColor" value="#ffffff">
-        </div>
-        <div class="row">
-          <label>Shape</label>
-          <select id="i-baseShape">
-            <option value="square" selected>Square</option>
-            <option value="circle">Circle</option>
-            <option value="triangle">Triangle</option>
-            <option value="diamond">Diamond</option>
-            <option value="star">Star</option>
-            <option value="plus">Plus</option>
-          </select>
-        </div>
-        <div class="row">
-          <label>Size (px) <span class="val" id="v-baseSize">3</span></label>
-          <input type="range" id="i-baseSize" min="1" max="20" step="1" value="3">
-        </div>
-        <div class="row">
-          <label>Fade in (s) <span class="val" id="v-baseFadeIn">0.40</span></label>
-          <input type="range" id="i-baseFadeIn" min="0" max="3" step="0.05" value="0.4">
-        </div>
-        <div class="row">
-          <label>Fade out (s) <span class="val" id="v-baseFadeOut">0.50</span></label>
-          <input type="range" id="i-baseFadeOut" min="0" max="3" step="0.05" value="0.5">
-        </div>
-        <div class="row">
-          <label><span>Mini explosion on death</span><div class="toggle-switch on" id="t-baseFlashOut"></div></label>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SPAWNED STARS ===== -->
-    <div class="gui-section" data-section="spawned">
-      <div class="gui-section-header spawned" onclick="toggleSection(this)">
-        <span><i class="fa-solid fa-sparkles mr-1.5"></i>Spawned Stars</span>
-        <i class="fa-solid fa-chevron-down chev"></i>
-      </div>
-      <div class="gui-section-body">
-        <div class="row">
-          <label><span>Spawned stars enabled</span><div class="toggle-switch on" id="t-spawnedEnabled"></div></label>
-        </div>
-        <div class="row">
-          <label>Repro chance per tick <span class="val" id="v-spawnRepro">5</span>%</label>
-          <input type="range" id="i-spawnRepro" min="0" max="100" step="1" value="5">
-        </div>
-        <div class="row">
-          <label>Tick SS (ms) <span class="val" id="v-spawnTick">200</span></label>
-          <input type="range" id="i-spawnTick" min="20" max="3000" step="10" value="200">
-        </div>
-        <div class="row">
-          <label>Lifespan (s) <span class="val" id="v-spawnLife">3.0</span></label>
-          <input type="range" id="i-spawnLife" min="0.3" max="30" step="0.1" value="3">
-        </div>
-        <div class="row">
-          <label>Colour</label>
-          <input type="color" id="i-spawnColor" value="#a5b4fc">
-        </div>
-        <div class="row">
-          <label>Shape</label>
-          <select id="i-spawnShape">
-            <option value="square" selected>Square</option>
-            <option value="circle">Circle</option>
-            <option value="triangle">Triangle</option>
-            <option value="diamond">Diamond</option>
-            <option value="star">Star</option>
-            <option value="plus">Plus</option>
-          </select>
-        </div>
-        <div class="row">
-          <label>Size (px) <span class="val" id="v-spawnSize">3</span></label>
-          <input type="range" id="i-spawnSize" min="1" max="20" step="1" value="3">
-        </div>
-        <div class="row">
-          <label>Fade in (s) <span class="val" id="v-spawnFadeIn">0.40</span></label>
-          <input type="range" id="i-spawnFadeIn" min="0" max="3" step="0.05" value="0.4">
-        </div>
-        <div class="row">
-          <label>Fade out (s) <span class="val" id="v-spawnFadeOut">0.50</span></label>
-          <input type="range" id="i-spawnFadeOut" min="0" max="3" step="0.05" value="0.5">
-        </div>
-        <div class="row">
-          <label><span>Mini explosion on death</span><div class="toggle-switch on" id="t-spawnFlashOut"></div></label>
-        </div>
-      </div>
-    </div>
-
-  </div>
+  <div class="gui-body" id="gui-body"></div>
 </div>
 
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
     <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">Welcome to My Page</h1></div>
-    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings to tune the background live.</p></div>
-    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Base stars seed the field. Spawned stars take over."</blockquote></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings. Effects live below the star tuning.</p></div>
+    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Base stars seed the field. Spawned stars take over. Effects change everything."</blockquote></div>
   </div>
   <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
     <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto"><i class="fa-solid fa-plus"></i> Click to add a new text block</button>
@@ -314,7 +240,7 @@
       <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Copy HTML for GitHub</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub.</p>
+    <p class="text-xs text-zinc-400">Paste into <span class="text-indigo-400 font-mono">index.html</span> on GitHub. (Note: star system is not included in export — only text and images.)</p>
     <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none selection:bg-indigo-600"></textarea>
     <div class="flex justify-end"><button onclick="copyExportedCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all flex items-center gap-2"><i class="fa-regular fa-copy"></i> Copy to Clipboard</button></div>
   </div>
@@ -423,7 +349,7 @@ function resetCanvas() {
 }
 
 /* =========================================================
-   IMAGE HANDLING
+   IMAGE HANDLING (page images, not star images)
 ========================================================= */
 function triggerImageUpload() { if (isEditing) imageUploadInput.click(); }
 imageUploadInput.addEventListener('change', (e) => {
@@ -516,54 +442,214 @@ document.addEventListener('mousedown', (e) => {
 });
 
 /* =========================================================
-   STAR SYSTEM — per type config
+   STAR SYSTEM CONFIG
 ========================================================= */
 const cfg = {
-  global: {
-    maxStars: 500,
-    triggerEnabled: false
-  },
+  global: { maxStars: 500, triggerEnabled: false },
   base: {
-    enabled: true,
-    initialDelay: 800,    // ms after last spawned star disappears → first base spawn
-    spawnInterval: 400,   // ms between subsequent base spawns
-    reproChance: 3,       // % per BS tick
-    tickMs: 500,          // BS ms
-    lifespan: 5,          // seconds
-    color: '#ffffff',
-    shape: 'square',
-    size: 3,
-    fadeIn: 0.4,
-    fadeOut: 0.5,
-    flashOut: true
+    enabled: true, initialDelay: 800, spawnInterval: 400,
+    reproChance: 3, tickMs: 500, lifespan: 5,
+    color: '#ffffff', shape: 'square', size: 3,
+    fadeIn: 0.4, fadeOut: 0.5, flashOut: true
   },
   spawned: {
-    enabled: true,
-    reproChance: 5,       // % per SS tick
-    tickMs: 200,          // SS ms
-    lifespan: 3,
-    color: '#a5b4fc',
-    shape: 'square',
-    size: 3,
-    fadeIn: 0.4,
-    fadeOut: 0.5,
-    flashOut: true
-  }
+    enabled: true, reproChance: 5, tickMs: 200, lifespan: 3,
+    color: '#a5b4fc', shape: 'square', size: 3,
+    fadeIn: 0.4, fadeOut: 0.5, flashOut: true
+  },
+  effects: [],
+  activeEffectId: null
 };
 
 let stars = [];
 let starCanvas, starCtx, dpr = 1;
 let baseSpawnArmed = false;
 let nextBaseSpawnAt = 0;
+const imageCache = {}; // url -> HTMLImageElement
 
+/* =========================================================
+   EFFECT CREATION
+========================================================= */
+let effectCounter = 0;
+function newEffectId() { return 'eff_' + (++effectCounter) + '_' + Math.random().toString(36).slice(2, 7); }
+
+function createEffect(type) {
+  const id = newEffectId();
+  if (type === 'bubble') {
+    return {
+      id, type, name: 'Bubble Text',
+      text: 'J',
+      fontSize: 400,
+      outlineWidth: 4,
+      outlineColor: '#6366f1',
+      showOutline: true,
+      flashColor: '#ffffff',
+      // runtime
+      spawnPoints: null,
+      appliedFontSize: 400
+    };
+  }
+  if (type === 'images') {
+    return {
+      id, type, name: 'Image Stars',
+      folder: 'strimiges',
+      defaultSize: 60,
+      explicitList: '',
+      exceptions: {},        // url -> size
+      flashColor: '#8000ff',
+      // runtime
+      imagePool: [],
+      unusedPool: [],
+      loaded: false,
+      loadError: null
+    };
+  }
+  // 'none'
+  return { id, type: 'none', name: 'Plain Stars', flashColor: '#ffffff' };
+}
+
+cfg.effects = [createEffect('none')];
+cfg.activeEffectId = cfg.effects[0].id;
+
+function getActiveEffect() {
+  return cfg.effects.find(e => e.id === cfg.activeEffectId) || cfg.effects[0] || null;
+}
+
+/* =========================================================
+   BUBBLE MASK
+========================================================= */
+function computeBubbleMask(effect) {
+  if (!effect || effect.type !== 'bubble') return;
+  const W = window.innerWidth, H = window.innerHeight;
+  const scale = 0.5;
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.floor(W * scale));
+  c.height = Math.max(1, Math.floor(H * scale));
+  const ctx = c.getContext('2d');
+
+  let size = effect.fontSize * scale;
+  ctx.font = `900 ${size}px 'Arial Black', Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Auto-shrink to fit width
+  const metrics = ctx.measureText(effect.text || ' ');
+  const maxW = c.width * 0.85;
+  if (metrics.width > maxW) {
+    size = size * (maxW / metrics.width);
+    ctx.font = `900 ${size}px 'Arial Black', Arial, sans-serif`;
+  }
+
+  ctx.fillStyle = '#fff';
+  ctx.fillText(effect.text || ' ', c.width / 2, c.height / 2);
+
+  const data = ctx.getImageData(0, 0, c.width, c.height).data;
+  const points = [];
+  const step = 3;
+  for (let y = 0; y < c.height; y += step) {
+    for (let x = 0; x < c.width; x += step) {
+      if (data[(y * c.width + x) * 4 + 3] > 128) {
+        points.push({ x: x / scale, y: y / scale });
+      }
+    }
+  }
+  effect.spawnPoints = points;
+  effect.appliedFontSize = size / scale;
+}
+
+/* =========================================================
+   IMAGE LOADING
+========================================================= */
+function preloadImage(url) {
+  return new Promise((resolve, reject) => {
+    if (imageCache[url] && imageCache[url].complete) return resolve(imageCache[url]);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { imageCache[url] = img; resolve(img); };
+    img.onerror = () => reject(new Error('Failed: ' + url));
+    img.src = url;
+  });
+}
+
+async function loadEffectImages(effect) {
+  effect.loadError = null;
+  effect.loaded = false;
+  effect.imagePool = [];
+  effect.unusedPool = [];
+
+  let filenames = [];
+  if (effect.explicitList && effect.explicitList.trim()) {
+    filenames = effect.explicitList.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  if (!filenames.length) {
+    try {
+      const r = await fetch(effect.folder + '/manifest.json', { cache: 'no-store' });
+      if (r.ok) {
+        const j = await r.json();
+        if (Array.isArray(j)) filenames = j;
+      }
+    } catch(e) {}
+  }
+
+  if (!filenames.length) {
+    try {
+      const r = await fetch(effect.folder + '/', { cache: 'no-store' });
+      if (r.ok) {
+        const html = await r.text();
+        const re = /href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;
+        let m;
+        while ((m = re.exec(html)) !== null) filenames.push(m[1]);
+      }
+    } catch(e) {}
+  }
+
+  if (!filenames.length) {
+    effect.loadError = 'No images found in "' + effect.folder + '/"';
+    renderEffectList();
+    return;
+  }
+
+  const urls = filenames.map(f => /^https?:\/\//.test(f) || f.startsWith('/') ? f : effect.folder + '/' + f);
+  const loaded = [];
+  for (const url of urls) {
+    try { await preloadImage(url); loaded.push(url); } catch(e) {}
+  }
+
+  effect.imagePool = loaded;
+  effect.loaded = loaded.length > 0;
+  if (!effect.loaded) effect.loadError = 'Could not load any images.';
+  renderEffectList();
+}
+
+function pickNextImage(effect) {
+  if (!effect.imagePool.length) return null;
+  if (!effect.unusedPool || effect.unusedPool.length === 0) {
+    effect.unusedPool = [...effect.imagePool];
+    for (let i = effect.unusedPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [effect.unusedPool[i], effect.unusedPool[j]] = [effect.unusedPool[j], effect.unusedPool[i]];
+    }
+  }
+  return effect.unusedPool.pop();
+}
+
+/* =========================================================
+   STAR SYSTEM
+========================================================= */
 function initStars() {
   starCanvas = document.getElementById('star-canvas');
   starCtx = starCanvas.getContext('2d');
   resizeStarCanvas();
-  window.addEventListener('resize', resizeStarCanvas);
+  window.addEventListener('resize', () => {
+    resizeStarCanvas();
+    cfg.effects.forEach(e => { if (e.type === 'bubble') computeBubbleMask(e); });
+  });
   nextBaseSpawnAt = performance.now() + cfg.base.initialDelay;
+  // Precompute bubble mask if any
+  cfg.effects.forEach(e => { if (e.type === 'bubble') computeBubbleMask(e); });
+  buildGui();
   requestAnimationFrame(starLoop);
-  bindGui();
 }
 
 function resizeStarCanvas() {
@@ -575,35 +661,47 @@ function resizeStarCanvas() {
   starCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+function getSpawnPoint(effect) {
+  if (effect && effect.type === 'bubble' && effect.spawnPoints && effect.spawnPoints.length) {
+    const p = effect.spawnPoints[Math.floor(Math.random() * effect.spawnPoints.length)];
+    return { x: p.x, y: p.y };
+  }
+  return { x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight };
+}
+
 function spawnStar(isBase) {
   const type = isBase ? cfg.base : cfg.spawned;
+  const active = getActiveEffect();
   const now = performance.now();
+  const pt = getSpawnPoint(active);
+
+  let imgUrl = null;
+  if (active && active.type === 'images' && active.imagePool.length) {
+    imgUrl = pickNextImage(active);
+  }
+
   stars.push({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    isBase,
+    x: pt.x, y: pt.y, isBase,
     birth: now,
     deathStart: now + type.lifespan * 1000,
-    nextTick: now + type.tickMs
+    nextTick: now + type.tickMs,
+    imgUrl
   });
 }
 
 function starLoop() {
   requestAnimationFrame(starLoop);
   const now = performance.now();
+  const active = getActiveEffect();
 
-  // ---------- Base spawning gate ----------
-  // Base stars only spawn while NO spawned stars are alive.
+  // Base spawning gate
   const hasSpawned = stars.some(s => !s.isBase);
-
   if (hasSpawned) {
     baseSpawnArmed = false;
   } else {
     if (!baseSpawnArmed) {
       baseSpawnArmed = true;
       const anyBaseAlive = stars.some(s => s.isBase);
-      // If base stars already present, resume at regular interval.
-      // If field is truly empty, wait the initial delay before the first one.
       nextBaseSpawnAt = now + (anyBaseAlive ? 0 : cfg.base.initialDelay);
     }
     if (cfg.base.enabled && stars.length < cfg.global.maxStars && now >= nextBaseSpawnAt) {
@@ -612,44 +710,55 @@ function starLoop() {
     }
   }
 
-  // ---------- Per-star update ----------
+  // Per-star update
   for (let i = stars.length - 1; i >= 0; i--) {
     const s = stars[i];
     const type = s.isBase ? cfg.base : cfg.spawned;
 
-    // Death
     if (now >= s.deathStart + type.fadeOut * 1000) {
       stars.splice(i, 1);
       continue;
     }
 
-    // Reproduction (only before death starts)
     if (now < s.deathStart && now >= s.nextTick) {
       s.nextTick = now + type.tickMs;
       if (cfg.spawned.enabled && stars.length < cfg.global.maxStars) {
         if (Math.random() * 100 < type.reproChance) {
-          spawnStar(false); // children are always spawned type
+          spawnStar(false);
         }
       }
     }
   }
 
-  // ---------- N-star trigger ----------
+  // N-star trigger
   if (cfg.global.triggerEnabled && stars.length >= cfg.global.maxStars) {
-    flashScreen();
+    flashScreen(active ? active.flashColor : '#ffffff');
     stars = [];
     baseSpawnArmed = false;
     nextBaseSpawnAt = now + cfg.base.initialDelay;
   }
 
-  renderStars(now);
+  renderStars(now, active);
   updateStarCount();
 }
 
-function renderStars(now) {
+function renderStars(now, active) {
   const W = window.innerWidth, H = window.innerHeight;
   starCtx.clearRect(0, 0, W, H);
 
+  // Bubble outline (draw first, so stars appear on top)
+  if (active && active.type === 'bubble' && active.showOutline) {
+    starCtx.save();
+    starCtx.strokeStyle = active.outlineColor;
+    starCtx.lineWidth = active.outlineWidth;
+    starCtx.font = `900 ${active.appliedFontSize || active.fontSize}px 'Arial Black', Arial, sans-serif`;
+    starCtx.textAlign = 'center';
+    starCtx.textBaseline = 'middle';
+    starCtx.strokeText(active.text || ' ', W / 2, H / 2);
+    starCtx.restore();
+  }
+
+  // Stars / images
   for (const s of stars) {
     const type = s.isBase ? cfg.base : cfg.spawned;
     const fadeInMs = Math.max(1, type.fadeIn * 1000);
@@ -661,7 +770,7 @@ function renderStars(now) {
     if (now < s.birth + fadeInMs) {
       alpha = (now - s.birth) / fadeInMs;
     } else if (now >= s.deathStart) {
-      const t = (now - s.deathStart) / fadeOutMs; // 0..1
+      const t = (now - s.deathStart) / fadeOutMs;
       if (type.flashOut) {
         alpha = Math.pow(1 - t, 2);
         size = type.size * (1 + t * 2.5);
@@ -669,11 +778,22 @@ function renderStars(now) {
         alpha = 1 - t;
       }
     }
-
     if (alpha <= 0) continue;
-    starCtx.globalAlpha = Math.min(1, alpha);
-    starCtx.fillStyle = type.color;
-    drawShape(starCtx, s.x, s.y, size, type.shape);
+
+    if (s.imgUrl && imageCache[s.imgUrl] && imageCache[s.imgUrl].complete) {
+      const img = imageCache[s.imgUrl];
+      let sSize = (active && active.exceptions && active.exceptions[s.imgUrl]) || (active ? active.defaultSize : 60);
+      const aspect = img.naturalWidth / img.naturalHeight;
+      let dw, dh;
+      if (aspect > 1) { dw = sSize; dh = sSize / aspect; }
+      else { dw = sSize * aspect; dh = sSize; }
+      starCtx.globalAlpha = Math.min(1, alpha);
+      starCtx.drawImage(img, s.x - dw/2, s.y - dh/2, dw, dh);
+    } else {
+      starCtx.globalAlpha = Math.min(1, alpha);
+      starCtx.fillStyle = type.color;
+      drawShape(starCtx, s.x, s.y, size, type.shape);
+    }
   }
   starCtx.globalAlpha = 1;
 }
@@ -710,8 +830,7 @@ function drawShape(ctx, x, y, s, shape) {
         const a = -Math.PI / 2 + i * Math.PI / 5;
         const px = x + Math.cos(a) * r;
         const py = y + Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
       ctx.closePath();
       ctx.fill();
@@ -737,8 +856,9 @@ function updateStarCount() {
   }
 }
 
-function flashScreen() {
+function flashScreen(color) {
   const el = document.getElementById('flash-overlay');
+  el.style.background = color || '#ffffff';
   el.classList.remove('flash');
   void el.offsetWidth;
   el.classList.add('flash');
@@ -750,80 +870,410 @@ function resetStars() {
 }
 
 /* =========================================================
-   STAR GUI WIRING
+   GUI WIDGET FACTORY
+========================================================= */
+function el(tag, cls, html) {
+  const d = document.createElement(tag);
+  if (cls) d.className = cls;
+  if (html !== undefined) d.innerHTML = html;
+  return d;
+}
+
+function widget_numRange(labelText, obj, key, opts = {}) {
+  const row = el('div', 'row');
+  const min = opts.min ?? 0, max = opts.max ?? 100, step = opts.step ?? 1;
+  const fmt = opts.fmt || (v => v);
+  const wrap = el('label');
+  const txt = el('span', 'lbl-text', labelText);
+  const num = el('input');
+  num.type = 'number'; num.className = 'num-inline';
+  num.min = min; num.max = max; num.step = step;
+  num.value = obj[key];
+  wrap.appendChild(txt); wrap.appendChild(num);
+  const rng = el('input');
+  rng.type = 'range'; rng.min = min; rng.max = max; rng.step = step;
+  rng.value = obj[key];
+  row.appendChild(wrap); row.appendChild(rng);
+
+  const apply = (v) => {
+    let val = parseFloat(v);
+    if (isNaN(val)) return;
+    if (val < min) val = min; if (val > max) val = max;
+    obj[key] = val;
+    num.value = val;
+    rng.value = val;
+    if (opts.onChange) opts.onChange(val);
+  };
+  num.addEventListener('input', () => apply(num.value));
+  rng.addEventListener('input', () => apply(rng.value));
+  return row;
+}
+
+function widget_color(labelText, obj, key, onChange) {
+  const row = el('div', 'row');
+  const wrap = el('label');
+  wrap.appendChild(el('span', 'lbl-text', labelText));
+  const inp = el('input');
+  inp.type = 'color'; inp.value = obj[key];
+  inp.addEventListener('input', () => { obj[key] = inp.value; if (onChange) onChange(inp.value); });
+  row.appendChild(wrap); row.appendChild(inp);
+  return row;
+}
+
+function widget_select(labelText, obj, key, options, onChange) {
+  const row = el('div', 'row');
+  const wrap = el('label');
+  wrap.appendChild(el('span', 'lbl-text', labelText));
+  const sel = el('select');
+  options.forEach(o => {
+    const opt = el('option', null, o.label);
+    opt.value = o.value;
+    if (obj[key] === o.value) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => { obj[key] = sel.value; if (onChange) onChange(sel.value); });
+  row.appendChild(wrap); row.appendChild(sel);
+  return row;
+}
+
+function widget_toggle(labelText, obj, key, onChange) {
+  const row = el('div', 'row');
+  const wrap = el('label');
+  wrap.appendChild(el('span', 'lbl-text', labelText));
+  const tog = el('div', 'toggle-switch' + (obj[key] ? ' on' : ''));
+  tog.addEventListener('click', () => {
+    tog.classList.toggle('on');
+    obj[key] = tog.classList.contains('on');
+    if (onChange) onChange(obj[key]);
+  });
+  wrap.appendChild(tog);
+  row.appendChild(wrap);
+  return row;
+}
+
+function widget_text(labelText, obj, key, onChange, isArea) {
+  const row = el('div', 'row');
+  const wrap = el('label');
+  wrap.appendChild(el('span', 'lbl-text', labelText));
+  row.appendChild(wrap);
+  const inp = el(isArea ? 'textarea' : 'input');
+  if (!isArea) inp.type = 'text';
+  else inp.className = 'gui-text';
+  inp.value = obj[key] || '';
+  inp.addEventListener('input', () => { obj[key] = inp.value; if (onChange) onChange(inp.value); });
+  row.appendChild(inp);
+  return row;
+}
+
+function makeSection(headerText, headerClass, sectionKey) {
+  const sec = el('div', 'gui-section');
+  sec.dataset.section = sectionKey;
+  const head = el('div', 'gui-section-header ' + headerClass);
+  head.innerHTML = `<span>${headerText}</span><i class="fa-solid fa-chevron-down chev"></i>`;
+  head.addEventListener('click', () => sec.classList.toggle('collapsed'));
+  const body = el('div', 'gui-section-body');
+  sec.appendChild(head); sec.appendChild(body);
+  return { sec, body };
+}
+
+/* =========================================================
+   GUI BUILDER
+========================================================= */
+function buildGui() {
+  const body = document.getElementById('gui-body');
+  body.innerHTML = '';
+
+  // ---------- Global ----------
+  const g = makeSection('<i class="fa-solid fa-globe mr-1.5"></i>Global', 'global', 'global');
+  g.body.appendChild(widget_numRange('Max stars N (trigger point)', cfg.global, 'maxStars', { min: 10, max: 5000, step: 10 }));
+  g.body.appendChild(widget_toggle('Flash + reset at N (off by default)', cfg.global, 'triggerEnabled'));
+  const rstBtn = el('button', 'gui-btn danger');
+  rstBtn.innerHTML = '<i class="fa-solid fa-bomb mr-1"></i> Reset All Stars';
+  rstBtn.addEventListener('click', resetStars);
+  g.body.appendChild(rstBtn);
+  body.appendChild(g.sec);
+
+  // ---------- Base Stars ----------
+  const b = makeSection('<i class="fa-solid fa-circle-nodes mr-1.5"></i>Base Stars', 'base', 'base');
+  b.body.appendChild(widget_toggle('Base stars enabled', cfg.base, 'enabled'));
+  b.body.appendChild(widget_numRange('Initial delay after clear (ms)', cfg.base, 'initialDelay', { min: 0, max: 20000, step: 50 }));
+  b.body.appendChild(widget_numRange('Spawn interval (ms)', cfg.base, 'spawnInterval', { min: 20, max: 10000, step: 10 }));
+  b.body.appendChild(widget_numRange('Repro chance per tick (%)', cfg.base, 'reproChance', { min: 0, max: 100, step: 1 }));
+  b.body.appendChild(widget_numRange('BS ms (base tick)', cfg.base, 'tickMs', { min: 10, max: 5000, step: 10 }));
+  b.body.appendChild(widget_numRange('Lifespan (s)', cfg.base, 'lifespan', { min: 0.1, max: 60, step: 0.1 }));
+  b.body.appendChild(widget_color('Colour', cfg.base, 'color'));
+  b.body.appendChild(widget_select('Shape', cfg.base, 'shape', [
+    { value: 'square', label: 'Square' }, { value: 'circle', label: 'Circle' },
+    { value: 'triangle', label: 'Triangle' }, { value: 'diamond', label: 'Diamond' },
+    { value: 'star', label: 'Star' }, { value: 'plus', label: 'Plus' }
+  ]));
+  b.body.appendChild(widget_numRange('Size (px)', cfg.base, 'size', { min: 1, max: 40, step: 1 }));
+  b.body.appendChild(widget_numRange('Fade in (s)', cfg.base, 'fadeIn', { min: 0, max: 5, step: 0.05 }));
+  b.body.appendChild(widget_numRange('Fade out (s)', cfg.base, 'fadeOut', { min: 0, max: 5, step: 0.05 }));
+  b.body.appendChild(widget_toggle('Mini explosion on death', cfg.base, 'flashOut'));
+  body.appendChild(b.sec);
+
+  // ---------- Spawned Stars ----------
+  const s = makeSection('<i class="fa-solid fa-sparkles mr-1.5"></i>Spawned Stars', 'spawned', 'spawned');
+  s.body.appendChild(widget_toggle('Spawned stars enabled', cfg.spawned, 'enabled'));
+  s.body.appendChild(widget_numRange('Repro chance per tick (%)', cfg.spawned, 'reproChance', { min: 0, max: 100, step: 1 }));
+  s.body.appendChild(widget_numRange('SS ms (spawned tick)', cfg.spawned, 'tickMs', { min: 10, max: 5000, step: 10 }));
+  s.body.appendChild(widget_numRange('Lifespan (s)', cfg.spawned, 'lifespan', { min: 0.1, max: 60, step: 0.1 }));
+  s.body.appendChild(widget_color('Colour', cfg.spawned, 'color'));
+  s.body.appendChild(widget_select('Shape', cfg.spawned, 'shape', [
+    { value: 'square', label: 'Square' }, { value: 'circle', label: 'Circle' },
+    { value: 'triangle', label: 'Triangle' }, { value: 'diamond', label: 'Diamond' },
+    { value: 'star', label: 'Star' }, { value: 'plus', label: 'Plus' }
+  ]));
+  s.body.appendChild(widget_numRange('Size (px)', cfg.spawned, 'size', { min: 1, max: 40, step: 1 }));
+  s.body.appendChild(widget_numRange('Fade in (s)', cfg.spawned, 'fadeIn', { min: 0, max: 5, step: 0.05 }));
+  s.body.appendChild(widget_numRange('Fade out (s)', cfg.spawned, 'fadeOut', { min: 0, max: 5, step: 0.05 }));
+  s.body.appendChild(widget_toggle('Mini explosion on death', cfg.spawned, 'flashOut'));
+  body.appendChild(s.sec);
+
+  // ---------- Effects ----------
+  const e = makeSection('<i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Effects (one active)', 'effects', 'effects');
+  e.body.id = 'effects-body';
+  body.appendChild(e.sec);
+
+  renderEffectList();
+}
+
+/* =========================================================
+   EFFECTS LIST RENDER
+========================================================= */
+function renderEffectList() {
+  const container = document.getElementById('effects-body');
+  if (!container) return;
+  container.innerHTML = '';
+
+  cfg.effects.forEach(eff => {
+    const item = el('div', 'effect-item' + (eff.id === cfg.activeEffectId ? ' active' : ''));
+
+    const head = el('div', 'effect-head');
+    head.innerHTML = `
+      <div class="eff-radio"></div>
+      <div class="effect-name">${eff.name}</div>
+      <div class="effect-type">${eff.type}</div>
+      <div class="effect-del" title="Delete"><i class="fa-solid fa-trash-can"></i></div>
+    `;
+
+    head.addEventListener('click', (ev) => {
+      if (ev.target.closest('.effect-del')) return;
+      activateEffect(eff.id);
+    });
+
+    head.querySelector('.effect-del').addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      deleteEffect(eff.id);
+    });
+
+    item.appendChild(head);
+
+    if (eff.id === cfg.activeEffectId) {
+      const settings = el('div', 'effect-settings');
+      buildEffectSettings(settings, eff);
+      item.appendChild(settings);
+    }
+
+    container.appendChild(item);
+  });
+
+  // Add button
+  const addBtn = el('button', 'gui-btn ghost');
+  addBtn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Add Effect';
+  addBtn.addEventListener('click', () => {
+    const picker = document.getElementById('effect-picker');
+    picker.classList.toggle('open');
+  });
+  container.appendChild(addBtn);
+
+  const picker = el('div');
+  picker.id = 'effect-picker';
+  picker.innerHTML = `
+    <button data-type="bubble"><i class="fa-solid fa-font mr-2"></i> Bubble Text</button>
+    <button data-type="images"><i class="fa-solid fa-images mr-2"></i> Image Stars</button>
+    <button data-type="none"><i class="fa-solid fa-circle mr-2"></i> Plain Stars (None)</button>
+  `;
+  picker.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      const eff = createEffect(type);
+      cfg.effects.push(eff);
+      // Auto-activate new effect
+      activateEffect(eff.id);
+      picker.classList.remove('open');
+      renderEffectList();
+    });
+  });
+  container.appendChild(picker);
+
+  // Close picker on outside click
+  setTimeout(() => {
+    const closeFn = (ev) => {
+      const p = document.getElementById('effect-picker');
+      if (p && p.classList.contains('open') && !ev.target.closest('#effect-picker') && !ev.target.closest('.gui-btn.ghost')) {
+        p.classList.remove('open');
+      }
+    };
+    document.addEventListener('mousedown', closeFn);
+  }, 0);
+}
+
+function buildEffectSettings(container, eff) {
+  // Common: flash color + name
+  container.appendChild(widget_text('Name', eff, 'name', () => renderEffectList(), false));
+  container.appendChild(widget_color('Flash colour at N', eff, 'flashColor'));
+
+  if (eff.type === 'bubble') {
+    container.appendChild(widget_text('Text', eff, 'text', () => {
+      computeBubbleMask(eff);
+      renderEffectList();
+    }, false));
+    container.appendChild(widget_numRange('Font size', eff, 'fontSize', {
+      min: 40, max: 2000, step: 10,
+      onChange: () => computeBubbleMask(eff)
+    }));
+    container.appendChild(widget_numRange('Outline width', eff, 'outlineWidth', { min: 0, max: 30, step: 0.5 }));
+    container.appendChild(widget_color('Outline colour', eff, 'outlineColor'));
+    container.appendChild(widget_toggle('Show outline', eff, 'showOutline'));
+
+    const info = el('div', null, `<span class="status-tag ok">Spawn area: ${eff.spawnPoints ? eff.spawnPoints.length : 0} points</span>`);
+    container.appendChild(info);
+  }
+
+  if (eff.type === 'images') {
+    container.appendChild(widget_text('Folder name', eff, 'folder', null, false));
+    container.appendChild(widget_text('Manual file list (optional — one per line)', eff, 'explicitList', null, true));
+    container.appendChild(widget_numRange('Default image size (px)', eff, 'defaultSize', { min: 8, max: 400, step: 1 }));
+
+    const reloadBtn = el('button', 'gui-btn primary');
+    reloadBtn.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
+    reloadBtn.addEventListener('click', () => {
+      loadEffectImages(eff);
+    });
+    container.appendChild(reloadBtn);
+
+    const status = el('div');
+    if (eff.loaded) status.innerHTML = `<span class="status-tag ok">Loaded ${eff.imagePool.length} images</span>`;
+    else if (eff.loadError) status.innerHTML = `<span class="status-tag err">${eff.loadError} — falling back to plain stars</span>`;
+    else status.innerHTML = `<span class="status-tag loading">Not loaded yet — click Reload</span>`;
+    container.appendChild(status);
+
+    // Exceptions list
+    if (eff.imagePool && eff.imagePool.length) {
+      const exHeader = el('div', null, '<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions (custom sizes)</span>');
+      container.appendChild(exHeader);
+
+      const exBox = el('div', null, '');
+      exBox.style.maxHeight = '160px';
+      exBox.style.overflowY = 'auto';
+      exBox.style.display = 'flex';
+      exBox.style.flexDirection = 'column';
+      exBox.style.gap = '4px';
+      exBox.style.padding = '6px';
+      exBox.style.background = '#0f0f11';
+      exBox.style.borderRadius = '6px';
+      exBox.style.border = '1px solid #27272a';
+
+      eff.imagePool.forEach(url => {
+        const fname = url.split('/').pop();
+        const r = el('div', null, '');
+        r.style.display = 'flex';
+        r.style.alignItems = 'center';
+        r.style.gap = '6px';
+        r.style.fontSize = '10.5px';
+
+        const isEx = eff.exceptions[url] !== undefined;
+        const tog = el('input');
+        tog.type = 'checkbox';
+        tog.checked = isEx;
+        tog.style.accentColor = '#6366f1';
+
+        const lbl = el('span', null, fname);
+        lbl.style.flex = '1';
+        lbl.style.color = '#a1a1aa';
+        lbl.style.overflow = 'hidden';
+        lbl.style.textOverflow = 'ellipsis';
+        lbl.style.whiteSpace = 'nowrap';
+
+        const num = el('input');
+        num.type = 'number';
+        num.className = 'num-inline';
+        num.value = isEx ? eff.exceptions[url] : eff.defaultSize;
+        num.min = 8; num.max = 400;
+        num.disabled = !isEx;
+
+        tog.addEventListener('change', () => {
+          if (tog.checked) {
+            eff.exceptions[url] = parseFloat(num.value) || eff.defaultSize;
+            num.disabled = false;
+          } else {
+            delete eff.exceptions[url];
+            num.disabled = true;
+          }
+        });
+        num.addEventListener('input', () => {
+          if (tog.checked) eff.exceptions[url] = parseFloat(num.value) || eff.defaultSize;
+        });
+
+        r.appendChild(tog); r.appendChild(lbl); r.appendChild(num);
+        exBox.appendChild(r);
+      });
+      container.appendChild(exBox);
+    }
+  }
+
+  if (eff.type === 'none') {
+    const info = el('div', null, '<span class="status-tag ok">Plain star spawning — no special behaviour</span>');
+    container.appendChild(info);
+  }
+}
+
+function activateEffect(id) {
+  const prev = getActiveEffect();
+  cfg.activeEffectId = id;
+  const eff = getActiveEffect();
+  if (!eff) return;
+
+  // If images effect, load its images
+  if (eff.type === 'images' && !eff.loaded) {
+    loadEffectImages(eff);
+  }
+  // If bubble effect, compute its mask
+  if (eff.type === 'bubble') {
+    computeBubbleMask(eff);
+  }
+
+  // Reset star field when switching to/from image effect (clean slate)
+  resetStars();
+
+  renderEffectList();
+}
+
+function deleteEffect(id) {
+  if (cfg.effects.length <= 1) {
+    alert('Must keep at least one effect.');
+    return;
+  }
+  if (!confirm('Delete this effect?')) return;
+  const wasActive = cfg.activeEffectId === id;
+  cfg.effects = cfg.effects.filter(e => e.id !== id);
+  if (wasActive) {
+    cfg.activeEffectId = cfg.effects[0].id;
+    const first = getActiveEffect();
+    if (first && first.type === 'images' && !first.loaded) loadEffectImages(first);
+    if (first && first.type === 'bubble') computeBubbleMask(first);
+  }
+  renderEffectList();
+}
+
+/* =========================================================
+   TOGGLE GUI
 ========================================================= */
 function toggleStarGui() {
   if (!isEditing) return;
   document.getElementById('star-gui').classList.toggle('hidden');
-}
-function toggleSection(headerEl) {
-  headerEl.parentElement.classList.toggle('collapsed');
-}
-
-function bindGui() {
-  // ---- Slider binder ----
-  const bindSlider = (id, obj, key, fmt) => {
-    const input = document.getElementById('i-' + id);
-    const label = document.getElementById('v-' + id);
-    const apply = () => {
-      obj[key] = parseFloat(input.value);
-      if (label) label.textContent = fmt ? fmt(obj[key]) : obj[key];
-    };
-    input.addEventListener('input', apply);
-    apply();
-  };
-  // ---- Color binder ----
-  const bindColor = (id, obj, key) => {
-    const input = document.getElementById('i-' + id);
-    input.addEventListener('input', () => obj[key] = input.value);
-    obj[key] = input.value;
-  };
-  // ---- Select binder ----
-  const bindSelect = (id, obj, key) => {
-    const el = document.getElementById('i-' + id);
-    el.addEventListener('change', () => obj[key] = el.value);
-    obj[key] = el.value;
-  };
-  // ---- Toggle binder ----
-  const bindToggle = (id, obj, key, initial) => {
-    const el = document.getElementById('t-' + id);
-    if (initial) el.classList.add('on'); else el.classList.remove('on');
-    obj[key] = initial;
-    el.addEventListener('click', () => {
-      el.classList.toggle('on');
-      obj[key] = el.classList.contains('on');
-    });
-  };
-
-  // ---------- Global ----------
-  bindSlider('max', cfg.global, 'maxStars');
-  bindToggle('trigger', cfg.global, 'triggerEnabled', false);
-
-  // ---------- Base ----------
-  bindToggle('baseEnabled', cfg.base, 'enabled', true);
-  bindSlider('baseInitDelay', cfg.base, 'initialDelay');
-  bindSlider('baseInterval',  cfg.base, 'spawnInterval');
-  bindSlider('baseRepro',     cfg.base, 'reproChance');
-  bindSlider('baseTick',      cfg.base, 'tickMs');
-  bindSlider('baseLife',      cfg.base, 'lifespan',  v => v.toFixed(1));
-  bindSlider('baseSize',      cfg.base, 'size');
-  bindSlider('baseFadeIn',    cfg.base, 'fadeIn',    v => v.toFixed(2));
-  bindSlider('baseFadeOut',   cfg.base, 'fadeOut',   v => v.toFixed(2));
-  bindColor ('baseColor',     cfg.base, 'color');
-  bindSelect('baseShape',     cfg.base, 'shape');
-  bindToggle('baseFlashOut',  cfg.base, 'flashOut',  true);
-
-  // ---------- Spawned ----------
-  bindToggle('spawnedEnabled', cfg.spawned, 'enabled', true);
-  bindSlider('spawnRepro',     cfg.spawned, 'reproChance');
-  bindSlider('spawnTick',      cfg.spawned, 'tickMs');
-  bindSlider('spawnLife',      cfg.spawned, 'lifespan',  v => v.toFixed(1));
-  bindSlider('spawnSize',      cfg.spawned, 'size');
-  bindSlider('spawnFadeIn',    cfg.spawned, 'fadeIn',    v => v.toFixed(2));
-  bindSlider('spawnFadeOut',   cfg.spawned, 'fadeOut',   v => v.toFixed(2));
-  bindColor ('spawnColor',     cfg.spawned, 'color');
-  bindSelect('spawnShape',     cfg.spawned, 'shape');
-  bindToggle('spawnFlashOut',  cfg.spawned, 'flashOut',  true);
 }
 
 /* =========================================================
