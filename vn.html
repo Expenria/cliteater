@@ -26,9 +26,13 @@ body.is-editing .edit-block:focus-within > .block-del{display:flex}
 #bubble-editor-layer{position:fixed;inset:0;z-index:25;pointer-events:none}
 #bubble-editor-layer .char-editor{position:absolute;border:1px dashed rgba(99,102,241,.55);background:rgba(99,102,241,.05);cursor:move;pointer-events:auto;box-sizing:border-box;transition:border-color .15s, background .15s}
 #bubble-editor-layer .char-editor:hover{border-color:#818cf8;background:rgba(99,102,241,.12)}
+#bubble-editor-layer .char-editor[data-mode="pinned"]{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.05)}
+#bubble-editor-layer .char-editor[data-mode="pinned"]:hover{border-color:#fbbf24;background:rgba(251,191,36,.12)}
 #bubble-editor-layer .char-rotate-handle{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;background:#6366f1;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:auto}
-#bubble-editor-layer .char-rotate-handle:active{cursor:grabbing;background:#818cf8}
+#bubble-editor-layer .char-editor[data-mode="pinned"] .char-rotate-handle{background:#fbbf24;color:#111}
+#bubble-editor-layer .char-rotate-handle:active{cursor:grabbing}
 #bubble-editor-layer .char-label{position:absolute;top:-18px;left:0;font-size:9px;color:#a5b4fc;font-family:ui-monospace,monospace;background:#1a1938;padding:1px 4px;border-radius:3px;pointer-events:none}
+#bubble-editor-layer .char-editor[data-mode="pinned"] .char-label{color:#fbbf24;background:#3a2a04}
 #flash-overlay{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:200}
 #flash-overlay.flash{animation:flashAnim 700ms ease-out}
 @keyframes flashAnim{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
@@ -133,10 +137,13 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .effect-del{color:#71717a;font-size:12px;padding:2px 4px;cursor:pointer}
 .effect-del:hover{color:#ef4444}
 .effect-settings{padding:10px;display:flex;flex-direction:column;gap:9px;border-top:1px solid #27272a;background:#141416}
-.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:0 1px}
-.char-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;align-items:center;margin-bottom:3px}
+.char-header-row{display:grid;grid-template-columns:32px 64px 1fr 1fr 1fr 1fr 50px 22px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.06em;font-weight:700;padding:0 1px}
+.char-row{display:grid;grid-template-columns:32px 64px 1fr 1fr 1fr 1fr 50px 22px;gap:3px;align-items:center;margin-bottom:3px}
 .char-row input.mini{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:4px;padding:3px 2px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace}
+.char-row input.mini:disabled{opacity:.35;cursor:not-allowed}
 .char-row input.char-glyph{color:#f0abfc;font-weight:700}
+.char-row select.mode-sel{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:4px;padding:2px 2px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace;cursor:pointer;appearance:none}
+.char-row select.mode-sel.pinned{color:#fbbf24;border-color:#5b4406;background:#1a1203}
 .char-del{width:20px;height:22px;font-size:11px;background:#3f3f46;color:#a1a1aa;border:none;border-radius:4px;cursor:pointer}
 .char-del:hover{background:#7f1d1d;color:#fecaca}
 .status-tag{font-size:9.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px}
@@ -376,14 +383,18 @@ const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 const mp3PanelBtn=document.getElementById('mp3-panel-btn');
 
-// Coordinate system: every position/size in the star config is a FRACTION.
-//   x: 0..1 of viewport width
-//   y: 0..1 of viewport height
-//   size-like values: 0..1 of MIN(W, H)
-// Helpers convert to/from pixels for display and DOM positioning.
+// Coordinate system: positions/sizes are fractions.
+//   x: fraction of viewport width (== document width)
+//   y: fraction of viewport height (floating) OR fraction of document height (pinned)
+//   size-like values: fraction of MIN(viewport w, h)
 const MIN_DIM = () => Math.min(window.innerWidth, window.innerHeight);
 const pxFromSize = (frac) => frac * MIN_DIM();
 const sizeFromPx = (px) => px / MIN_DIM();
+const getDocHeight = () => Math.max(
+  document.body.scrollHeight,
+  document.documentElement.scrollHeight,
+  window.innerHeight
+);
 
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
@@ -440,6 +451,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
    STAR WORKER BRIDGE
 ========================================================= */
 let starWorker = null;
+let _viewInfoRaf = null;
 
 function initStarWorker(){
   const canvas = document.getElementById('star-canvas');
@@ -462,11 +474,39 @@ function initStarWorker(){
   starWorker.postMessage({ type: 'canvas', canvas: offscreen, w, h, dpr }, [offscreen]);
   starWorker.postMessage({ type: 'init', cfg: fullCfgForWorker() });
 
+  // Send initial view-info on next frame (after worker processes init)
+  requestAnimationFrame(sendViewInfo);
+
   window.addEventListener('resize', () => {
     const w = window.innerWidth, h = window.innerHeight;
     const dpr = window.devicePixelRatio || 1;
     if (starWorker) starWorker.postMessage({ type: 'resize', w, h, dpr });
+    scheduleViewInfo();
     if (isEditing) rebuildBubbleEditor();
+  });
+
+  window.addEventListener('scroll', scheduleViewInfo, { passive: true });
+
+  // Watch document height changes (from editing)
+  const ro = new ResizeObserver(() => scheduleViewInfo());
+  ro.observe(document.body);
+  ro.observe(document.documentElement);
+}
+
+function scheduleViewInfo(){
+  if (_viewInfoRaf) return;
+  _viewInfoRaf = requestAnimationFrame(() => {
+    _viewInfoRaf = null;
+    sendViewInfo();
+  });
+}
+
+function sendViewInfo(){
+  if (!starWorker) return;
+  starWorker.postMessage({
+    type: 'view-info',
+    scrollY: window.scrollY || window.pageYOffset || 0,
+    docHeight: getDocHeight()
   });
 }
 
@@ -705,6 +745,7 @@ function attachBlockDel(block){
       block.remove();
       autoSave();
       mp3RenderPanel();
+      scheduleViewInfo();
     }
   });
   block.appendChild(btn);
@@ -734,8 +775,9 @@ function addBlock(type){
   el.focus();
   attachBlockDel(div);
   autoSave();
+  scheduleViewInfo();
 }
-function autoSave(){ try{ localStorage.setItem(STORAGE.doc, getCleanDocHTML()); }catch(e){} }
+function autoSave(){ try{ localStorage.setItem(STORAGE.doc, getCleanDocHTML()); }catch(e){} scheduleViewInfo(); }
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
   if(confirm(`Reset ALL content on this page (${PAGE_NS})?\n\nPage text, images, text boxes, star settings, AND MP3 sync data will be wiped.`)){
@@ -872,7 +914,7 @@ document.addEventListener('mousedown',e=>{
 });
 
 /* =========================================================
-   TEXT BOXES
+   TEXT BOXES (unchanged)
 ========================================================= */
 const TB_DEFAULTS = {
   text: 'Your text here',
@@ -1132,17 +1174,17 @@ function tbSelect(label, obj, key, options, onChange){
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
 
-// Default char: centered horizontally with spacing, at viewport centre vertically.
-// Returns FRACTIONS.
 function defaultCharFor(i,total){
   const c=Math.max(1,total);
-  const spFrac = Math.min(0.22, 0.85 / c);   // ~22% max spacing fraction
+  const spFrac = Math.min(0.22, 0.85 / c);
   return {
     char:'',
+    mode: 'floating',
     x: 0.5 + (i - (c-1)/2) * spFrac,
     y: 0.5,
-    size: 0.4,     // 40% of MIN_DIM
-    rotation: 0
+    size: 0.4,
+    rotation: 0,
+    spawnIntervalMs: 200
   };
 }
 
@@ -1153,7 +1195,7 @@ function createEffect(type){
     for(let i=0;i<text.length;i++){const c=defaultCharFor(i,text.length);c.char=text[i];chars.push(c)}
     return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',
             outlineWidth:0.005,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,
-            flashColor:'#ffffff',chars};
+            flashColor:'#ffffff',chars,scrollBuffer:1,catchUpBurst:50};
   }
   if(type==='images'){
     return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:0.086,explicitList:'',
@@ -1177,6 +1219,19 @@ function getCharBounds(ch){
   else{h=sizePx*1.1}
   return {w,h:Math.max(h,8)};
 }
+
+// Screen position of a char (top-left of its bounding box)
+function charScreenPos(ch){
+  const xPx = ch.x * window.innerWidth;
+  let yPx;
+  if (ch.mode === 'pinned') {
+    yPx = ch.y * getDocHeight() - window.scrollY;
+  } else {
+    yPx = ch.y * window.innerHeight;
+  }
+  return { xPx, yPx };
+}
+
 function rebuildBubbleEditor(){
   const layer=document.getElementById('bubble-editor-layer');
   layer.innerHTML='';
@@ -1187,24 +1242,33 @@ function rebuildBubbleEditor(){
   if(!eff.chars||!eff.chars.length)return;
   eff.chars.forEach((ch,idx)=>{
     const b=getCharBounds(ch);
-    const cxPx = ch.x * window.innerWidth;
-    const cyPx = ch.y * window.innerHeight;
-    const div=document.createElement('div');div.className='char-editor';div.dataset.idx=idx;
+    const pos=charScreenPos(ch);
+    // Skip pinned letters that are off-screen (allow some padding)
+    if (ch.mode === 'pinned' && (pos.yPx < -200 || pos.yPx > window.innerHeight + 200)) return;
+    const div=document.createElement('div');
+    div.className='char-editor';
+    div.dataset.idx=idx;
+    div.dataset.mode=ch.mode || 'floating';
     div.style.width=b.w+'px';div.style.height=b.h+'px';
-    div.style.left=(cxPx-b.w/2)+'px';div.style.top=(cyPx-b.h/2)+'px';
+    div.style.left=(pos.xPx-b.w/2)+'px';div.style.top=(pos.yPx-b.h/2)+'px';
     div.style.transform=`rotate(${ch.rotation||0}deg)`;
-    const label=document.createElement('div');label.className='char-label';label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
+    const modeTag = (ch.mode === 'pinned') ? '📌 ' : '';
+    const label=document.createElement('div');label.className='char-label';label.textContent=`${modeTag}#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
     const rot=document.createElement('div');rot.className='char-rotate-handle';rot.title='Rotate';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
+
     div.addEventListener('mousedown',e=>{
       if(e.target.closest('.char-rotate-handle'))return;
       if(!isEditing)return;
       e.preventDefault();
-      const sx=e.clientX,sy=e.clientY,oxPx=ch.x*window.innerWidth,oyPx=ch.y*window.innerHeight;
+      const isPinned = ch.mode === 'pinned';
+      const sx=e.clientX, sy=e.clientY;
+      const oxPx = ch.x * window.innerWidth;
+      const oyPx = isPinned ? ch.y * getDocHeight() : ch.y * window.innerHeight;
       const mv=ev=>{
         const newXPx = oxPx + (ev.clientX - sx);
         const newYPx = oyPx + (ev.clientY - sy);
         ch.x = newXPx / window.innerWidth;
-        ch.y = newYPx / window.innerHeight;
+        ch.y = isPinned ? newYPx / getDocHeight() : newYPx / window.innerHeight;
         updateCharDiv(div,ch);
         postChars(false);
       };
@@ -1214,7 +1278,8 @@ function rebuildBubbleEditor(){
     rot.addEventListener('mousedown',e=>{
       if(!isEditing)return;
       e.preventDefault();e.stopPropagation();
-      const cxPx2=ch.x*window.innerWidth,cyPx2=ch.y*window.innerHeight;
+      const pos2=charScreenPos(ch);
+      const cxPx2=pos2.xPx, cyPx2=pos2.yPx;
       const startAngle=Math.atan2(e.clientY-cyPx2,e.clientX-cxPx2)*180/Math.PI;
       const startRot=ch.rotation||0;
       const mv=ev=>{
@@ -1231,13 +1296,15 @@ function rebuildBubbleEditor(){
 }
 function updateCharDiv(div,ch){
   const b=getCharBounds(ch);
-  const cxPx = ch.x * window.innerWidth;
-  const cyPx = ch.y * window.innerHeight;
+  const pos=charScreenPos(ch);
   div.style.width=b.w+'px';div.style.height=b.h+'px';
-  div.style.left=(cxPx-b.w/2)+'px';div.style.top=(cyPx-b.h/2)+'px';
+  div.style.left=(pos.xPx-b.w/2)+'px';div.style.top=(pos.yPx-b.h/2)+'px';
   div.style.transform=`rotate(${ch.rotation||0}deg)`;
   const label=div.querySelector('.char-label');
-  if(label)label.textContent=`#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
+  if(label){
+    const modeTag = (ch.mode === 'pinned') ? '📌 ' : '';
+    label.textContent=`${modeTag}#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
+  }
 }
 function updateCharDivByIndex(idx,ch){
   const layer=document.getElementById('bubble-editor-layer');
@@ -1245,6 +1312,7 @@ function updateCharDivByIndex(idx,ch){
   if(div)updateCharDiv(div,ch);
 }
 window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
+window.addEventListener('scroll',()=>{if(isEditing)rebuildBubbleEditor()},{passive:true});
 
 async function loadEffectImages(effect){
   if(!effect || effect.type !== 'images') return;
@@ -1277,7 +1345,6 @@ async function loadEffectImages(effect){
 
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
 
-// Standard widget — value is used as-is (times, counts, percentages)
 function widget_numRange(labelText,obj,key,opts={}){
   const row=el('div','row');
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
@@ -1293,7 +1360,6 @@ function widget_numRange(labelText,obj,key,opts={}){
   return row;
 }
 
-// Fraction widget — stored value is a fraction of MIN_DIM, displayed as pixels
 function widget_numRangeFractionPx(labelText,obj,key,opts={}){
   const row=el('div','row');
   const wrap=el('label');
@@ -1431,16 +1497,53 @@ function buildEffectSettings(container,eff){
   if(eff.type==='bubble'){
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{min:0,max:100000000,step:1}));
     container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[{value:'avoid',label:'Avoid the letters'},{value:'allow',label:'Ignore letters'}]));
+
+    // ---- Pinned letters global settings ----
+    const pinnedHdr = el('div',null,'<span style="color:#fbbf24;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">📌 Pinned Letters</span>');
+    container.appendChild(pinnedHdr);
+    if (typeof eff.scrollBuffer !== 'number') eff.scrollBuffer = 1;
+    if (typeof eff.catchUpBurst !== 'number') eff.catchUpBurst = 50;
+    container.appendChild(widget_numRange('Scroll buffer (viewport-heights above/below)',eff,'scrollBuffer',{min:0,max:4,step:0.25,onChange:()=>{postCfg();}}));
+    container.appendChild(widget_numRange('Catch-up burst size',eff,'catchUpBurst',{min:0,max:500,step:10,onChange:()=>{postCfg();}}));
+
+    // ---- Characters ----
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>'));
-    container.appendChild(el('div','char-header-row',`<span>Char</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span></span>`));
+    container.appendChild(el('div','char-header-row',`<span>Char</span><span>Mode</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span>Rate</span><span></span>`));
     const charsBox=el('div');
     charsBox.style.cssText='display:flex;flex-direction:column;max-height:340px;overflow-y:auto;padding:4px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
+
     eff.chars.forEach((ch,idx)=>{
+      if (!ch.mode) ch.mode = 'floating';
+      if (typeof ch.spawnIntervalMs !== 'number') ch.spawnIntervalMs = 200;
+
       const row=el('div','char-row');
+
       const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{ch.char=glyph.value;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
 
-      // X: display px, store fraction of W
+      const modeSel=el('select','mode-sel');
+      const optF = el('option',null,'Flt'); optF.value='floating';
+      const optP = el('option',null,'Pin'); optP.value='pinned';
+      if (ch.mode === 'pinned') optP.selected = true; else optF.selected = true;
+      modeSel.appendChild(optF); modeSel.appendChild(optP);
+      if (ch.mode === 'pinned') modeSel.classList.add('pinned');
+      modeSel.addEventListener('change',()=>{
+        ch.mode = modeSel.value;
+        modeSel.classList.toggle('pinned', ch.mode === 'pinned');
+        // When switching modes, reset y to something sensible:
+        // floating default = 0.5 (middle of viewport), pinned default = current scroll fraction
+        if (ch.mode === 'pinned') {
+          ch.y = ((window.scrollY + window.innerHeight / 2) / getDocHeight());
+        } else {
+          ch.y = 0.5;
+        }
+        postChars(true);
+        renderEffectList();
+        rebuildBubbleEditor();
+        saveStarConfig();
+      });
+
+      // X: display px, store fraction of W (same in both modes)
       const xin=el('input','mini');xin.type='number';xin.step='any';
       xin.value = Math.round(ch.x * window.innerWidth);
       xin.addEventListener('input',()=>{
@@ -1450,17 +1553,19 @@ function buildEffectSettings(container,eff){
         postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
       });
 
-      // Y: display px, store fraction of H
+      // Y: display px, store fraction of H (floating) or docHeight (pinned)
       const yin=el('input','mini');yin.type='number';yin.step='any';
-      yin.value = Math.round(ch.y * window.innerHeight);
+      yin.value = ch.mode === 'pinned'
+        ? Math.round(ch.y * getDocHeight())
+        : Math.round(ch.y * window.innerHeight);
       yin.addEventListener('input',()=>{
         const val = parseFloat(yin.value);
         if(isNaN(val)) return;
-        ch.y = val / window.innerHeight;
+        ch.y = ch.mode === 'pinned' ? val / getDocHeight() : val / window.innerHeight;
         postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
       });
 
-      // Size: display px, store fraction of MIN_DIM
+      // Size
       const sin=el('input','mini');sin.type='number';sin.step='any';
       sin.value = Math.round(ch.size * MIN_DIM());
       sin.addEventListener('input',()=>{
@@ -1470,30 +1575,64 @@ function buildEffectSettings(container,eff){
         postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
       });
 
-      // Rotation: degrees, unchanged
+      // Rotation
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
       rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
 
+      // Spawn interval (only for pinned)
+      const rateIn=el('input','mini');rateIn.type='number';rateIn.step='any';
+      rateIn.value = ch.spawnIntervalMs;
+      rateIn.disabled = ch.mode !== 'pinned';
+      rateIn.title = 'Spawn interval (ms) — only used in Pinned mode';
+      rateIn.addEventListener('input',()=>{
+        const val = parseFloat(rateIn.value);
+        if(isNaN(val) || val < 20) return;
+        ch.spawnIntervalMs = val;
+        postChars(true);saveStarConfig();
+      });
+
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.addEventListener('click',()=>{eff.chars.splice(idx,1);postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
-      row.appendChild(glyph);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(del);
+      row.appendChild(glyph);row.appendChild(modeSel);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(rateIn);row.appendChild(del);
       charsBox.appendChild(row);
     });
     container.appendChild(charsBox);
-    const addCharBtn=el('button','gui-btn ghost');addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
+
+    const addCharBtn=el('button','gui-btn ghost');addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add floating character';
     addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(addCharBtn);
-    const reBtn=el('button','gui-btn ghost');reBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
-    reBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+
+    const addPinnedBtn=el('button','gui-btn ghost');addPinnedBtn.innerHTML='<i class="fa-solid fa-thumbtack mr-1"></i> Add pinned character';
+    addPinnedBtn.addEventListener('click',()=>{
+      const c = defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1));
+      c.mode = 'pinned';
+      c.y = (window.scrollY + window.innerHeight / 2) / getDocHeight();
+      eff.chars.push(c);
+      postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();
+    });
+    container.appendChild(addPinnedBtn);
+
+    const reBtn=el('button','gui-btn ghost');reBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally (floating only)';
+    reBtn.addEventListener('click',()=>{
+      const floatingChars = eff.chars.filter(c => c.mode !== 'pinned');
+      floatingChars.forEach((ch,i)=>{
+        const c=defaultCharFor(i,floatingChars.length);
+        ch.x=c.x;ch.y=c.y;ch.rotation=0;
+      });
+      postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();
+    });
     container.appendChild(reBtn);
+
     const crBtn=el('button','gui-btn ghost');crBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations';
     crBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(crBtn);
+
     container.appendChild(el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>'));
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
     container.appendChild(widget_numRange('Outline opacity',eff,'outlineOpacity',{min:0,max:1,step:0.01}));
     container.appendChild(widget_numRangeFractionPx('Outline width (px)',eff,'outlineWidth',{sliderMaxPx:40}));
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
+
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>'));
     container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
     container.appendChild(el('div',null,`<span class="status-tag ok">Mask computed in worker</span>`));
@@ -1525,7 +1664,6 @@ function buildEffectSettings(container,eff){
         const tog=el('input');tog.type='checkbox';tog.checked=isEx;tog.style.accentColor='#6366f1';
         const lbl=el('span',null,fn);lbl.style.cssText='flex:1;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
         const num=el('input');num.type='number';num.className='num-inline';num.step='any';
-        // display in px: from fraction to px
         num.value = Math.round((isEx ? eff.exceptions[url] : eff.defaultSize) * MIN_DIM());
         num.min=2; num.max=2000; num.disabled=!isEx;
         tog.addEventListener('change',()=>{
