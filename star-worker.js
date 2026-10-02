@@ -1,7 +1,6 @@
 /* =========================================================
-   star-worker.js  (v3 — DPR transform fixed)
+   star-worker.js  (v4)
    Runs the entire star simulation off the main thread.
-   Receives OffscreenCanvas via transfer, owns its own cfg + stars.
 ========================================================= */
 'use strict';
 
@@ -63,11 +62,12 @@ self.onmessage = function (ev) {
   switch (m.type) {
     case 'canvas':
       canvas = m.canvas;
-      ctx = canvas.getContext('2d');
       W = m.w; H = m.h; DPR = m.dpr;
       canvas.width = W * DPR;
       canvas.height = H * DPR;
+      ctx = canvas.getContext('2d');
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      postMsg({ type: 'canvas-ready', W, H, DPR, cw: canvas.width, ch: canvas.height });
       if (!raf) { raf = true; lastFrameAt = performance.now(); requestAnimationFrame(loop); }
       break;
 
@@ -318,7 +318,6 @@ function loop() {
     }
   }
 
-  // Tick existing stars (snapshot liveTail so this frame's newborns aren't ticked)
   const tickEnd = liveTail;
   for (let k = 0; k < tickEnd; k++) {
     const i = liveIdx[k];
@@ -334,7 +333,6 @@ function loop() {
     }
   }
 
-  // Compact liveIdx
   let w = 0;
   for (let k = 0; k < liveTail; k++) {
     const i = liveIdx[k];
