@@ -1,18 +1,20 @@
 /* =========================================================
-   star-worker.js  (v6)
-   - Relative coordinates (all positions/sizes are 0..1 fractions)
+   star-worker.js  (v8)
+   - Relative coordinates (positions/sizes are 0..1 fractions)
    - Fixed-timestep sim, decoupled from render loop
-   - Sprite-based rendering (pre-rendered shape bitmaps, drawImage)
-   - DPR-aware, cache-safe, LRU-bounded sprite cache
+   - Sprite-based rendering
+   - DPR-aware, LRU sprite cache
+   - Dense bubble masks
+   - Floating / Pinned letters with active band + catch-up
 ========================================================= */
 'use strict';
 
 let canvas = null;
 let ctx = null;
 let W = 1, H = 1, DPR = 1, MIN_DIM = 1;
+let scrollY = 0;
+let docHeight = 1;
 
-// Coordinate convention: everything stored as fractions.
-// x: 0..1 of W    y: 0..1 of H    size: 0..1 of MIN_DIM
 let cfg = {
   global:  { maxStars: 500, triggerEnabled: false },
   base:    { enabled: true, initialDelay: 800, spawnInterval: 400, reproChance: 3, tickMs: 500,
@@ -25,6 +27,11 @@ let cfg = {
 };
 let activeEffect = null;
 
+// Runtime state per letter, parallel to activeEffect.chars
+// { mask, active, nextSpawnAt }
+let lettersRuntime = [];
+
+// Star pool
 const MAX_POOL = 200000;
 const pool = new Array(MAX_POOL);
 const poolFree = new Int32Array(MAX_POOL);
@@ -40,16 +47,19 @@ const imageCache = new Map();
 const imagePool = [];
 let unusedPool = [];
 
-let bubbleMask = null;
-
-// -------- Sprite cache --------
+// Sprite cache
 const MAX_SPRITES = 256;
-const spriteCache = new Map();   // key -> { canvas, size }
-const spriteLRU = [];            // array of keys, oldest first
+const spriteCache = new Map();
+const spriteLRU = [];
+
+// Reusable measure canvas
+let _measureCanvas = null;
+let _measureCtx = null;
 
 function resetPool() {
   for (let i = 0; i < MAX_POOL; i++) {
-    pool[i] = { alive:false, x:0, y:0, isBase:false, birth:0, deathStart:0, nextTick:0, imgUrl:null, rotation:0 };
+    pool[i] = { alive:false, x:0, y:0, isBase:false, birth:0, deathStart:0, nextTick:0,
+                imgUrl:null, rotation:0, space:'floating' };
     poolFree[i] = MAX_POOL - 1 - i;
   }
   poolFreeTop = MAX_POOL;
@@ -67,7 +77,7 @@ let lastFrameAt = 0;
 let simAccumulator = 0;
 let lastCountMsgAt = 0;
 const SIM_STEP_MS = 1000 / 60;
-const MAX_CATCHUP_MS = 200;      // clamp to avoid spiral of death
+const MAX_CATCHUP_MS = 200;
 const COUNT_MSG_INTERVAL = 100;
 
 const raf = (typeof requestAnimationFrame !== 'undefined')
@@ -98,20 +108,30 @@ self.onmessage = function (ev) {
     case 'init':
       if (m.cfg) cfg = m.cfg;
       activeEffect = pickActiveEffect(cfg);
-      reconfigureForEffect();
+      rebuildLettersRuntime();
       resetSim();
       break;
 
     case 'cfg':
       if (m.cfg) cfg = m.cfg;
       activeEffect = pickActiveEffect(cfg);
-      reconfigureForEffect();
+      rebuildLettersRuntime();
       break;
 
     case 'chars':
       if (activeEffect && activeEffect.type === 'bubble' && m.chars) {
         activeEffect.chars = m.chars;
-        recomputeBubbleMask();
+        rebuildLettersRuntime();
+      }
+      break;
+
+    case 'view-info':
+      // scrollY and docHeight from main thread
+      if (typeof m.scrollY === 'number') scrollY = m.scrollY;
+      if (typeof m.docHeight === 'number' && m.docHeight > 0) {
+        const oldDoc = docHeight;
+        docHeight = m.docHeight;
+        if (oldDoc !== docHeight) recomputePinnedMasks();
       }
       break;
 
@@ -135,7 +155,7 @@ self.onmessage = function (ev) {
       canvas.height = Math.max(1, Math.floor(H * DPR));
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       if (oldDpr !== DPR) clearSpriteCache();
-      if (activeEffect && activeEffect.type === 'bubble') recomputeBubbleMask();
+      rebuildLettersRuntime();
       break;
     }
 
@@ -152,12 +172,6 @@ function pickActiveEffect(c) {
   return c.effects.find(e => e.id === c.activeEffectId) || c.effects[0] || null;
 }
 
-function reconfigureForEffect() {
-  if (!activeEffect) { bubbleMask = null; return; }
-  if (activeEffect.type === 'bubble') recomputeBubbleMask();
-  else bubbleMask = null;
-}
-
 function resetSim() {
   for (let i = 0; i < MAX_POOL; i++) {
     if (pool[i].alive) { pool[i].alive = false; pool[i].imgUrl = null; poolFree[poolFreeTop++] = i; }
@@ -169,162 +183,200 @@ function resetSim() {
 }
 
 // =========================================================
-// Bubble mask
+// Letters runtime + masks
 // =========================================================
-let maskCanvas = null, maskCtx = null;
+function rebuildLettersRuntime() {
+  lettersRuntime = [];
+  if (!activeEffect || activeEffect.type !== 'bubble' || !activeEffect.chars) return;
+  const now = performance.now();
+  for (let i = 0; i < activeEffect.chars.length; i++) {
+    const c = activeEffect.chars[i];
+    const mask = computeLetterMask(c);
+    lettersRuntime.push({
+      mask,
+      active: false,
+      nextSpawnAt: now + (c.spawnIntervalMs || 200)
+    });
+  }
+  // Ensure activity is up to date (so new pinned letters can catch-up if in band)
+  updateLetterActivity(now);
+}
 
-function recomputeBubbleMask() {
-  if (!activeEffect || activeEffect.type !== 'bubble' || !activeEffect.chars || !activeEffect.chars.length) {
-    bubbleMask = null; return;
+function recomputePinnedMasks() {
+  if (!activeEffect || activeEffect.type !== 'bubble' || !activeEffect.chars) return;
+  for (let i = 0; i < activeEffect.chars.length; i++) {
+    const c = activeEffect.chars[i];
+    if (c.mode === 'pinned') {
+      lettersRuntime[i].mask = computeLetterMask(c);
+    }
   }
-  const scale = 0.5;
-  const cw = Math.max(1, Math.floor(W * scale));
-  const ch = Math.max(1, Math.floor(H * scale));
-  if (!maskCanvas) {
-    maskCanvas = new OffscreenCanvas(cw, ch);
-    maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
-  } else {
-    maskCanvas.width = cw;
-    maskCanvas.height = ch;
-    maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+}
+
+function computeLetterMask(charCfg) {
+  if (!charCfg.char) return null;
+  const sizePx = Math.max(1, (charCfg.size || 0) * MIN_DIM);
+
+  // Position in native space (viewport px for floating, document px for pinned)
+  const posX = (charCfg.x || 0) * W;
+  const posY = charCfg.mode === 'pinned'
+    ? (charCfg.y || 0) * docHeight
+    : (charCfg.y || 0) * H;
+
+  // Measure glyph unrotated
+  if (!_measureCanvas) {
+    _measureCanvas = new OffscreenCanvas(64, 64);
+    _measureCtx = _measureCanvas.getContext('2d');
   }
-  maskCtx.clearRect(0, 0, cw, ch);
-  maskCtx.fillStyle = '#fff';
-  maskCtx.textAlign = 'center';
-  maskCtx.textBaseline = 'middle';
-  for (const c of activeEffect.chars) {
-    if (!c.char) continue;
-    // coords are fractions → convert to CSS px for drawing on the scaled mask
-    const cx = c.x * W;
-    const cy = c.y * H;
-    const csize = c.size * MIN_DIM;
-    maskCtx.save();
-    maskCtx.translate(cx * scale, cy * scale);
-    if (c.rotation) maskCtx.rotate(c.rotation * Math.PI / 180);
-    maskCtx.font = `900 ${Math.max(1, csize * scale)}px 'Arial Black', Arial, sans-serif`;
-    maskCtx.fillText(c.char, 0, 0);
-    maskCtx.restore();
-  }
-  let imgData;
-  try { imgData = maskCtx.getImageData(0, 0, cw, ch); }
-  catch (e) { postMsg({ type: 'error', message: 'getImageData failed: ' + e.message }); bubbleMask = null; return; }
-  const data = new Uint8Array(cw * ch);
+  _measureCtx.font = `900 ${sizePx}px 'Arial Black', Arial, sans-serif`;
+  const m = _measureCtx.measureText(charCfg.char);
+  const glyphW = Math.max(m.width || sizePx, sizePx * 0.4);
+  let asc = (m.actualBoundingBoxAscent !== undefined) ? m.actualBoundingBoxAscent : sizePx * 0.8;
+  let desc = (m.actualBoundingBoxDescent !== undefined) ? m.actualBoundingBoxDescent : sizePx * 0.2;
+  const glyphH = Math.max(asc + desc, sizePx * 0.4);
+
+  // Rotated AABB
+  const rotRad = (charCfg.rotation || 0) * Math.PI / 180;
+  const cos = Math.abs(Math.cos(rotRad));
+  const sin = Math.abs(Math.sin(rotRad));
+  const aabbW = Math.ceil(glyphW * cos + glyphH * sin) + 12;
+  const aabbH = Math.ceil(glyphW * sin + glyphH * cos) + 12;
+  const boxSize = Math.max(aabbW, aabbH, 8);
+
+  // Draw rotated glyph into mask box
+  const c = new OffscreenCanvas(boxSize, boxSize);
+  const mctx = c.getContext('2d', { willReadFrequently: true });
+  mctx.fillStyle = '#fff';
+  mctx.textAlign = 'center';
+  mctx.textBaseline = 'middle';
+  mctx.translate(boxSize / 2, boxSize / 2);
+  if (charCfg.rotation) mctx.rotate(rotRad);
+  mctx.font = `900 ${sizePx}px 'Arial Black', Arial, sans-serif`;
+  mctx.fillText(charCfg.char, 0, 0);
+
+  const imgData = mctx.getImageData(0, 0, boxSize, boxSize);
   const src = imgData.data;
-  let minX = cw, minY = ch, maxX = 0, maxY = 0, found = false;
-  const points = [];
-  const step = 4;
-  for (let y = 0; y < ch; y += step) {
-    for (let x = 0; x < cw; x += step) {
-      if (src[(y * cw + x) * 4 + 3] > 128) {
-        data[y * cw + x] = 1;
-        points.push((x / scale) | 0, (y / scale) | 0);
-        if (x < minX) minX = x; if (y < minY) minY = y;
-        if (x > maxX) maxX = x; if (y > maxY) maxY = y;
-        found = true;
-      }
+  const data = new Uint8Array(boxSize * boxSize);
+  for (let i = 0; i < boxSize * boxSize; i++) {
+    if (src[i * 4 + 3] > 128) data[i] = 1;
+  }
+
+  return {
+    data, boxSize,
+    x0: posX - boxSize / 2,
+    y0: posY - boxSize / 2
+  };
+}
+
+function isInMask(mask, x, y) {
+  if (!mask) return false;
+  const lx = x - mask.x0;
+  const ly = y - mask.y0;
+  if (lx < 0 || ly < 0 || lx >= mask.boxSize || ly >= mask.boxSize) return false;
+  const ix = lx | 0;
+  const iy = ly | 0;
+  return mask.data[iy * mask.boxSize + ix] === 1;
+}
+
+function randomPointInMask(mask) {
+  if (!mask) return null;
+  const bs = mask.boxSize;
+  for (let t = 0; t < 40; t++) {
+    const ix = (Math.random() * bs) | 0;
+    const iy = (Math.random() * bs) | 0;
+    if (mask.data[iy * bs + ix] === 1) {
+      return { x: mask.x0 + ix + Math.random(), y: mask.y0 + iy + Math.random() };
     }
   }
-  bubbleMask = found ? {
-    data, w: cw, h: ch, scale,
-    bounds: { minX: minX / scale, minY: minY / scale, maxX: maxX / scale, maxY: maxY / scale },
-    points: new Int32Array(points)
-  } : null;
-}
-
-function isInMask(x, y) {
-  if (!bubbleMask) return false;
-  const mx = (x * bubbleMask.scale) | 0;
-  const my = (y * bubbleMask.scale) | 0;
-  if (mx < 0 || my < 0 || mx >= bubbleMask.w || my >= bubbleMask.h) return false;
-  return bubbleMask.data[my * bubbleMask.w + mx] === 1;
-}
-
-let spawnPointX = 0, spawnPointY = 0;
-
-function getSpawnPoint(effect) {
-  if (effect && effect.type === 'bubble' && bubbleMask) {
-    const threshold = Number(effect.minStarsForBubble) || 0;
-    const over = liveCount >= threshold;
-    if (over) {
-      const b = bubbleMask.bounds;
-      const bw = b.maxX - b.minX, bh = b.maxY - b.minY;
-      for (let t = 0; t < 40; t++) {
-        const x = b.minX + Math.random() * bw;
-        const y = b.minY + Math.random() * bh;
-        if (isInMask(x, y)) { spawnPointX = x; spawnPointY = y; return; }
-      }
-      const pts = bubbleMask.points;
-      if (pts.length >= 2) {
-        const idx = (Math.random() * (pts.length / 2)) | 0;
-        spawnPointX = pts[idx * 2]; spawnPointY = pts[idx * 2 + 1];
-        return;
-      }
-    } else if (effect.beforeThresholdMode === 'avoid') {
-      for (let t = 0; t < 80; t++) {
-        const x = Math.random() * W;
-        const y = Math.random() * H;
-        if (!isInMask(x, y)) { spawnPointX = x; spawnPointY = y; return; }
-      }
+  // Fallback: pick a random '1' pixel
+  const N = bs * bs;
+  const start = (Math.random() * N) | 0;
+  for (let i = 0; i < N; i++) {
+    const idx = (start + i) % N;
+    if (mask.data[idx] === 1) {
+      const ix = idx % bs;
+      const iy = (idx / bs) | 0;
+      return { x: mask.x0 + ix + Math.random(), y: mask.y0 + iy + Math.random() };
     }
   }
-  spawnPointX = Math.random() * W;
-  spawnPointY = Math.random() * H;
+  return null;
+}
+
+// Any floating letter mask contains (x, y) in viewport space?
+function isInAnyFloatingMask(x, y) {
+  for (let i = 0; i < lettersRuntime.length; i++) {
+    const c = activeEffect.chars[i];
+    if (!c || c.mode === 'pinned') continue;
+    const rt = lettersRuntime[i];
+    if (rt.mask && isInMask(rt.mask, x, y)) return true;
+  }
+  return false;
+}
+
+// Any pinned letter mask contains (docX, docY) in document space?
+function isInAnyPinnedMask(docX, docY) {
+  for (let i = 0; i < lettersRuntime.length; i++) {
+    const c = activeEffect.chars[i];
+    if (!c || c.mode !== 'pinned') continue;
+    const rt = lettersRuntime[i];
+    if (rt.mask && isInMask(rt.mask, docX, docY)) return true;
+  }
+  return false;
 }
 
 // =========================================================
-// Image pool
+// Spawn target selection
 // =========================================================
-async function loadImagePool(urls) {
-  imagePool.length = 0;
-  unusedPool = [];
-  if (!urls.length) {
-    postMsg({ type: 'image-status', loaded: 0, error: 'No images found.' });
-    return;
-  }
-  for (const url of urls) {
-    try {
-      if (!imageCache.has(url)) {
-        const res = await fetch(url, { cache: 'force-cache' });
-        if (!res.ok) continue;
-        const blob = await res.blob();
-        const bmp = await createImageBitmap(blob);
-        imageCache.set(url, bmp);
-      }
-      imagePool.push(url);
-    } catch (e) { /* skip */ }
-  }
-  if (!imagePool.length) {
-    postMsg({ type: 'image-status', loaded: 0, error: 'Could not load any images.' });
-  } else {
-    postMsg({ type: 'image-status', loaded: imagePool.length, error: null });
-  }
+function bubbleAboveThreshold() {
+  if (!activeEffect || activeEffect.type !== 'bubble') return false;
+  const threshold = Number(activeEffect.minStarsForBubble) || 0;
+  return liveCount >= threshold;
 }
 
-function pickNextImage() {
-  if (!imagePool.length) return null;
-  if (unusedPool.length === 0) {
-    unusedPool = imagePool.slice();
-    for (let i = unusedPool.length - 1; i > 0; i--) {
-      const j = (Math.random() * (i + 1)) | 0;
-      const t = unusedPool[i]; unusedPool[i] = unusedPool[j]; unusedPool[j] = t;
+function pickActiveLetters() {
+  // returns list of indices of letters currently eligible for spawning
+  const out = [];
+  for (let i = 0; i < lettersRuntime.length; i++) {
+    const c = activeEffect.chars[i];
+    if (!c || !c.char) continue;
+    if (c.mode === 'pinned') {
+      if (lettersRuntime[i].active) out.push(i);
+    } else {
+      out.push(i); // floating always active
     }
   }
-  return unusedPool.pop();
+  return out;
 }
 
 // =========================================================
-// Spawn / kill
+// Spawn — floating field
 // =========================================================
-function spawnStar(isBase) {
+function getFloatingSpawnPoint() {
+  let x = 0, y = 0;
+  if (activeEffect && activeEffect.type === 'bubble' && activeEffect.beforeThresholdMode === 'avoid') {
+    for (let t = 0; t < 100; t++) {
+      x = Math.random() * W;
+      y = Math.random() * H;
+      if (isInAnyFloatingMask(x, y)) continue;
+      if (isInAnyPinnedMask(x, y + scrollY)) continue;
+      return { x, y };
+    }
+  }
+  x = Math.random() * W;
+  y = Math.random() * H;
+  return { x, y };
+}
+
+function spawnFloatingStar(isBase) {
   const i = allocSlot();
   if (i < 0) return;
   const s = pool[i];
   const type = isBase ? cfg.base : cfg.spawned;
   const now = performance.now();
-  getSpawnPoint(activeEffect);
+  const pt = getFloatingSpawnPoint();
   s.alive = true;
-  s.x = spawnPointX;
-  s.y = spawnPointY;
+  s.x = pt.x / W;
+  s.y = pt.y / H;
+  s.space = 'floating';
   s.isBase = isBase;
   s.birth = now;
   s.deathStart = now + type.lifespan * 1000;
@@ -341,6 +393,87 @@ function spawnStar(isBase) {
   if (isBase) liveBaseCount++; else liveSpawnedCount++;
 }
 
+// =========================================================
+// Spawn — pinned letter
+// =========================================================
+function spawnPinnedStar(letterIdx) {
+  const rt = lettersRuntime[letterIdx];
+  const c = activeEffect.chars[letterIdx];
+  if (!rt || !c || !rt.mask) return;
+  const pt = randomPointInMask(rt.mask);
+  if (!pt) return;
+  const i = allocSlot();
+  if (i < 0) return;
+  const s = pool[i];
+  const type = cfg.spawned;
+  const now = performance.now();
+  s.alive = true;
+  s.x = pt.x / W;             // x is fraction of W (viewport width == document width)
+  s.y = pt.y / docHeight;     // y is fraction of docHeight
+  s.space = 'pinned';
+  s.isBase = false;
+  s.birth = now;
+  s.deathStart = now + type.lifespan * 1000;
+  s.nextTick = now + type.tickMs;
+  s.rotation = type.randomRotation ? Math.random() * 360 : 0;
+  if (activeEffect && activeEffect.type === 'images' && imagePool.length) {
+    const threshold = Number(activeEffect.minStarsForImages) || 0;
+    s.imgUrl = (liveCount >= threshold) ? pickNextImage() : null;
+  } else {
+    s.imgUrl = null;
+  }
+  addLive(i);
+  liveCount++;
+  liveSpawnedCount++;
+}
+
+// =========================================================
+// Spawn — general entry point (base + repro)
+// =========================================================
+function spawnStar(isBase) {
+  // Above threshold: redirect spawns into a random active letter
+  if (bubbleAboveThreshold()) {
+    const active = pickActiveLetters();
+    if (active.length) {
+      const idx = active[(Math.random() * active.length) | 0];
+      const c = activeEffect.chars[idx];
+      if (c.mode === 'pinned') {
+        spawnPinnedStar(idx);
+        return;
+      }
+      // Floating letter — spawn inside its mask in viewport space
+      const rt = lettersRuntime[idx];
+      const pt = randomPointInMask(rt.mask);
+      if (pt) {
+        const i = allocSlot();
+        if (i < 0) return;
+        const s = pool[i];
+        const type = isBase ? cfg.base : cfg.spawned;
+        const now = performance.now();
+        s.alive = true;
+        s.x = pt.x / W;
+        s.y = pt.y / H;
+        s.space = 'floating';
+        s.isBase = isBase;
+        s.birth = now;
+        s.deathStart = now + type.lifespan * 1000;
+        s.nextTick = now + type.tickMs;
+        s.rotation = type.randomRotation ? Math.random() * 360 : 0;
+        if (activeEffect && activeEffect.type === 'images' && imagePool.length) {
+          const threshold = Number(activeEffect.minStarsForImages) || 0;
+          s.imgUrl = (liveCount >= threshold) ? pickNextImage() : null;
+        } else s.imgUrl = null;
+        addLive(i);
+        liveCount++;
+        if (isBase) liveBaseCount++; else liveSpawnedCount++;
+        return;
+      }
+      // fall through to field spawn if mask had no ink
+    }
+  }
+  spawnFloatingStar(isBase);
+}
+
 function killStar(i) {
   const s = pool[i];
   if (!s.alive) return;
@@ -352,9 +485,37 @@ function killStar(i) {
 }
 
 // =========================================================
+// Active band logic for pinned letters
+// =========================================================
+function updateLetterActivity(now) {
+  if (!activeEffect || activeEffect.type !== 'bubble') return;
+  const buffer = activeEffect.scrollBuffer ?? 1;
+  const bandTop = scrollY - buffer * H;
+  const bandBottom = scrollY + (1 + buffer) * H;
+  const burst = activeEffect.catchUpBurst ?? 50;
+  for (let i = 0; i < lettersRuntime.length; i++) {
+    const c = activeEffect.chars[i];
+    if (!c || c.mode !== 'pinned') { lettersRuntime[i].active = false; continue; }
+    const docY = (c.y || 0) * docHeight;
+    const wasActive = lettersRuntime[i].active;
+    const nowActive = (docY >= bandTop) && (docY <= bandBottom);
+    lettersRuntime[i].active = nowActive;
+    if (!wasActive && nowActive) {
+      // Catch-up burst
+      const budget = Math.max(0, cfg.global.maxStars - liveCount);
+      const n = Math.min(burst, budget);
+      for (let j = 0; j < n; j++) spawnPinnedStar(i);
+    }
+  }
+}
+
+// =========================================================
 // Sim step — no rendering
 // =========================================================
 function stepSim(now) {
+  // Update pinned letter activity (may trigger catch-up bursts)
+  updateLetterActivity(now);
+
   // Base spawn gate
   const hasSpawned = liveSpawnedCount > 0;
   if (hasSpawned) {
@@ -370,7 +531,20 @@ function stepSim(now) {
     }
   }
 
-  // Tick stars — snapshot liveTail so newborns don't tick this step
+  // Pinned letters spawn on their own clock
+  if (activeEffect && activeEffect.type === 'bubble') {
+    for (let i = 0; i < lettersRuntime.length; i++) {
+      const c = activeEffect.chars[i];
+      if (!c || c.mode !== 'pinned' || !lettersRuntime[i].active) continue;
+      if (liveCount >= cfg.global.maxStars) continue;
+      if (now >= lettersRuntime[i].nextSpawnAt) {
+        spawnPinnedStar(i);
+        lettersRuntime[i].nextSpawnAt = now + (c.spawnIntervalMs || 200);
+      }
+    }
+  }
+
+  // Tick stars
   const tickEnd = liveTail;
   for (let k = 0; k < tickEnd; k++) {
     const i = liveIdx[k];
@@ -394,14 +568,12 @@ function stepSim(now) {
   }
   liveTail = w;
 
-  // N-trigger
   if (cfg.global.triggerEnabled && liveCount >= cfg.global.maxStars) {
     const c = (activeEffect && activeEffect.flashColor) ? activeEffect.flashColor : '#ffffff';
     postMsg({ type: 'flash', color: c });
     resetSim();
   }
 
-  // Count message (throttled)
   if (now - lastCountMsgAt > COUNT_MSG_INTERVAL) {
     lastCountMsgAt = now;
     postMsg({ type: 'count', total: liveCount, base: liveBaseCount, spawned: liveSpawnedCount });
@@ -409,7 +581,7 @@ function stepSim(now) {
 }
 
 // =========================================================
-// Master loop — fixed-step sim, per-frame render
+// Master loop
 // =========================================================
 function masterLoop() {
   if (!rafActive || !ctx) return;
@@ -433,10 +605,7 @@ function masterLoop() {
 // =========================================================
 // Sprite cache
 // =========================================================
-function clearSpriteCache() {
-  spriteCache.clear();
-  spriteLRU.length = 0;
-}
+function clearSpriteCache() { spriteCache.clear(); spriteLRU.length = 0; }
 
 function sizeBucket(sizePx) {
   if (sizePx < 4) return Math.max(1, Math.ceil(sizePx));
@@ -454,34 +623,23 @@ function getSprite(shape, color, bucket) {
   sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   sctx.fillStyle = color;
   sctx.strokeStyle = color;
-
-  // Draw the shape centered at bucket/2, bucket/2 in CSS px
   const h = bucket / 2;
   const cx = h, cy = h;
   sctx.beginPath();
   switch (shape) {
-    case 'circle':
-      sctx.arc(cx, cy, h, 0, Math.PI * 2);
-      sctx.fill();
-      break;
-    case 'square':
-      sctx.fillRect(cx - h, cy - h, bucket, bucket);
-      break;
+    case 'circle': sctx.arc(cx, cy, h, 0, Math.PI * 2); sctx.fill(); break;
+    case 'square': sctx.fillRect(cx - h, cy - h, bucket, bucket); break;
     case 'triangle':
       sctx.moveTo(cx, cy - bucket * 0.62);
       sctx.lineTo(cx + bucket * 0.58, cy + bucket * 0.42);
       sctx.lineTo(cx - bucket * 0.58, cy + bucket * 0.42);
-      sctx.closePath();
-      sctx.fill();
-      break;
+      sctx.closePath(); sctx.fill(); break;
     case 'diamond':
       sctx.moveTo(cx, cy - bucket * 0.65);
       sctx.lineTo(cx + bucket * 0.65, cy);
       sctx.lineTo(cx, cy + bucket * 0.65);
       sctx.lineTo(cx - bucket * 0.65, cy);
-      sctx.closePath();
-      sctx.fill();
-      break;
+      sctx.closePath(); sctx.fill(); break;
     case 'star':
       for (let i = 0; i < 10; i++) {
         const r = (i % 2 === 0) ? bucket * 0.72 : bucket * 0.30;
@@ -490,17 +648,14 @@ function getSprite(shape, color, bucket) {
         const syp = cy + Math.sin(a) * r;
         if (i === 0) sctx.moveTo(sxp, syp); else sctx.lineTo(sxp, syp);
       }
-      sctx.closePath();
-      sctx.fill();
-      break;
+      sctx.closePath(); sctx.fill(); break;
     case 'plus': {
       const t = Math.max(1, bucket * 0.34);
       sctx.fillRect(cx - t / 2, cy - h, t, bucket);
       sctx.fillRect(cx - h, cy - t / 2, bucket, t);
       break;
     }
-    default:
-      sctx.fillRect(cx - h, cy - h, bucket, bucket);
+    default: sctx.fillRect(cx - h, cy - h, bucket, bucket);
   }
 
   sprite = { canvas: c, size: bucket };
@@ -514,7 +669,7 @@ function getSprite(shape, color, bucket) {
 }
 
 // =========================================================
-// Render — no state changes
+// Render
 // =========================================================
 const CULL_PAD = 32;
 
@@ -523,7 +678,6 @@ function renderFrame(now) {
 
   // Bubble outline guide
   if (activeEffect && activeEffect.type === 'bubble' && activeEffect.showOutline && (activeEffect.outlineOpacity ?? 0.5) > 0 && activeEffect.chars) {
-    ctx.save();
     ctx.strokeStyle = activeEffect.outlineColor;
     ctx.globalAlpha = Math.min(1, Math.max(0, activeEffect.outlineOpacity ?? 0.5));
     ctx.lineWidth = Math.max(1, (activeEffect.outlineWidth || 0) * MIN_DIM);
@@ -531,21 +685,37 @@ function renderFrame(now) {
     ctx.textBaseline = 'middle';
     for (const c of activeEffect.chars) {
       if (!c.char) continue;
+      let sy;
+      if (c.mode === 'pinned') sy = (c.y || 0) * docHeight - scrollY;
+      else sy = (c.y || 0) * H;
+      if (sy < -400 || sy > H + 400) continue;
+      const sx = (c.x || 0) * W;
       ctx.save();
-      ctx.translate(c.x * W, c.y * H);
+      ctx.translate(sx, sy);
       if (c.rotation) ctx.rotate(c.rotation * Math.PI / 180);
-      ctx.font = `900 ${Math.max(1, c.size * MIN_DIM)}px 'Arial Black', Arial, sans-serif`;
+      ctx.font = `900 ${Math.max(1, (c.size || 0) * MIN_DIM)}px 'Arial Black', Arial, sans-serif`;
       ctx.strokeText(c.char, 0, 0);
       ctx.restore();
     }
-    ctx.restore();
   }
 
+  // Stars
   for (let k = 0; k < liveTail; k++) {
     const i = liveIdx[k];
     const s = pool[i];
     if (!s.alive) continue;
-    if (s.x < -CULL_PAD || s.x > W + CULL_PAD || s.y < -CULL_PAD || s.y > H + CULL_PAD) continue;
+
+    // Screen position
+    let sx, sy;
+    if (s.space === 'pinned') {
+      sx = s.x * W;
+      sy = s.y * docHeight - scrollY;
+    } else {
+      sx = s.x * W;
+      sy = s.y * H;
+    }
+
+    if (sx < -CULL_PAD || sx > W + CULL_PAD || sy < -CULL_PAD || sy > H + CULL_PAD) continue;
 
     const type = s.isBase ? cfg.base : cfg.spawned;
     const fi = Math.max(1, type.fadeIn * 1000);
@@ -561,7 +731,6 @@ function renderFrame(now) {
     }
     if (alpha <= 0) continue;
 
-    // Image star
     if (s.imgUrl) {
       const bmp = imageCache.get(s.imgUrl);
       if (bmp) {
@@ -572,30 +741,28 @@ function renderFrame(now) {
         ctx.globalAlpha = Math.min(1, alpha);
         if (s.rotation) {
           ctx.save();
-          ctx.translate(s.x, s.y);
+          ctx.translate(sx, sy);
           ctx.rotate(s.rotation * Math.PI / 180);
           ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
           ctx.restore();
         } else {
-          ctx.drawImage(bmp, s.x - dw / 2, s.y - dh / 2, dw, dh);
+          ctx.drawImage(bmp, sx - dw / 2, sy - dh / 2, dw, dh);
         }
         continue;
       }
-      // fall through if bitmap missing
     }
 
-    // Shape star — sprite
     const bucket = sizeBucket(sizePx);
     const sprite = getSprite(type.shape, type.color, bucket);
     ctx.globalAlpha = Math.min(1, alpha);
     if (s.rotation) {
       ctx.save();
-      ctx.translate(s.x, s.y);
+      ctx.translate(sx, sy);
       ctx.rotate(s.rotation * Math.PI / 180);
       ctx.drawImage(sprite.canvas, -bucket / 2, -bucket / 2, bucket, bucket);
       ctx.restore();
     } else {
-      ctx.drawImage(sprite.canvas, s.x - bucket / 2, s.y - bucket / 2, bucket, bucket);
+      ctx.drawImage(sprite.canvas, sx - bucket / 2, sy - bucket / 2, bucket, bucket);
     }
   }
 
