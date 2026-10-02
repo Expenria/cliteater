@@ -1,5 +1,5 @@
 /* =========================================================
-   star-worker.js  (v4)
+   star-worker.js  (v5 — direct draw, no batching)
    Runs the entire star simulation off the main thread.
 ========================================================= */
 'use strict';
@@ -32,7 +32,6 @@ let baseSpawnArmed = false;
 let nextBaseSpawnAt = 0;
 
 const imageCache = new Map();
-const pathCache = new Map();
 const imagePool = [];
 let unusedPool = [];
 
@@ -145,8 +144,14 @@ function recomputeBubbleMask() {
   const scale = 0.5;
   const cw = Math.max(1, Math.floor(W * scale));
   const ch = Math.max(1, Math.floor(H * scale));
-  if (!maskCanvas) { maskCanvas = new OffscreenCanvas(cw, ch); maskCtx = maskCanvas.getContext('2d'); }
-  else { maskCanvas.width = cw; maskCanvas.height = ch; maskCtx = maskCanvas.getContext('2d'); }
+  if (!maskCanvas) {
+    maskCanvas = new OffscreenCanvas(cw, ch);
+    maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+  } else {
+    maskCanvas.width = cw;
+    maskCanvas.height = ch;
+    maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+  }
   maskCtx.clearRect(0, 0, cw, ch);
   maskCtx.fillStyle = '#fff';
   maskCtx.textAlign = 'center';
@@ -361,6 +366,7 @@ const CULL_PAD = 32;
 function renderStars(now) {
   ctx.clearRect(0, 0, W, H);
 
+  // Bubble outline guide (drawn behind stars)
   if (activeEffect && activeEffect.type === 'bubble' && activeEffect.showOutline && (activeEffect.outlineOpacity ?? 0.5) > 0 && activeEffect.chars) {
     ctx.save();
     ctx.strokeStyle = activeEffect.outlineColor;
@@ -379,8 +385,6 @@ function renderStars(now) {
     }
     ctx.restore();
   }
-
-  pathCache.clear();
 
   for (let k = 0; k < liveTail; k++) {
     const i = liveIdx[k];
@@ -418,85 +422,61 @@ function renderStars(now) {
       }
     }
 
-    const bucketSize = size < 8 ? Math.round(size) : Math.round(size / 2) * 2;
-    const alphaBucket = alpha > 0.85 ? 3 : alpha > 0.5 ? 2 : 1;
-    const key = type.color + '|' + type.shape + '|' + bucketSize + '|' + alphaBucket;
-    let batch = pathCache.get(key);
-    if (!batch) {
-      batch = { path: new Path2D(), alpha: alpha > 0.85 ? 1 : (alpha > 0.5 ? 0.75 : 0.4),
-                color: type.color, shape: type.shape, size: bucketSize, stars: [] };
-      pathCache.set(key, batch);
-    }
-    batch.stars.push(s.x, s.y, s.rotation || 0);
-  }
-
-  for (const batch of pathCache.values()) {
-    const p = batch.path;
-    const sz = batch.size;
-    const pts = batch.stars;
-    for (let j = 0; j < pts.length; j += 3) {
-      addShapePath(p, batch.shape, sz, pts[j], pts[j + 1], pts[j + 2]);
-    }
-    ctx.globalAlpha = batch.alpha;
-    ctx.fillStyle = batch.color;
-    ctx.fill(p);
+    ctx.globalAlpha = Math.min(1, alpha);
+    ctx.fillStyle = type.color;
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    if (s.rotation) ctx.rotate(s.rotation * Math.PI / 180);
+    drawShape(ctx, 0, 0, size, type.shape);
+    ctx.restore();
   }
 
   ctx.globalAlpha = 1;
 }
 
-function addShapePath(p, shape, s, x, y, rotation) {
+function drawShape(ctx, x, y, s, shape) {
   const h = s / 2;
-  if (shape === 'circle') {
-    p.moveTo(x + h, y);
-    p.arc(x, y, h, 0, Math.PI * 2);
-    return;
-  }
-  const rad = rotation * Math.PI / 180;
-  const c = Math.cos(rad), sn = Math.sin(rad);
-  const tp = (px, py) => [px * c - py * sn + x, px * sn + py * c + y];
+  ctx.beginPath();
   switch (shape) {
-    case 'square': {
-      const [a, b] = tp(-h, -h), [c2, d] = tp(h, -h), [e, f] = tp(h, h), [g, k] = tp(-h, h);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.lineTo(g, k); p.closePath();
+    case 'circle':
+      ctx.arc(x, y, h, 0, Math.PI * 2);
+      ctx.fill();
       return;
-    }
-    case 'triangle': {
-      const [a, b] = tp(0, -s * 0.62);
-      const [c2, d] = tp(s * 0.58, s * 0.42);
-      const [e, f] = tp(-s * 0.58, s * 0.42);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.closePath();
+    case 'square':
+      ctx.fillRect(x - h, y - h, s, s);
       return;
-    }
-    case 'diamond': {
-      const [a, b] = tp(0, -s * 0.65);
-      const [c2, d] = tp(s * 0.65, 0);
-      const [e, f] = tp(0, s * 0.65);
-      const [g, k] = tp(-s * 0.65, 0);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.lineTo(g, k); p.closePath();
+    case 'triangle':
+      ctx.moveTo(x, y - s * 0.62);
+      ctx.lineTo(x + s * 0.58, y + s * 0.42);
+      ctx.lineTo(x - s * 0.58, y + s * 0.42);
+      ctx.closePath();
+      ctx.fill();
       return;
-    }
-    case 'star': {
+    case 'diamond':
+      ctx.moveTo(x, y - s * 0.65);
+      ctx.lineTo(x + s * 0.65, y);
+      ctx.lineTo(x, y + s * 0.65);
+      ctx.lineTo(x - s * 0.65, y);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    case 'star':
       for (let i = 0; i < 10; i++) {
         const r = (i % 2 === 0) ? s * 0.72 : s * 0.30;
         const a = -Math.PI / 2 + i * Math.PI / 5;
-        const [X, Y] = tp(Math.cos(a) * r, Math.sin(a) * r);
-        if (i === 0) p.moveTo(X, Y); else p.lineTo(X, Y);
+        const px = Math.cos(a) * r, py = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
-      p.closePath();
+      ctx.closePath();
+      ctx.fill();
       return;
-    }
     case 'plus': {
       const t = Math.max(1, s * 0.34);
-      let [a, b] = tp(-t / 2, -h), [c2, d] = tp(t / 2, -h), [e, f] = tp(t / 2, h), [g, k] = tp(-t / 2, h);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.lineTo(g, k); p.closePath();
-      [a, b] = tp(-h, -t / 2); [c2, d] = tp(h, -t / 2); [e, f] = tp(h, t / 2); [g, k] = tp(-h, t / 2);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.lineTo(g, k); p.closePath();
+      ctx.fillRect(x - t / 2, y - h, t, s);
+      ctx.fillRect(x - h, y - t / 2, s, t);
       return;
     }
-    default: {
-      const [a, b] = tp(-h, -h), [c2, d] = tp(h, -h), [e, f] = tp(h, h), [g, k] = tp(-h, h);
-      p.moveTo(a, b); p.lineTo(c2, d); p.lineTo(e, f); p.lineTo(g, k); p.closePath();
-    }
+    default:
+      ctx.fillRect(x - h, y - h, s, s);
   }
 }
