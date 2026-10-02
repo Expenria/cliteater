@@ -431,6 +431,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 
   disableEditing();
   initStarWorker();
+  buildGui();
 
   await mp3Boot();
 
@@ -463,19 +464,16 @@ function initStarWorker(){
   canvas.style.height = h + 'px';
 
   let offscreen;
-  try {
-    offscreen = canvas.transferControlToOffscreen();
-  } catch (e) {
-    console.error('OffscreenCanvas transfer failed:', e);
-    return;
-  }
+  try { offscreen = canvas.transferControlToOffscreen(); }
+  catch (e) { console.error('OffscreenCanvas transfer failed:', e); return; }
 
   try {
-    starWorker = new Worker('star-worker.js');
+    starWorker = new Worker('star-worker.js?v=' + Date.now());
   } catch (e) {
     console.error('Worker spawn failed:', e);
     return;
   }
+
   starWorker.onmessage = handleWorkerMessage;
   starWorker.onerror = (e) => console.error('[star-worker error]', e.message);
   starWorker.postMessage({ type: 'canvas', canvas: offscreen, w, h, dpr }, [offscreen]);
@@ -499,6 +497,9 @@ function handleWorkerMessage(ev){
     }
     case 'flash':
       flashScreen(m.color);
+      break;
+    case 'canvas-ready':
+      console.log('[star-worker] canvas ready:', m);
       break;
     case 'error':
       console.error('[star-worker]', m.message);
