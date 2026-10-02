@@ -1,20 +1,25 @@
 /* =========================================================
-   star-worker.js  (v5 — direct draw, no batching)
-   Runs the entire star simulation off the main thread.
+   star-worker.js  (v6)
+   - Relative coordinates (all positions/sizes are 0..1 fractions)
+   - Fixed-timestep sim, decoupled from render loop
+   - Sprite-based rendering (pre-rendered shape bitmaps, drawImage)
+   - DPR-aware, cache-safe, LRU-bounded sprite cache
 ========================================================= */
 'use strict';
 
 let canvas = null;
 let ctx = null;
-let W = 1, H = 1, DPR = 1;
+let W = 1, H = 1, DPR = 1, MIN_DIM = 1;
 
+// Coordinate convention: everything stored as fractions.
+// x: 0..1 of W    y: 0..1 of H    size: 0..1 of MIN_DIM
 let cfg = {
   global:  { maxStars: 500, triggerEnabled: false },
   base:    { enabled: true, initialDelay: 800, spawnInterval: 400, reproChance: 3, tickMs: 500,
-             lifespan: 5, color: '#ffffff', shape: 'square', size: 3, fadeIn: 0.4, fadeOut: 0.5,
+             lifespan: 5, color: '#ffffff', shape: 'square', size: 0.004, fadeIn: 0.4, fadeOut: 0.5,
              flashOut: true, randomRotation: false },
   spawned: { enabled: true, reproChance: 5, tickMs: 200, lifespan: 3, color: '#a5b4fc', shape: 'square',
-             size: 3, fadeIn: 0.4, fadeOut: 0.5, flashOut: true, randomRotation: false },
+             size: 0.004, fadeIn: 0.4, fadeOut: 0.5, flashOut: true, randomRotation: false },
   effects: [],
   activeEffectId: null
 };
@@ -37,6 +42,11 @@ let unusedPool = [];
 
 let bubbleMask = null;
 
+// -------- Sprite cache --------
+const MAX_SPRITES = 256;
+const spriteCache = new Map();   // key -> { canvas, size }
+const spriteLRU = [];            // array of keys, oldest first
+
 function resetPool() {
   for (let i = 0; i < MAX_POOL; i++) {
     pool[i] = { alive:false, x:0, y:0, isBase:false, birth:0, deathStart:0, nextTick:0, imgUrl:null, rotation:0 };
@@ -51,23 +61,38 @@ resetPool();
 function allocSlot() { return poolFreeTop > 0 ? poolFree[--poolFreeTop] : -1; }
 function addLive(i) { liveIdx[liveTail++] = i; }
 
-let raf = false;
+// -------- Timing --------
+let rafActive = false;
 let lastFrameAt = 0;
+let simAccumulator = 0;
 let lastCountMsgAt = 0;
+const SIM_STEP_MS = 1000 / 60;
+const MAX_CATCHUP_MS = 200;      // clamp to avoid spiral of death
 const COUNT_MSG_INTERVAL = 100;
 
+const raf = (typeof requestAnimationFrame !== 'undefined')
+  ? requestAnimationFrame
+  : (cb) => setTimeout(() => cb(performance.now()), 16);
+
+// -------- Messaging --------
 self.onmessage = function (ev) {
   const m = ev.data || {};
   switch (m.type) {
     case 'canvas':
       canvas = m.canvas;
-      W = m.w; H = m.h; DPR = m.dpr;
-      canvas.width = W * DPR;
-      canvas.height = H * DPR;
+      W = m.w; H = m.h; DPR = m.dpr || 1;
+      MIN_DIM = Math.min(W, H);
+      canvas.width = Math.max(1, Math.floor(W * DPR));
+      canvas.height = Math.max(1, Math.floor(H * DPR));
       ctx = canvas.getContext('2d');
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      clearSpriteCache();
       postMsg({ type: 'canvas-ready', W, H, DPR, cw: canvas.width, ch: canvas.height });
-      if (!raf) { raf = true; lastFrameAt = performance.now(); requestAnimationFrame(loop); }
+      if (!rafActive) {
+        rafActive = true;
+        lastFrameAt = performance.now();
+        raf(masterLoop);
+      }
       break;
 
     case 'init':
@@ -93,22 +118,30 @@ self.onmessage = function (ev) {
     case 'image-pool':
       if (activeEffect && activeEffect.type === 'images') {
         activeEffect.exceptions = m.exceptions || {};
-        activeEffect.defaultSize = m.defaultSize || 60;
+        activeEffect.defaultSize = m.defaultSize || 0.086;
         loadImagePool(m.urls || []);
       }
       break;
 
-    case 'reset': resetSim(); break;
-
-    case 'resize':
-      W = m.w; H = m.h; DPR = m.dpr;
-      canvas.width = W * DPR;
-      canvas.height = H * DPR;
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      if (activeEffect && activeEffect.type === 'bubble') recomputeBubbleMask();
+    case 'reset':
+      resetSim();
       break;
 
-    case 'shutdown': raf = false; break;
+    case 'resize': {
+      const oldDpr = DPR;
+      W = m.w; H = m.h; DPR = m.dpr || 1;
+      MIN_DIM = Math.min(W, H);
+      canvas.width = Math.max(1, Math.floor(W * DPR));
+      canvas.height = Math.max(1, Math.floor(H * DPR));
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (oldDpr !== DPR) clearSpriteCache();
+      if (activeEffect && activeEffect.type === 'bubble') recomputeBubbleMask();
+      break;
+    }
+
+    case 'shutdown':
+      rafActive = false;
+      break;
   }
 };
 
@@ -135,6 +168,9 @@ function resetSim() {
   nextBaseSpawnAt = performance.now() + (cfg.base.initialDelay || 0);
 }
 
+// =========================================================
+// Bubble mask
+// =========================================================
 let maskCanvas = null, maskCtx = null;
 
 function recomputeBubbleMask() {
@@ -158,10 +194,14 @@ function recomputeBubbleMask() {
   maskCtx.textBaseline = 'middle';
   for (const c of activeEffect.chars) {
     if (!c.char) continue;
+    // coords are fractions → convert to CSS px for drawing on the scaled mask
+    const cx = c.x * W;
+    const cy = c.y * H;
+    const csize = c.size * MIN_DIM;
     maskCtx.save();
-    maskCtx.translate(c.x * scale, c.y * scale);
+    maskCtx.translate(cx * scale, cy * scale);
     if (c.rotation) maskCtx.rotate(c.rotation * Math.PI / 180);
-    maskCtx.font = `900 ${Math.max(1, c.size * scale)}px 'Arial Black', Arial, sans-serif`;
+    maskCtx.font = `900 ${Math.max(1, csize * scale)}px 'Arial Black', Arial, sans-serif`;
     maskCtx.fillText(c.char, 0, 0);
     maskCtx.restore();
   }
@@ -231,6 +271,9 @@ function getSpawnPoint(effect) {
   spawnPointY = Math.random() * H;
 }
 
+// =========================================================
+// Image pool
+// =========================================================
 async function loadImagePool(urls) {
   imagePool.length = 0;
   unusedPool = [];
@@ -248,7 +291,7 @@ async function loadImagePool(urls) {
         imageCache.set(url, bmp);
       }
       imagePool.push(url);
-    } catch (e) { /* skip broken */ }
+    } catch (e) { /* skip */ }
   }
   if (!imagePool.length) {
     postMsg({ type: 'image-status', loaded: 0, error: 'Could not load any images.' });
@@ -269,6 +312,9 @@ function pickNextImage() {
   return unusedPool.pop();
 }
 
+// =========================================================
+// Spawn / kill
+// =========================================================
 function spawnStar(isBase) {
   const i = allocSlot();
   if (i < 0) return;
@@ -305,10 +351,11 @@ function killStar(i) {
   poolFree[poolFreeTop++] = i;
 }
 
-function loop() {
-  if (!raf || !ctx) return;
-  const now = performance.now();
-
+// =========================================================
+// Sim step — no rendering
+// =========================================================
+function stepSim(now) {
+  // Base spawn gate
   const hasSpawned = liveSpawnedCount > 0;
   if (hasSpawned) {
     baseSpawnArmed = false;
@@ -323,6 +370,7 @@ function loop() {
     }
   }
 
+  // Tick stars — snapshot liveTail so newborns don't tick this step
   const tickEnd = liveTail;
   for (let k = 0; k < tickEnd; k++) {
     const i = liveIdx[k];
@@ -338,6 +386,7 @@ function loop() {
     }
   }
 
+  // Compact live list
   let w = 0;
   for (let k = 0; k < liveTail; k++) {
     const i = liveIdx[k];
@@ -345,41 +394,147 @@ function loop() {
   }
   liveTail = w;
 
+  // N-trigger
   if (cfg.global.triggerEnabled && liveCount >= cfg.global.maxStars) {
     const c = (activeEffect && activeEffect.flashColor) ? activeEffect.flashColor : '#ffffff';
     postMsg({ type: 'flash', color: c });
     resetSim();
   }
 
-  renderStars(now);
-
+  // Count message (throttled)
   if (now - lastCountMsgAt > COUNT_MSG_INTERVAL) {
     lastCountMsgAt = now;
     postMsg({ type: 'count', total: liveCount, base: liveBaseCount, spawned: liveSpawnedCount });
   }
-
-  requestAnimationFrame(loop);
 }
 
+// =========================================================
+// Master loop — fixed-step sim, per-frame render
+// =========================================================
+function masterLoop() {
+  if (!rafActive || !ctx) return;
+  const now = performance.now();
+  let elapsed = now - lastFrameAt;
+  lastFrameAt = now;
+  if (elapsed > MAX_CATCHUP_MS) elapsed = MAX_CATCHUP_MS;
+  simAccumulator += elapsed;
+
+  let steps = 0;
+  while (simAccumulator >= SIM_STEP_MS && steps < 20) {
+    simAccumulator -= SIM_STEP_MS;
+    stepSim(now);
+    steps++;
+  }
+
+  renderFrame(now);
+  raf(masterLoop);
+}
+
+// =========================================================
+// Sprite cache
+// =========================================================
+function clearSpriteCache() {
+  spriteCache.clear();
+  spriteLRU.length = 0;
+}
+
+function sizeBucket(sizePx) {
+  if (sizePx < 4) return Math.max(1, Math.ceil(sizePx));
+  return Math.max(4, Math.round(sizePx / 2) * 2);
+}
+
+function getSprite(shape, color, bucket) {
+  const key = shape + '|' + color + '|' + bucket;
+  let sprite = spriteCache.get(key);
+  if (sprite) return sprite;
+
+  const px = Math.max(2, Math.ceil(bucket * DPR));
+  const c = new OffscreenCanvas(px, px);
+  const sctx = c.getContext('2d');
+  sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  sctx.fillStyle = color;
+  sctx.strokeStyle = color;
+
+  // Draw the shape centered at bucket/2, bucket/2 in CSS px
+  const h = bucket / 2;
+  const cx = h, cy = h;
+  sctx.beginPath();
+  switch (shape) {
+    case 'circle':
+      sctx.arc(cx, cy, h, 0, Math.PI * 2);
+      sctx.fill();
+      break;
+    case 'square':
+      sctx.fillRect(cx - h, cy - h, bucket, bucket);
+      break;
+    case 'triangle':
+      sctx.moveTo(cx, cy - bucket * 0.62);
+      sctx.lineTo(cx + bucket * 0.58, cy + bucket * 0.42);
+      sctx.lineTo(cx - bucket * 0.58, cy + bucket * 0.42);
+      sctx.closePath();
+      sctx.fill();
+      break;
+    case 'diamond':
+      sctx.moveTo(cx, cy - bucket * 0.65);
+      sctx.lineTo(cx + bucket * 0.65, cy);
+      sctx.lineTo(cx, cy + bucket * 0.65);
+      sctx.lineTo(cx - bucket * 0.65, cy);
+      sctx.closePath();
+      sctx.fill();
+      break;
+    case 'star':
+      for (let i = 0; i < 10; i++) {
+        const r = (i % 2 === 0) ? bucket * 0.72 : bucket * 0.30;
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const sxp = cx + Math.cos(a) * r;
+        const syp = cy + Math.sin(a) * r;
+        if (i === 0) sctx.moveTo(sxp, syp); else sctx.lineTo(sxp, syp);
+      }
+      sctx.closePath();
+      sctx.fill();
+      break;
+    case 'plus': {
+      const t = Math.max(1, bucket * 0.34);
+      sctx.fillRect(cx - t / 2, cy - h, t, bucket);
+      sctx.fillRect(cx - h, cy - t / 2, bucket, t);
+      break;
+    }
+    default:
+      sctx.fillRect(cx - h, cy - h, bucket, bucket);
+  }
+
+  sprite = { canvas: c, size: bucket };
+  spriteCache.set(key, sprite);
+  spriteLRU.push(key);
+  while (spriteLRU.length > MAX_SPRITES) {
+    const old = spriteLRU.shift();
+    spriteCache.delete(old);
+  }
+  return sprite;
+}
+
+// =========================================================
+// Render — no state changes
+// =========================================================
 const CULL_PAD = 32;
 
-function renderStars(now) {
+function renderFrame(now) {
   ctx.clearRect(0, 0, W, H);
 
-  // Bubble outline guide (drawn behind stars)
+  // Bubble outline guide
   if (activeEffect && activeEffect.type === 'bubble' && activeEffect.showOutline && (activeEffect.outlineOpacity ?? 0.5) > 0 && activeEffect.chars) {
     ctx.save();
     ctx.strokeStyle = activeEffect.outlineColor;
     ctx.globalAlpha = Math.min(1, Math.max(0, activeEffect.outlineOpacity ?? 0.5));
-    ctx.lineWidth = activeEffect.outlineWidth;
+    ctx.lineWidth = Math.max(1, (activeEffect.outlineWidth || 0) * MIN_DIM);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const c of activeEffect.chars) {
       if (!c.char) continue;
       ctx.save();
-      ctx.translate(c.x, c.y);
+      ctx.translate(c.x * W, c.y * H);
       if (c.rotation) ctx.rotate(c.rotation * Math.PI / 180);
-      ctx.font = `900 ${c.size}px 'Arial Black', Arial, sans-serif`;
+      ctx.font = `900 ${Math.max(1, c.size * MIN_DIM)}px 'Arial Black', Arial, sans-serif`;
       ctx.strokeText(c.char, 0, 0);
       ctx.restore();
     }
@@ -395,88 +550,54 @@ function renderStars(now) {
     const type = s.isBase ? cfg.base : cfg.spawned;
     const fi = Math.max(1, type.fadeIn * 1000);
     const fo = Math.max(1, type.fadeOut * 1000);
-    let alpha = 1, size = type.size;
+    const baseSizePx = Math.max(0.5, type.size * MIN_DIM);
+    let alpha = 1, sizePx = baseSizePx;
+
     if (now < s.birth + fi) alpha = (now - s.birth) / fi;
     else if (now >= s.deathStart) {
       const t = (now - s.deathStart) / fo;
-      if (type.flashOut) { alpha = (1 - t) * (1 - t); size = type.size * (1 + t * 2.5); }
+      if (type.flashOut) { alpha = (1 - t) * (1 - t); sizePx = baseSizePx * (1 + t * 2.5); }
       else alpha = 1 - t;
     }
     if (alpha <= 0) continue;
 
+    // Image star
     if (s.imgUrl) {
       const bmp = imageCache.get(s.imgUrl);
       if (bmp) {
-        const sizePx = (activeEffect && activeEffect.exceptions && activeEffect.exceptions[s.imgUrl]) ||
-                       (activeEffect ? activeEffect.defaultSize : 60);
+        const sizePxImg = Math.max(4, (((activeEffect.exceptions && activeEffect.exceptions[s.imgUrl]) || activeEffect.defaultSize) || 0.086) * MIN_DIM);
         const aspect = bmp.width / bmp.height;
         let dw, dh;
-        if (aspect > 1) { dw = sizePx; dh = sizePx / aspect; } else { dw = sizePx * aspect; dh = sizePx; }
+        if (aspect > 1) { dw = sizePxImg; dh = sizePxImg / aspect; } else { dw = sizePxImg * aspect; dh = sizePxImg; }
         ctx.globalAlpha = Math.min(1, alpha);
-        ctx.save();
-        ctx.translate(s.x, s.y);
-        if (s.rotation) ctx.rotate(s.rotation * Math.PI / 180);
-        ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
-        ctx.restore();
+        if (s.rotation) {
+          ctx.save();
+          ctx.translate(s.x, s.y);
+          ctx.rotate(s.rotation * Math.PI / 180);
+          ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
+          ctx.restore();
+        } else {
+          ctx.drawImage(bmp, s.x - dw / 2, s.y - dh / 2, dw, dh);
+        }
         continue;
       }
+      // fall through if bitmap missing
     }
 
+    // Shape star — sprite
+    const bucket = sizeBucket(sizePx);
+    const sprite = getSprite(type.shape, type.color, bucket);
     ctx.globalAlpha = Math.min(1, alpha);
-    ctx.fillStyle = type.color;
-    ctx.save();
-    ctx.translate(s.x, s.y);
-    if (s.rotation) ctx.rotate(s.rotation * Math.PI / 180);
-    drawShape(ctx, 0, 0, size, type.shape);
-    ctx.restore();
+    if (s.rotation) {
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rotation * Math.PI / 180);
+      ctx.drawImage(sprite.canvas, -bucket / 2, -bucket / 2, bucket, bucket);
+      ctx.restore();
+    } else {
+      ctx.drawImage(sprite.canvas, s.x - bucket / 2, s.y - bucket / 2, bucket, bucket);
+    }
   }
 
   ctx.globalAlpha = 1;
-}
-
-function drawShape(ctx, x, y, s, shape) {
-  const h = s / 2;
-  ctx.beginPath();
-  switch (shape) {
-    case 'circle':
-      ctx.arc(x, y, h, 0, Math.PI * 2);
-      ctx.fill();
-      return;
-    case 'square':
-      ctx.fillRect(x - h, y - h, s, s);
-      return;
-    case 'triangle':
-      ctx.moveTo(x, y - s * 0.62);
-      ctx.lineTo(x + s * 0.58, y + s * 0.42);
-      ctx.lineTo(x - s * 0.58, y + s * 0.42);
-      ctx.closePath();
-      ctx.fill();
-      return;
-    case 'diamond':
-      ctx.moveTo(x, y - s * 0.65);
-      ctx.lineTo(x + s * 0.65, y);
-      ctx.lineTo(x, y + s * 0.65);
-      ctx.lineTo(x - s * 0.65, y);
-      ctx.closePath();
-      ctx.fill();
-      return;
-    case 'star':
-      for (let i = 0; i < 10; i++) {
-        const r = (i % 2 === 0) ? s * 0.72 : s * 0.30;
-        const a = -Math.PI / 2 + i * Math.PI / 5;
-        const px = Math.cos(a) * r, py = Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.fill();
-      return;
-    case 'plus': {
-      const t = Math.max(1, s * 0.34);
-      ctx.fillRect(x - t / 2, y - h, t, s);
-      ctx.fillRect(x - h, y - t / 2, s, t);
-      return;
-    }
-    default:
-      ctx.fillRect(x - h, y - h, s, s);
-  }
 }
