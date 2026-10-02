@@ -79,7 +79,6 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 #tb-settings .row>label{color:#a1a1aa;font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;gap:8px}
 #tb-settings .row>label .lbl-text{flex:1}
 #tb-settings input.num-inline{width:76px;background:#0f0f11;border:1px solid #27272a;border-radius:5px;padding:2px 6px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
-#tb-settings input.num-inline:focus{outline:none;border-color:#6366f1}
 #tb-settings input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
 #tb-settings input[type="color"]{width:100%;height:26px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:5px}
 #tb-settings textarea,#tb-settings select,#tb-settings input[type="text"]{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#e4e4e7;font-size:11px;font-family:inherit}
@@ -109,7 +108,6 @@ body.is-editing #textbox-layer .text-box.selected .tb-rz{display:block}
 .row>label{color:#a1a1aa;font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.02em;gap:8px}
 .row>label .lbl-text{flex:1}
 input.num-inline{width:88px;background:#0f0f11;border:1px solid #27272a;border-radius:5px;padding:2px 6px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
-input.num-inline:focus{outline:none;border-color:#6366f1}
 input[type="range"]{width:100%;accent-color:#6366f1;height:4px}
 input[type="color"]{width:100%;height:28px;padding:2px;cursor:pointer;background:#0f0f11;border:1px solid #27272a;border-radius:6px}
 input[type="text"],textarea.gui-text{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#e4e4e7;font-size:11px;font-family:inherit}
@@ -121,9 +119,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .toggle-switch.on::after{transform:translateX(14px)}
 .gui-btn{width:100%;padding:7px;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;border:none}
 .gui-btn.danger{background:#7f1d1d;color:#fecaca}
-.gui-btn.danger:hover{background:#991b1b}
 .gui-btn.primary{background:#6366f1;color:#fff}
-.gui-btn.primary:hover{background:#818cf8}
 .gui-btn.ghost{background:#27272a;color:#d4d4d8}
 .gui-btn.ghost:hover{background:#3f3f46}
 .effect-item{display:flex;flex-direction:column;background:#1a1a1e;border:1px solid #27272a;border-radius:8px;overflow:hidden}
@@ -137,7 +133,7 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 .effect-del{color:#71717a;font-size:12px;padding:2px 4px;cursor:pointer}
 .effect-del:hover{color:#ef4444}
 .effect-settings{padding:10px;display:flex;flex-direction:column;gap:9px;border-top:1px solid #27272a;background:#141416}
-.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.char-header-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;font-size:9px;color:#71717a;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:0 1px}
 .char-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 20px;gap:3px;align-items:center;margin-bottom:3px}
 .char-row input.mini{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:4px;padding:3px 2px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace}
 .char-row input.char-glyph{color:#f0abfc;font-weight:700}
@@ -158,7 +154,6 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 #mp3-controls{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:45;background:#18181b;border:1px solid #27272a;border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:11px;color:#d4d4d8}
 #mp3-controls.hidden{display:none}
 #mp3-controls button{background:#27272a;color:#e4e4e7;border:none;border-radius:999px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px}
-#mp3-controls button:hover{background:#3f3f46}
 #mp3-controls .mp3-speed-wrap{display:flex;align-items:center;gap:6px}
 #mp3-controls input[type="range"]{width:80px;accent-color:#6366f1}
 #mp3-controls .mp3-sep{width:1px;height:18px;background:#27272a}
@@ -183,7 +178,6 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 .mp3-track-item .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e4e4e7}
 .mp3-track-item .dur{color:#71717a;font-family:ui-monospace,monospace;font-size:10px}
 .mp3-track-item button{background:#27272a;color:#d4d4d8;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer}
-.mp3-track-item button:hover{background:#3f3f46}
 .mp3-track-item button.del:hover{background:#7f1d1d;color:#fecaca}
 .mp3-word-list{max-height:220px;overflow-y:auto;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:1px}
 .mp3-word-row{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;font-size:10.5px;cursor:pointer;font-family:ui-monospace,monospace}
@@ -197,18 +191,13 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 .mp3-big-word{padding:12px;background:#0f0f11;border:1px solid #27272a;border-radius:8px;font-family:ui-monospace,monospace;font-size:20px;text-align:center;color:#f0abfc;font-weight:700;min-height:52px;display:flex;align-items:center;justify-content:center;word-break:break-all}
 .mp3-nav{display:flex;gap:6px}
 .mp3-nav button{flex:1;background:#27272a;color:#d4d4d8;border:none;border-radius:6px;padding:6px;font-size:11px;cursor:pointer;font-weight:500}
-.mp3-nav button:hover{background:#3f3f46}
 .mp3-nav button.primary{background:#6366f1;color:#fff}
-.mp3-nav button.primary:hover{background:#818cf8}
 .mp3-time-row{display:flex;gap:6px;align-items:center}
 .mp3-time-row input[type="number"]{flex:1;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right}
 .mp3-time-row button{background:#27272a;color:#d4d4d8;border:none;border-radius:6px;padding:5px 8px;font-size:10.5px;cursor:pointer;white-space:nowrap}
-.mp3-time-row button:hover{background:#3f3f46}
 .mp3-audio-pos{font-family:ui-monospace,monospace;font-size:10px;color:#71717a;text-align:center;padding:4px;background:#0f0f11;border-radius:4px;border:1px solid #27272a}
 .mp3-hint{font-size:10px;color:#71717a;line-height:1.4}
 .mp3-tag{font-size:9.5px;padding:2px 6px;border-radius:4px;display:inline-block}
-.mp3-tag.ok{background:#052e16;color:#86efac}
-.mp3-tag.err{background:#450a0a;color:#fca5a5}
 .mp3-tag.warn{background:#422006;color:#fbbf24}
 </style>
 </head>
@@ -229,7 +218,7 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
       <a id="page-badge" href="index.html" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all">🔇 silencio</a>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
-      <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"><i class="fa-solid fa-code"></i> Export Code</button>
+      <button id="export-btn" onclick="exportHTML()" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-code"></i> Export Code</button>
       <button id="reset-btn" onclick="resetCanvas()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-rotate-left"></i> Reset</button>
       <button id="star-gui-btn" onclick="toggleStarGui()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-star"></i> Star Settings</button>
       <button id="mp3-panel-btn" onclick="toggleMp3Panel()" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-2"><i class="fa-solid fa-headphones"></i> MP3 Sync</button>
@@ -243,8 +232,8 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
   <button onclick="execCmd('italic')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-italic"></i></button>
   <button onclick="execCmd('underline')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-underline"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
-  <label class="tb-tool" title="Text colour"><i class="fa-solid fa-palette"></i><input type="color" id="text-color-input" value="#f3f4f6"></label>
-  <button onclick="clearContentColor()" title="Clear colour" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-eraser"></i></button>
+  <label class="tb-tool"><i class="fa-solid fa-palette"></i><input type="color" id="text-color-input" value="#f3f4f6"></label>
+  <button onclick="clearContentColor()" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-eraser"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
   <button onclick="addBlock('h1')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold">H1</button>
   <button onclick="addBlock('h2')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-bold">H2</button>
@@ -285,19 +274,11 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
-    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">SeventhoftheTenthoftheTwenty-SixthyearoftheSecondMillenia</h1></div>
-    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Wallahi I'm not ready to start typing this shit🙏</p></div>
-    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">or read it because this is the version where I actually voice what's on the page....😭 idk why I did this to myself</blockquote></div>
-    <div class="edit-block group relative"><p class="text-base text-zinc-400 font-light leading-relaxed">Once upon a time. In the most United of Kingdoms💔. Lived a brown yute with the initials JMV.
-
-Against all logic, per her persona, JMV decided to step foot into St Bernards, fully convinced this was a great step forward for future growth. Subsequently, the universe hit her with a side quest: in the form of meeting a certain negro with the initials GT. Things were looking almost interesting for a 100 days—until GT did the absolute ultimate ghosting maneuver and evaporated into thin air, leaving JMV alone to suffer through the tragic, unglamorous reality of living life GT-less like a tragic side character.
-
-Fast forward through a few months of coping and tragic violin solos to the summer, where JMV finally made herself useful and got a job, trading her precious sanity for a paycheck. (Less than 60 a week btw).
-
-Now we land right at the end of September. The summer money is already drying up, the ghost of GT is still nowhere to be found, and JMV is standing there questioning every decision that led her here... but where's Gonza?</p></div>
-    <div class="edit-block group relative"><p class="text-base text-zinc-400 font-light leading-relaxed">Where do I actually start wallahi I'm lost</p></div>
+    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">BLABLABLA 🎧</h1></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere. Click any word to hear it.</p></div>
+    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Stars seed the field. Effects reshape it."</blockquote></div>
   </div>
-  <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
+  <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4">
     <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto"><i class="fa-solid fa-plus"></i> Click to add a new text block</button>
   </div>
 </main>
@@ -313,10 +294,7 @@ Now we land right at the end of September. The summer money is already drying up
     <span id="mp3-speed-label" class="mp3-time">1.00×</span>
   </div>
   <div class="mp3-sep"></div>
-  <label title="Click any word to hear it">
-    <input type="checkbox" id="mp3-wordclick-toggle" checked>
-    <span>Click words</span>
-  </label>
+  <label><input type="checkbox" id="mp3-wordclick-toggle" checked><span>Click words</span></label>
 </div>
 
 <div id="password-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -342,7 +320,7 @@ Now we land right at the end of September. The summer money is already drying up
       <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Export Page</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, star settings, <strong class="text-emerald-400">and MP3 labels</strong> baked in. MP3 audio files are <em>not</em> baked — re-import them or use URL sources.</p>
+    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, star settings, and MP3 labels baked in. MP3 audio files are <em>not</em> baked — re-import them or use URL sources.</p>
     <div id="export-status" class="hidden text-xs"></div>
     <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none" placeholder="Generating..."></textarea>
     <div class="flex justify-end gap-3">
@@ -398,10 +376,19 @@ const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 const mp3PanelBtn=document.getElementById('mp3-panel-btn');
 
+// Coordinate system: every position/size in the star config is a FRACTION.
+//   x: 0..1 of viewport width
+//   y: 0..1 of viewport height
+//   size-like values: 0..1 of MIN(W, H)
+// Helpers convert to/from pixels for display and DOM positioning.
+const MIN_DIM = () => Math.min(window.innerWidth, window.innerHeight);
+const pxFromSize = (frac) => frac * MIN_DIM();
+const sizeFromPx = (px) => px / MIN_DIM();
+
 const cfg={
   global:{maxStars:500,triggerEnabled:false},
-  base:{enabled:true,initialDelay:800,spawnInterval:400,reproChance:3,tickMs:500,lifespan:5,color:'#ffffff',shape:'square',size:3,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
-  spawned:{enabled:true,reproChance:5,tickMs:200,lifespan:3,color:'#a5b4fc',shape:'square',size:3,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
+  base:{enabled:true,initialDelay:800,spawnInterval:400,reproChance:3,tickMs:500,lifespan:5,color:'#ffffff',shape:'square',size:0.004,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
+  spawned:{enabled:true,reproChance:5,tickMs:200,lifespan:3,color:'#a5b4fc',shape:'square',size:0.004,fadeIn:0.4,fadeOut:0.5,flashOut:true,randomRotation:false},
   effects:[],
   activeEffectId:null
 };
@@ -458,8 +445,8 @@ function initStarWorker(){
   const canvas = document.getElementById('star-canvas');
   const w = window.innerWidth, h = window.innerHeight;
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
 
@@ -467,12 +454,8 @@ function initStarWorker(){
   try { offscreen = canvas.transferControlToOffscreen(); }
   catch (e) { console.error('OffscreenCanvas transfer failed:', e); return; }
 
-  try {
-    starWorker = new Worker('star-worker.js?v=' + Date.now());
-  } catch (e) {
-    console.error('Worker spawn failed:', e);
-    return;
-  }
+  try { starWorker = new Worker('star-worker.js?v=' + Date.now()); }
+  catch (e) { console.error('Worker spawn failed:', e); return; }
 
   starWorker.onmessage = handleWorkerMessage;
   starWorker.onerror = (e) => console.error('[star-worker error]', e.message);
@@ -495,15 +478,9 @@ function handleWorkerMessage(ev){
       if (el) el.textContent = `${m.total}★ (${m.base}B / ${m.spawned}S)`;
       break;
     }
-    case 'flash':
-      flashScreen(m.color);
-      break;
-    case 'canvas-ready':
-      console.log('[star-worker] canvas ready:', m);
-      break;
-    case 'error':
-      console.error('[star-worker]', m.message);
-      break;
+    case 'flash': flashScreen(m.color); break;
+    case 'canvas-ready': console.log('[star-worker] canvas ready:', m); break;
+    case 'error': console.error('[star-worker]', m.message); break;
     case 'image-status': {
       const eff = getActiveEffect();
       if (eff && eff.type === 'images') {
@@ -519,7 +496,6 @@ function handleWorkerMessage(ev){
 }
 
 function fullCfgForWorker(){
-  // Strip transient fields the worker recomputes anyway
   const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
     if (key === 'maskData' || key === 'spawnPoints') return undefined;
     if (key === 'unusedPool') return undefined;
@@ -543,21 +519,16 @@ function postChars(immediate){
   if (!starWorker) return;
   const eff = getActiveEffect();
   if (!eff || eff.type !== 'bubble') return;
-  const send = () => {
-    if (starWorker) starWorker.postMessage({ type: 'chars', chars: eff.chars });
-  };
+  const send = () => { if (starWorker) starWorker.postMessage({ type: 'chars', chars: eff.chars }); };
   if (immediate) {
     if (_postCharsTimer) { clearTimeout(_postCharsTimer); _postCharsTimer = null; }
-    send();
-    return;
+    send(); return;
   }
   if (_postCharsTimer) return;
   _postCharsTimer = setTimeout(() => { _postCharsTimer = null; send(); }, 50);
 }
 
-function postReset(){
-  if (starWorker) starWorker.postMessage({ type: 'reset' });
-}
+function postReset(){ if (starWorker) starWorker.postMessage({ type: 'reset' }); }
 
 function postImagePool(){
   if (!starWorker) return;
@@ -567,22 +538,58 @@ function postImagePool(){
     type: 'image-pool',
     urls: eff.imagePool || [],
     exceptions: eff.exceptions || {},
-    defaultSize: eff.defaultSize || 60
+    defaultSize: eff.defaultSize || 0.086
   });
 }
 
 /* =========================================================
-   STAR CONFIG (main-side copy for GUI + storage)
+   STAR CONFIG
 ========================================================= */
+function needsReset(p){
+  if (!p) return false;
+  if (p.effects && Array.isArray(p.effects)) {
+    for (const eff of p.effects) {
+      if (eff.type === 'bubble' && Array.isArray(eff.chars)) {
+        for (const c of eff.chars) {
+          if (c && (c.x > 1 || c.y > 1 || c.size > 1)) return true;
+        }
+      }
+    }
+  }
+  if (p.base && p.base.size > 1) return true;
+  if (p.spawned && p.spawned.size > 1) return true;
+  return false;
+}
 function loadStarConfig(){
   const saved = localStorage.getItem(STORAGE.star);
   if (saved) {
-    try { const p = JSON.parse(saved); applyConfigObject(p); cfg.global.triggerEnabled = false; return; } catch(e) {}
+    try {
+      const p = JSON.parse(saved);
+      if (needsReset(p)) {
+        console.warn('[star] Old pixel-coord config detected — resetting to defaults.');
+        localStorage.removeItem(STORAGE.star);
+      } else {
+        applyConfigObject(p);
+        cfg.global.triggerEnabled = false;
+        if (!cfg.effects || !cfg.effects.length) {
+          cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id;
+        }
+        return;
+      }
+    } catch(e) {}
   }
   if (window.__EXPORTED_CFG__) {
-    try { applyConfigObject(window.__EXPORTED_CFG__); cfg.global.triggerEnabled = false; } catch(e) {}
+    try {
+      const p = window.__EXPORTED_CFG__;
+      if (!needsReset(p)) {
+        applyConfigObject(p);
+        cfg.global.triggerEnabled = false;
+      }
+    } catch(e) {}
   }
-  if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
+  if (!cfg.effects || !cfg.effects.length) {
+    cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id;
+  }
 }
 function applyConfigObject(p){
   if (!p) return;
@@ -599,7 +606,9 @@ function applyConfigObject(p){
     else cfg.activeEffectId = cfg.effects[0].id;
     return;
   }
-  if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
+  if (!cfg.effects || !cfg.effects.length) {
+    cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id;
+  }
 }
 function serializeConfig(){
   const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
@@ -1118,25 +1127,37 @@ function tbSelect(label, obj, key, options, onChange){
 }
 
 /* =========================================================
-   EFFECTS (GUI + config, sim lives in worker)
+   EFFECTS — GUI + config only, sim lives in worker
 ========================================================= */
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
+
+// Default char: centered horizontally with spacing, at viewport centre vertically.
+// Returns FRACTIONS.
 function defaultCharFor(i,total){
-  const W=window.innerWidth,H=window.innerHeight;
   const c=Math.max(1,total);
-  const sp=Math.min(220,(W*0.85)/c);
-  return {char:'',x:W/2+(i-(c-1)/2)*sp,y:H/2,size:300,rotation:0};
+  const spFrac = Math.min(0.22, 0.85 / c);   // ~22% max spacing fraction
+  return {
+    char:'',
+    x: 0.5 + (i - (c-1)/2) * spFrac,
+    y: 0.5,
+    size: 0.4,     // 40% of MIN_DIM
+    rotation: 0
+  };
 }
+
 function createEffect(type){
   const id=newEffectId();
   if(type==='bubble'){
     const chars=[];const text='J';
     for(let i=0;i<text.length;i++){const c=defaultCharFor(i,text.length);c.char=text[i];chars.push(c)}
-    return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',outlineWidth:4,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,flashColor:'#ffffff',chars};
+    return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',
+            outlineWidth:0.005,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,
+            flashColor:'#ffffff',chars};
   }
   if(type==='images'){
-    return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:60,explicitList:'',exceptions:{},flashColor:'#8000ff',imagePool:[],loaded:false,loadError:null,_loading:false};
+    return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:0.086,explicitList:'',
+            exceptions:{},flashColor:'#8000ff',imagePool:[],loaded:false,loadError:null,_loading:false};
   }
   return {id,type:'none',name:'Plain Stars',flashColor:'#ffffff'};
 }
@@ -1147,12 +1168,13 @@ let _boundsCtx=null;
 function getCharBounds(ch){
   if(!ch.char)return {w:20,h:20};
   if(!_boundsCtx)_boundsCtx=document.createElement('canvas').getContext('2d');
-  _boundsCtx.font=`900 ${Math.max(1,ch.size)}px 'Arial Black', Arial, sans-serif`;
+  const sizePx = Math.max(1, ch.size * MIN_DIM());
+  _boundsCtx.font=`900 ${sizePx}px 'Arial Black', Arial, sans-serif`;
   const m=_boundsCtx.measureText(ch.char);
   const w=Math.max(m.width,8);
   let h;
   if(m.actualBoundingBoxAscent!==undefined&&m.actualBoundingBoxAscent!==null){h=m.actualBoundingBoxAscent+m.actualBoundingBoxDescent}
-  else{h=ch.size*1.1}
+  else{h=sizePx*1.1}
   return {w,h:Math.max(h,8)};
 }
 function rebuildBubbleEditor(){
@@ -1165,9 +1187,11 @@ function rebuildBubbleEditor(){
   if(!eff.chars||!eff.chars.length)return;
   eff.chars.forEach((ch,idx)=>{
     const b=getCharBounds(ch);
+    const cxPx = ch.x * window.innerWidth;
+    const cyPx = ch.y * window.innerHeight;
     const div=document.createElement('div');div.className='char-editor';div.dataset.idx=idx;
     div.style.width=b.w+'px';div.style.height=b.h+'px';
-    div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
+    div.style.left=(cxPx-b.w/2)+'px';div.style.top=(cyPx-b.h/2)+'px';
     div.style.transform=`rotate(${ch.rotation||0}deg)`;
     const label=document.createElement('div');label.className='char-label';label.textContent=`#${idx+1} ${ch.char||'·'}`;div.appendChild(label);
     const rot=document.createElement('div');rot.className='char-rotate-handle';rot.title='Rotate';rot.innerHTML='<i class="fa-solid fa-rotate-right"></i>';div.appendChild(rot);
@@ -1175,19 +1199,26 @@ function rebuildBubbleEditor(){
       if(e.target.closest('.char-rotate-handle'))return;
       if(!isEditing)return;
       e.preventDefault();
-      const sx=e.clientX,sy=e.clientY,ox=ch.x,oy=ch.y;
-      const mv=ev=>{ch.x=ox+(ev.clientX-sx);ch.y=oy+(ev.clientY-sy);updateCharDiv(div,ch);postChars(false)};
+      const sx=e.clientX,sy=e.clientY,oxPx=ch.x*window.innerWidth,oyPx=ch.y*window.innerHeight;
+      const mv=ev=>{
+        const newXPx = oxPx + (ev.clientX - sx);
+        const newYPx = oyPx + (ev.clientY - sy);
+        ch.x = newXPx / window.innerWidth;
+        ch.y = newYPx / window.innerHeight;
+        updateCharDiv(div,ch);
+        postChars(false);
+      };
       const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);postChars(true);renderEffectList();saveStarConfig()};
       document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
     rot.addEventListener('mousedown',e=>{
       if(!isEditing)return;
       e.preventDefault();e.stopPropagation();
-      const cx=ch.x,cy=ch.y;
-      const startAngle=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI;
+      const cxPx2=ch.x*window.innerWidth,cyPx2=ch.y*window.innerHeight;
+      const startAngle=Math.atan2(e.clientY-cyPx2,e.clientX-cxPx2)*180/Math.PI;
       const startRot=ch.rotation||0;
       const mv=ev=>{
-        const cur=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI;
+        const cur=Math.atan2(ev.clientY-cyPx2,ev.clientX-cxPx2)*180/Math.PI;
         ch.rotation=startRot+(cur-startAngle);
         div.style.transform=`rotate(${ch.rotation}deg)`;
         postChars(false);
@@ -1200,8 +1231,10 @@ function rebuildBubbleEditor(){
 }
 function updateCharDiv(div,ch){
   const b=getCharBounds(ch);
+  const cxPx = ch.x * window.innerWidth;
+  const cyPx = ch.y * window.innerHeight;
   div.style.width=b.w+'px';div.style.height=b.h+'px';
-  div.style.left=(ch.x-b.w/2)+'px';div.style.top=(ch.y-b.h/2)+'px';
+  div.style.left=(cxPx-b.w/2)+'px';div.style.top=(cyPx-b.h/2)+'px';
   div.style.transform=`rotate(${ch.rotation||0}deg)`;
   const label=div.querySelector('.char-label');
   if(label)label.textContent=`#${parseInt(div.dataset.idx)+1} ${ch.char||'·'}`;
@@ -1211,6 +1244,7 @@ function updateCharDivByIndex(idx,ch){
   const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
   if(div)updateCharDiv(div,ch);
 }
+window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
 
 async function loadEffectImages(effect){
   if(!effect || effect.type !== 'images') return;
@@ -1222,7 +1256,9 @@ async function loadEffectImages(effect){
 
   let filenames=[];
   if(effect.explicitList&&effect.explicitList.trim()){filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
-  if(!filenames.length){try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}}
+  if(!filenames.length){
+    try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}
+  }
   if(!filenames.length){
     try{const r=await fetch(effect.folder+'/',{cache:'no-store'});if(r.ok){const html=await r.text();const re=/href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;let m;while((m=re.exec(html))!==null)filenames.push(m[1])}}catch(e){}
   }
@@ -1239,9 +1275,9 @@ async function loadEffectImages(effect){
   renderEffectList();
 }
 
-function initStars(){ /* legacy no-op — worker owns sim */ }
-
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
+
+// Standard widget — value is used as-is (times, counts, percentages)
 function widget_numRange(labelText,obj,key,opts={}){
   const row=el('div','row');
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
@@ -1256,6 +1292,37 @@ function widget_numRange(labelText,obj,key,opts={}){
   rng.addEventListener('input',()=>apply(rng.value,true));
   return row;
 }
+
+// Fraction widget — stored value is a fraction of MIN_DIM, displayed as pixels
+function widget_numRangeFractionPx(labelText,obj,key,opts={}){
+  const row=el('div','row');
+  const wrap=el('label');
+  const txt=el('span','lbl-text',labelText);
+  const num=el('input');num.type='number';num.className='num-inline';num.step='any';
+  num.value = Math.round((obj[key]||0) * MIN_DIM());
+  wrap.appendChild(txt);wrap.appendChild(num);
+  row.appendChild(wrap);
+  const sliderMax = opts.sliderMaxPx ?? 200;
+  const rng=el('input');rng.type='range';rng.min=opts.minPx??0;rng.max=sliderMax;rng.step=opts.stepPx??1;
+  rng.value = Math.min(Math.max(num.value, rng.min), rng.max);
+  row.appendChild(rng);
+  const apply=(v,fromSlider)=>{
+    let pxVal = parseFloat(v);
+    if(isNaN(pxVal))return;
+    if(fromSlider) pxVal = Math.min(Math.max(pxVal, rng.min), rng.max);
+    obj[key] = sizeFromPx(pxVal);
+    const roundTrip = Math.round(obj[key] * MIN_DIM());
+    num.value = roundTrip;
+    rng.value = Math.min(Math.max(roundTrip, rng.min), rng.max);
+    if(opts.onChange)opts.onChange();
+    saveStarConfig();
+  };
+  num.addEventListener('input',()=>apply(num.value,false));
+  num.addEventListener('blur',()=>apply(num.value,false));
+  rng.addEventListener('input',()=>apply(rng.value,true));
+  return row;
+}
+
 function widget_color(labelText,obj,key,onChange){
   const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const inp=el('input');inp.type='color';inp.value=obj[key];
@@ -1293,6 +1360,7 @@ function makeSection(headerText,headerClass,sectionKey){
   sec.appendChild(head);sec.appendChild(body);
   return {sec,body};
 }
+
 function buildGui(){
   const body=document.getElementById('gui-body');
   body.innerHTML='';
@@ -1310,7 +1378,7 @@ function buildGui(){
   b.body.appendChild(widget_numRange('Lifespan (s)',cfg.base,'lifespan',{min:0.1,max:600,step:0.1}));
   b.body.appendChild(widget_color('Colour',cfg.base,'color'));
   b.body.appendChild(widget_select('Shape',cfg.base,'shape',[{value:'square',label:'Square'},{value:'circle',label:'Circle'},{value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},{value:'star',label:'Star'},{value:'plus',label:'Plus'}]));
-  b.body.appendChild(widget_numRange('Size (px)',cfg.base,'size',{min:1,max:500,step:1}));
+  b.body.appendChild(widget_numRangeFractionPx('Size (px)',cfg.base,'size',{sliderMaxPx:100}));
   b.body.appendChild(widget_numRange('Fade in (s)',cfg.base,'fadeIn',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_numRange('Fade out (s)',cfg.base,'fadeOut',{min:0,max:60,step:0.05}));
   b.body.appendChild(widget_toggle('Mini explosion on death',cfg.base,'flashOut'));
@@ -1323,7 +1391,7 @@ function buildGui(){
   s.body.appendChild(widget_numRange('Lifespan (s)',cfg.spawned,'lifespan',{min:0.1,max:600,step:0.1}));
   s.body.appendChild(widget_color('Colour',cfg.spawned,'color'));
   s.body.appendChild(widget_select('Shape',cfg.spawned,'shape',[{value:'square',label:'Square'},{value:'circle',label:'Circle'},{value:'triangle',label:'Triangle'},{value:'diamond',label:'Diamond'},{value:'star',label:'Star'},{value:'plus',label:'Plus'}]));
-  s.body.appendChild(widget_numRange('Size (px)',cfg.spawned,'size',{min:1,max:500,step:1}));
+  s.body.appendChild(widget_numRangeFractionPx('Size (px)',cfg.spawned,'size',{sliderMaxPx:100}));
   s.body.appendChild(widget_numRange('Fade in (s)',cfg.spawned,'fadeIn',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_numRange('Fade out (s)',cfg.spawned,'fadeOut',{min:0,max:60,step:0.05}));
   s.body.appendChild(widget_toggle('Mini explosion on death',cfg.spawned,'flashOut'));
@@ -1371,14 +1439,41 @@ function buildEffectSettings(container,eff){
       const row=el('div','char-row');
       const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{ch.char=glyph.value;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
-      const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
-      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
-      const yin=el('input','mini');yin.type='number';yin.step='any';yin.value=Math.round(ch.y);
-      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
-      const sin=el('input','mini');sin.type='number';sin.step='any';sin.value=Math.round(ch.size);
-      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
+
+      // X: display px, store fraction of W
+      const xin=el('input','mini');xin.type='number';xin.step='any';
+      xin.value = Math.round(ch.x * window.innerWidth);
+      xin.addEventListener('input',()=>{
+        const val = parseFloat(xin.value);
+        if(isNaN(val)) return;
+        ch.x = val / window.innerWidth;
+        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
+      });
+
+      // Y: display px, store fraction of H
+      const yin=el('input','mini');yin.type='number';yin.step='any';
+      yin.value = Math.round(ch.y * window.innerHeight);
+      yin.addEventListener('input',()=>{
+        const val = parseFloat(yin.value);
+        if(isNaN(val)) return;
+        ch.y = val / window.innerHeight;
+        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
+      });
+
+      // Size: display px, store fraction of MIN_DIM
+      const sin=el('input','mini');sin.type='number';sin.step='any';
+      sin.value = Math.round(ch.size * MIN_DIM());
+      sin.addEventListener('input',()=>{
+        const val = parseFloat(sin.value);
+        if(isNaN(val)) return;
+        ch.size = val / MIN_DIM();
+        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
+      });
+
+      // Rotation: degrees, unchanged
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
       rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
+
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.addEventListener('click',()=>{eff.chars.splice(idx,1);postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
       row.appendChild(glyph);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(del);
@@ -1397,7 +1492,7 @@ function buildEffectSettings(container,eff){
     container.appendChild(el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>'));
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
     container.appendChild(widget_numRange('Outline opacity',eff,'outlineOpacity',{min:0,max:1,step:0.01}));
-    container.appendChild(widget_numRange('Outline width',eff,'outlineWidth',{min:0,max:60,step:0.5}));
+    container.appendChild(widget_numRangeFractionPx('Outline width (px)',eff,'outlineWidth',{sliderMaxPx:40}));
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>'));
     container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
@@ -1409,7 +1504,7 @@ function buildEffectSettings(container,eff){
     container.appendChild(el('div',null,thresh===0?`<span class="status-tag warn">Threshold = 0 → images from the very start</span>`:`<span class="status-tag ok">First ${thresh} stars spawn as plain shapes, then images take over</span>`));
     container.appendChild(widget_text('Folder name',eff,'folder',null,false));
     container.appendChild(widget_text('Manual file list (optional)',eff,'explicitList',null,true));
-    container.appendChild(widget_numRange('Default image size (px)',eff,'defaultSize',{min:8,max:2000,step:1}));
+    container.appendChild(widget_numRangeFractionPx('Default image size (px)',eff,'defaultSize',{sliderMaxPx:400}));
     const rb=el('button','gui-btn primary');rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
     rb.addEventListener('click',()=>loadEffectImages(eff));container.appendChild(rb);
     const status=el('div');
@@ -1419,7 +1514,7 @@ function buildEffectSettings(container,eff){
     else status.innerHTML=`<span class="status-tag loading">Not loaded yet</span>`;
     container.appendChild(status);
     if(eff.imagePool&&eff.imagePool.length){
-      const exH=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions</span>');
+      const exH=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions (custom sizes)</span>');
       container.appendChild(exH);
       const exBox=el('div');
       exBox.style.cssText='max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:6px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
@@ -1429,9 +1524,30 @@ function buildEffectSettings(container,eff){
         const isEx=eff.exceptions[url]!==undefined;
         const tog=el('input');tog.type='checkbox';tog.checked=isEx;tog.style.accentColor='#6366f1';
         const lbl=el('span',null,fn);lbl.style.cssText='flex:1;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-        const num=el('input');num.type='number';num.className='num-inline';num.step='any';num.value=isEx?eff.exceptions[url]:eff.defaultSize;num.min=8;num.max=10000;num.disabled=!isEx;
-        tog.addEventListener('change',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;num.disabled=false}else{delete eff.exceptions[url];num.disabled=true}saveStarConfig()});
-        num.addEventListener('input',()=>{if(tog.checked){eff.exceptions[url]=parseFloat(num.value)||eff.defaultSize;saveStarConfig()}});
+        const num=el('input');num.type='number';num.className='num-inline';num.step='any';
+        // display in px: from fraction to px
+        num.value = Math.round((isEx ? eff.exceptions[url] : eff.defaultSize) * MIN_DIM());
+        num.min=2; num.max=2000; num.disabled=!isEx;
+        tog.addEventListener('change',()=>{
+          if(tog.checked){
+            eff.exceptions[url] = sizeFromPx(parseFloat(num.value) || pxFromSize(eff.defaultSize));
+            num.disabled=false;
+          } else {
+            delete eff.exceptions[url];
+            num.disabled=true;
+          }
+          postImagePool();
+          saveStarConfig();
+        });
+        num.addEventListener('input',()=>{
+          if(tog.checked){
+            const val = parseFloat(num.value);
+            if(isNaN(val))return;
+            eff.exceptions[url] = sizeFromPx(val);
+            postImagePool();
+            saveStarConfig();
+          }
+        });
         r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);exBox.appendChild(r);
       });
       container.appendChild(exBox);
@@ -1469,7 +1585,7 @@ function resetStars(){postReset()}
 function flashScreen(c){const el2=document.getElementById('flash-overlay');el2.style.background=c||'#ffffff';el2.classList.remove('flash');void el2.offsetWidth;el2.classList.add('flash')}
 
 /* =========================================================
-   MP3 MODULE
+   MP3 MODULE (unchanged)
 ========================================================= */
 let mp3Tracks = [];
 let mp3Labels = {};
@@ -1859,6 +1975,15 @@ function mp3RefreshPanelWordDisplay(){
   const row = document.querySelector(`.mp3-word-row[data-idx="${mp3FocusedIdx}"]`);
   if (row) { row.classList.add('focused'); row.scrollIntoView({ block: 'nearest' }); }
 }
+function mp3MakeSection(title, cls){
+  const sec = el('div','mp3-sect');
+  const head = el('div','mp3-sect-head ' + cls);
+  head.innerHTML = `<span>${title}</span><i class="fa-solid fa-chevron-down chev"></i>`;
+  head.addEventListener('click', () => sec.classList.toggle('collapsed'));
+  const body = el('div','mp3-sect-body');
+  sec.appendChild(head); sec.appendChild(body);
+  return { sec, body };
+}
 function mp3RenderPanel(){
   const body = document.getElementById('mp3-body');
   if (!body) return;
@@ -2059,7 +2184,7 @@ function mp3RenderPanel(){
     }
   });
   l.body.appendChild(saveBtn);
-  l.body.appendChild(el('div','mp3-hint','Tip: Play the track, hit "Use current" to capture the audio position. Save, and it auto-advances to the next word.'));
+  l.body.appendChild(el('div','mp3-hint','Tip: Play the track, hit "Use current" to capture the audio position. Save, and it auto-advances.'));
 
   body.appendChild(l.sec);
 
@@ -2131,15 +2256,6 @@ function mp3RenderPanel(){
   if (mp3FocusedIdx < 0 && mp3TokenSnapshot.length) mp3FocusedIdx = 0;
   mp3RefreshPanelWordDisplay();
 }
-function mp3MakeSection(title, cls){
-  const sec = el('div','mp3-sect');
-  const head = el('div','mp3-sect-head ' + cls);
-  head.innerHTML = `<span>${title}</span><i class="fa-solid fa-chevron-down chev"></i>`;
-  head.addEventListener('click', () => sec.classList.toggle('collapsed'));
-  const body = el('div','mp3-sect-body');
-  sec.appendChild(head); sec.appendChild(body);
-  return { sec, body };
-}
 async function mp3SeekToFocused(){
   if (mp3FocusedIdx < 0) return;
   const lab = mp3Labels[mp3FocusedIdx];
@@ -2153,7 +2269,6 @@ async function mp3SeekToFocused(){
   mp3CurrentIdx = mp3FocusedIdx;
   mp3ApplyHighlight(mp3FocusedIdx);
 }
-
 async function mp3Boot(){
   mp3LoadState();
   document.documentElement.style.setProperty('--mp3-highlight', mp3Cfg.highlightColor);
@@ -2164,7 +2279,7 @@ async function mp3Boot(){
 }
 
 /* =========================================================
-   EXPORT  (FIXED)
+   EXPORT
 ========================================================= */
 async function exportHTML(){
   const modal = document.getElementById('export-modal');
