@@ -1,5 +1,5 @@
 /* =========================================================
-   star-worker.js  (v2 — corrected)
+   star-worker.js  (v3 — DPR transform fixed)
    Runs the entire star simulation off the main thread.
    Receives OffscreenCanvas via transfer, owns its own cfg + stars.
 ========================================================= */
@@ -26,7 +26,7 @@ const pool = new Array(MAX_POOL);
 const poolFree = new Int32Array(MAX_POOL);
 let poolFreeTop = MAX_POOL;
 const liveIdx = new Int32Array(MAX_POOL);
-let liveHead = 0, liveTail = 0;
+let liveTail = 0;
 let liveCount = 0, liveBaseCount = 0, liveSpawnedCount = 0;
 
 let baseSpawnArmed = false;
@@ -46,12 +46,12 @@ function resetPool() {
   }
   poolFreeTop = MAX_POOL;
   liveCount = 0; liveBaseCount = 0; liveSpawnedCount = 0;
-  liveHead = 0; liveTail = 0;
+  liveTail = 0;
 }
 resetPool();
 
 function allocSlot() { return poolFreeTop > 0 ? poolFree[--poolFreeTop] : -1; }
-function addLive(i) { if (liveTail >= MAX_POOL) liveTail = 0; liveIdx[liveTail++] = i; }
+function addLive(i) { liveIdx[liveTail++] = i; }
 
 let raf = false;
 let lastFrameAt = 0;
@@ -65,6 +65,9 @@ self.onmessage = function (ev) {
       canvas = m.canvas;
       ctx = canvas.getContext('2d');
       W = m.w; H = m.h; DPR = m.dpr;
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       if (!raf) { raf = true; lastFrameAt = performance.now(); requestAnimationFrame(loop); }
       break;
 
@@ -97,10 +100,15 @@ self.onmessage = function (ev) {
       break;
 
     case 'reset': resetSim(); break;
+
     case 'resize':
       W = m.w; H = m.h; DPR = m.dpr;
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       if (activeEffect && activeEffect.type === 'bubble') recomputeBubbleMask();
       break;
+
     case 'shutdown': raf = false; break;
   }
 };
@@ -123,7 +131,7 @@ function resetSim() {
     if (pool[i].alive) { pool[i].alive = false; pool[i].imgUrl = null; poolFree[poolFreeTop++] = i; }
   }
   liveCount = 0; liveBaseCount = 0; liveSpawnedCount = 0;
-  liveHead = 0; liveTail = 0;
+  liveTail = 0;
   baseSpawnArmed = false;
   nextBaseSpawnAt = performance.now() + (cfg.base.initialDelay || 0);
 }
@@ -235,7 +243,7 @@ async function loadImagePool(urls) {
         imageCache.set(url, bmp);
       }
       imagePool.push(url);
-    } catch (e) { /* skip */ }
+    } catch (e) { /* skip broken */ }
   }
   if (!imagePool.length) {
     postMsg({ type: 'image-status', loaded: 0, error: 'Could not load any images.' });
@@ -310,7 +318,7 @@ function loop() {
     }
   }
 
-  // Tick existing stars only (snapshot liveTail so new spawns aren't processed this frame)
+  // Tick existing stars (snapshot liveTail so this frame's newborns aren't ticked)
   const tickEnd = liveTail;
   for (let k = 0; k < tickEnd; k++) {
     const i = liveIdx[k];
@@ -355,7 +363,6 @@ const CULL_PAD = 32;
 function renderStars(now) {
   ctx.clearRect(0, 0, W, H);
 
-  // Bubble outline guide (drawn behind stars)
   if (activeEffect && activeEffect.type === 'bubble' && activeEffect.showOutline && (activeEffect.outlineOpacity ?? 0.5) > 0 && activeEffect.chars) {
     ctx.save();
     ctx.strokeStyle = activeEffect.outlineColor;
