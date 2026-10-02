@@ -151,14 +151,10 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 #effect-picker{display:none;flex-direction:column;gap:6px;padding:8px;background:#1f1f24;border:1px dashed #3f3f46;border-radius:8px}
 #effect-picker.open{display:flex}
 #effect-picker button{text-align:left;padding:8px 10px;border-radius:6px;background:#27272a;color:#e4e4e7;font-size:11px;cursor:pointer;border:none}
-
-/* ===================== MP3 STYLES ===================== */
 .mp3-word{cursor:pointer;transition:background-color .06s;border-radius:2px;padding:0 1px}
 .mp3-word:hover{background-color:rgba(251,191,36,.15)}
 .mp3-word.highlighted{background-color:var(--mp3-highlight);color:#111}
-.mp3-word.mp3-period{cursor:pointer}
 body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important;color:inherit !important}
-
 #mp3-controls{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:45;background:#18181b;border:1px solid #27272a;border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:11px;color:#d4d4d8}
 #mp3-controls.hidden{display:none}
 #mp3-controls button{background:#27272a;color:#e4e4e7;border:none;border-radius:999px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px}
@@ -168,7 +164,6 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 #mp3-controls .mp3-sep{width:1px;height:18px;background:#27272a}
 #mp3-controls label{display:flex;align-items:center;gap:4px;cursor:pointer}
 #mp3-controls .mp3-time{font-family:ui-monospace,monospace;color:#a5b4fc;min-width:92px;text-align:center}
-
 #mp3-panel{position:fixed;top:80px;right:16px;width:460px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:62;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:none}
 #mp3-panel.open{display:block}
 #mp3-panel .mp3-head{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:3;border-radius:14px 14px 0 0}
@@ -290,9 +285,17 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 
 <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow relative z-10">
   <div id="document-canvas" class="space-y-6">
-    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">BLABLABLA 🎧</h1></div>
-    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Admin login → Star Settings → Effects. Use "Add Text Box" to place free-floating text anywhere. Click any word to hear it.</p></div>
-    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">"Stars seed the field. Effects reshape it."</blockquote></div>
+    <div class="edit-block group relative"><h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">SeventhoftheTenthoftheTwenty-SixthyearoftheSecondMillenia</h1></div>
+    <div class="edit-block group relative"><p class="text-lg text-zinc-400 font-light leading-relaxed">Wallahi I'm not ready to start typing this shit🙏</p></div>
+    <div class="edit-block group relative"><blockquote class="border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300">or read it because this is the version where I actually voice what's on the page....😭 idk why I did this to myself</blockquote></div>
+    <div class="edit-block group relative"><p class="text-base text-zinc-400 font-light leading-relaxed">Once upon a time. In the most United of Kingdoms💔. Lived a brown yute with the initials JMV.
+
+Against all logic, per her persona, JMV decided to step foot into St Bernards, fully convinced this was a great step forward for future growth. Subsequently, the universe hit her with a side quest: in the form of meeting a certain negro with the initials GT. Things were looking almost interesting for a 100 days—until GT did the absolute ultimate ghosting maneuver and evaporated into thin air, leaving JMV alone to suffer through the tragic, unglamorous reality of living life GT-less like a tragic side character.
+
+Fast forward through a few months of coping and tragic violin solos to the summer, where JMV finally made herself useful and got a job, trading her precious sanity for a paycheck. (Less than 60 a week btw).
+
+Now we land right at the end of September. The summer money is already drying up, the ghost of GT is still nowhere to be found, and JMV is standing there questioning every decision that led her here... but where's Gonza?</p></div>
+    <div class="edit-block group relative"><p class="text-base text-zinc-400 font-light leading-relaxed">Where do I actually start wallahi I'm lost</p></div>
   </div>
   <div id="add-block-container" class="hidden mt-8 text-center border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
     <button onclick="addBlock('p')" class="text-xs font-medium text-zinc-400 hover:text-indigo-400 flex items-center gap-2 mx-auto"><i class="fa-solid fa-plus"></i> Click to add a new text block</button>
@@ -427,9 +430,8 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   if (snapPref !== null) snapEnabled = snapPref === '1';
 
   disableEditing();
-  initStars();
+  initStarWorker();
 
-  // MP3 boot
   await mp3Boot();
 
   document.getElementById('text-color-input').addEventListener('input', e => {
@@ -447,7 +449,129 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 });
 
 /* =========================================================
-   STAR CONFIG (unchanged)
+   STAR WORKER BRIDGE
+========================================================= */
+let starWorker = null;
+
+function initStarWorker(){
+  const canvas = document.getElementById('star-canvas');
+  const w = window.innerWidth, h = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  let offscreen;
+  try {
+    offscreen = canvas.transferControlToOffscreen();
+  } catch (e) {
+    console.error('OffscreenCanvas transfer failed:', e);
+    return;
+  }
+
+  try {
+    starWorker = new Worker('star-worker.js');
+  } catch (e) {
+    console.error('Worker spawn failed:', e);
+    return;
+  }
+  starWorker.onmessage = handleWorkerMessage;
+  starWorker.onerror = (e) => console.error('[star-worker error]', e.message);
+  starWorker.postMessage({ type: 'canvas', canvas: offscreen, w, h, dpr }, [offscreen]);
+  starWorker.postMessage({ type: 'init', cfg: fullCfgForWorker() });
+
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    if (starWorker) starWorker.postMessage({ type: 'resize', w, h, dpr });
+    if (isEditing) rebuildBubbleEditor();
+  });
+}
+
+function handleWorkerMessage(ev){
+  const m = ev.data || {};
+  switch(m.type){
+    case 'count': {
+      const el = document.getElementById('star-count');
+      if (el) el.textContent = `${m.total}★ (${m.base}B / ${m.spawned}S)`;
+      break;
+    }
+    case 'flash':
+      flashScreen(m.color);
+      break;
+    case 'error':
+      console.error('[star-worker]', m.message);
+      break;
+    case 'image-status': {
+      const eff = getActiveEffect();
+      if (eff && eff.type === 'images') {
+        eff.loaded = (m.loaded || 0) > 0;
+        eff.loadError = m.error || null;
+        eff._loading = false;
+        const gui = document.getElementById('star-gui');
+        if (gui && !gui.classList.contains('hidden')) renderEffectList();
+      }
+      break;
+    }
+  }
+}
+
+function fullCfgForWorker(){
+  // Strip transient fields the worker recomputes anyway
+  const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
+    if (key === 'maskData' || key === 'spawnPoints') return undefined;
+    if (key === 'unusedPool') return undefined;
+    return value;
+  }));
+  return clean;
+}
+
+let _postCfgTimer = null;
+function postCfg(){
+  if (!starWorker) return;
+  if (_postCfgTimer) return;
+  _postCfgTimer = setTimeout(() => {
+    _postCfgTimer = null;
+    if (starWorker) starWorker.postMessage({ type: 'cfg', cfg: fullCfgForWorker() });
+  }, 30);
+}
+
+let _postCharsTimer = null;
+function postChars(immediate){
+  if (!starWorker) return;
+  const eff = getActiveEffect();
+  if (!eff || eff.type !== 'bubble') return;
+  const send = () => {
+    if (starWorker) starWorker.postMessage({ type: 'chars', chars: eff.chars });
+  };
+  if (immediate) {
+    if (_postCharsTimer) { clearTimeout(_postCharsTimer); _postCharsTimer = null; }
+    send();
+    return;
+  }
+  if (_postCharsTimer) return;
+  _postCharsTimer = setTimeout(() => { _postCharsTimer = null; send(); }, 50);
+}
+
+function postReset(){
+  if (starWorker) starWorker.postMessage({ type: 'reset' });
+}
+
+function postImagePool(){
+  if (!starWorker) return;
+  const eff = getActiveEffect();
+  if (!eff || eff.type !== 'images') return;
+  starWorker.postMessage({
+    type: 'image-pool',
+    urls: eff.imagePool || [],
+    exceptions: eff.exceptions || {},
+    defaultSize: eff.defaultSize || 60
+  });
+}
+
+/* =========================================================
+   STAR CONFIG (main-side copy for GUI + storage)
 ========================================================= */
 function loadStarConfig(){
   const saved = localStorage.getItem(STORAGE.star);
@@ -457,6 +581,7 @@ function loadStarConfig(){
   if (window.__EXPORTED_CFG__) {
     try { applyConfigObject(window.__EXPORTED_CFG__); cfg.global.triggerEnabled = false; } catch(e) {}
   }
+  if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 }
 function applyConfigObject(p){
   if (!p) return;
@@ -478,7 +603,7 @@ function applyConfigObject(p){
 function serializeConfig(){
   const clean = JSON.parse(JSON.stringify(cfg, (key, value) => {
     if (key === 'maskData' || key === 'spawnPoints') return undefined;
-    if (key === 'imagePool' || key === 'unusedPool') return undefined;
+    if (key === 'unusedPool') return undefined;
     return value;
   }));
   clean.global.triggerEnabled = false;
@@ -489,6 +614,7 @@ function saveStarConfig(){
   if (_saveStarTimer) clearTimeout(_saveStarTimer);
   _saveStarTimer = setTimeout(() => {
     try { localStorage.setItem(STORAGE.star, JSON.stringify(serializeConfig())); } catch(e) {}
+    postCfg();
   }, 120);
 }
 
@@ -506,7 +632,6 @@ function handlePasswordSubmit(e){
   else alert('Incorrect password!');
 }
 function enableEditing(){
-  // Unwrap words first so editing isn't broken by spans
   mp3UnwrapWords();
   document.body.classList.add('is-editing');
   statusBadge.textContent="Edit Mode Active";
@@ -542,7 +667,6 @@ function disableEditing(){
   document.getElementById('bubble-editor-layer').innerHTML='';
   closeTbSettings();
   deselectAllTextBoxes();
-  // Re-wrap words for visitor mode
   mp3TokenizeAndWrap();
   mp3RefreshControls();
 }
@@ -738,7 +862,7 @@ document.addEventListener('mousedown',e=>{
 });
 
 /* =========================================================
-   TEXT BOXES (unchanged)
+   TEXT BOXES
 ========================================================= */
 const TB_DEFAULTS = {
   text: 'Your text here',
@@ -993,13 +1117,8 @@ function tbSelect(label, obj, key, options, onChange){
 }
 
 /* =========================================================
-   EFFECTS / STARS (unchanged)
+   EFFECTS (GUI + config, sim lives in worker)
 ========================================================= */
-let stars=[];
-let starCanvas,starCtx,dpr=1;
-let baseSpawnArmed=false;
-let nextBaseSpawnAt=0;
-const imageCache={};
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
 function defaultCharFor(i,total){
@@ -1013,54 +1132,16 @@ function createEffect(type){
   if(type==='bubble'){
     const chars=[];const text='J';
     for(let i=0;i<text.length;i++){const c=defaultCharFor(i,text.length);c.char=text[i];chars.push(c)}
-    return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',outlineWidth:4,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,flashColor:'#ffffff',chars,spawnPoints:null,maskData:null,maskScale:1,maskBounds:null};
+    return {id,type,name:'Bubble Text',minStarsForBubble:0,beforeThresholdMode:'avoid',outlineWidth:4,outlineColor:'#6366f1',outlineOpacity:0.5,showOutline:true,showHandles:true,flashColor:'#ffffff',chars};
   }
   if(type==='images'){
-    return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:60,explicitList:'',exceptions:{},flashColor:'#8000ff',imagePool:[],unusedPool:[],loaded:false,loadError:null};
+    return {id,type,name:'Image Stars',minStarsForImages:0,folder:'strimiges',defaultSize:60,explicitList:'',exceptions:{},flashColor:'#8000ff',imagePool:[],loaded:false,loadError:null,_loading:false};
   }
   return {id,type:'none',name:'Plain Stars',flashColor:'#ffffff'};
 }
 if (!cfg.effects || !cfg.effects.length) { cfg.effects=[createEffect('none')]; cfg.activeEffectId=cfg.effects[0].id; }
 function getActiveEffect(){return cfg.effects.find(e=>e.id===cfg.activeEffectId)||cfg.effects[0]||null}
-function computeBubbleMask(effect){
-  if(!effect||effect.type!=='bubble')return;
-  if(!effect.chars||!effect.chars.length){effect.spawnPoints=[];effect.maskData=null;effect.maskBounds=null;return}
-  const W=window.innerWidth,H=window.innerHeight;
-  const scale=0.5;
-  const c=document.createElement('canvas');
-  c.width=Math.max(1,Math.floor(W*scale));c.height=Math.max(1,Math.floor(H*scale));
-  const ctx=c.getContext('2d');
-  effect.chars.forEach(ch=>{
-    if(!ch.char)return;
-    ctx.save();ctx.translate(ch.x*scale,ch.y*scale);
-    if(ch.rotation)ctx.rotate(ch.rotation*Math.PI/180);
-    const size=Math.max(1,ch.size*scale);
-    ctx.font=`900 ${size}px 'Arial Black', Arial, sans-serif`;
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';
-    ctx.fillText(ch.char,0,0);ctx.restore();
-  });
-  const imgData=ctx.getImageData(0,0,c.width,c.height);
-  const data=imgData.data;
-  let minX=c.width,minY=c.height,maxX=0,maxY=0,found=false;
-  const points=[];const step=4;
-  for(let y=0;y<c.height;y+=step){
-    for(let x=0;x<c.width;x+=step){
-      if(data[(y*c.width+x)*4+3]>128){
-        points.push({x:x/scale,y:y/scale});
-        if(x<minX)minX=x;if(y<minY)minY=y;if(x>maxX)maxX=x;if(y>maxY)maxY=y;
-        found=true;
-      }
-    }
-  }
-  effect.spawnPoints=points;effect.maskData=imgData;effect.maskScale=scale;
-  effect.maskBounds=found?{minX:minX/scale,minY:minY/scale,maxX:maxX/scale,maxY:maxY/scale}:null;
-}
-function isInMask(effect,x,y){
-  if(!effect||!effect.maskData)return false;
-  const mx=Math.floor(x*effect.maskScale),my=Math.floor(y*effect.maskScale);
-  if(mx<0||my<0||mx>=effect.maskData.width||my>=effect.maskData.height)return false;
-  return effect.maskData.data[(my*effect.maskData.width+mx)*4+3]>128;
-}
+
 let _boundsCtx=null;
 function getCharBounds(ch){
   if(!ch.char)return {w:20,h:20};
@@ -1094,8 +1175,8 @@ function rebuildBubbleEditor(){
       if(!isEditing)return;
       e.preventDefault();
       const sx=e.clientX,sy=e.clientY,ox=ch.x,oy=ch.y;
-      const mv=ev=>{ch.x=ox+(ev.clientX-sx);ch.y=oy+(ev.clientY-sy);updateCharDiv(div,ch)};
-      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);computeBubbleMask(eff);renderEffectList();saveStarConfig()};
+      const mv=ev=>{ch.x=ox+(ev.clientX-sx);ch.y=oy+(ev.clientY-sy);updateCharDiv(div,ch);postChars(false)};
+      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);postChars(true);renderEffectList();saveStarConfig()};
       document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
     rot.addEventListener('mousedown',e=>{
@@ -1108,8 +1189,9 @@ function rebuildBubbleEditor(){
         const cur=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI;
         ch.rotation=startRot+(cur-startAngle);
         div.style.transform=`rotate(${ch.rotation}deg)`;
+        postChars(false);
       };
-      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);computeBubbleMask(eff);renderEffectList();saveStarConfig()};
+      const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);postChars(true);renderEffectList();saveStarConfig()};
       document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     });
     layer.appendChild(div);
@@ -1128,187 +1210,35 @@ function updateCharDivByIndex(idx,ch){
   const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
   if(div)updateCharDiv(div,ch);
 }
-window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
-function preloadImage(url){
-  return new Promise((resolve,reject)=>{
-    if(imageCache[url]&&imageCache[url].complete)return resolve(imageCache[url]);
-    const img=new Image();img.crossOrigin='anonymous';
-    img.onload=()=>{imageCache[url]=img;resolve(img)};
-    img.onerror=()=>reject(new Error('Failed: '+url));
-    img.src=url;
-  });
-}
+
 async function loadEffectImages(effect){
-  effect.loadError=null;effect.loaded=false;effect.imagePool=[];effect.unusedPool=[];
+  if(!effect || effect.type !== 'images') return;
+  effect.loadError=null;
+  effect.loaded=false;
+  effect.imagePool=[];
+  effect._loading=true;
+  renderEffectList();
+
   let filenames=[];
   if(effect.explicitList&&effect.explicitList.trim()){filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
   if(!filenames.length){try{const r=await fetch(effect.folder+'/manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(Array.isArray(j))filenames=j}}catch(e){}}
   if(!filenames.length){
     try{const r=await fetch(effect.folder+'/',{cache:'no-store'});if(r.ok){const html=await r.text();const re=/href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;let m;while((m=re.exec(html))!==null)filenames.push(m[1])}}catch(e){}
   }
-  if(!filenames.length){effect.loadError='No images found in "'+effect.folder+'/"';renderEffectList();return}
+  if(!filenames.length){
+    effect.loadError='No images found in "'+effect.folder+'/"';
+    effect._loading=false;
+    renderEffectList();
+    return;
+  }
   const urls=filenames.map(f=>/^https?:\/\//.test(f)||f.startsWith('/')?f:effect.folder+'/'+f);
-  const loaded=[];
-  for(const u of urls){try{await preloadImage(u);loaded.push(u)}catch(e){}}
-  effect.imagePool=loaded;effect.loaded=loaded.length>0;
-  if(!effect.loaded)effect.loadError='Could not load any images.';
+  effect.imagePool=urls;
+  effect._loading=false;
+  postImagePool();
   renderEffectList();
 }
-function pickNextImage(effect){
-  if(!effect.imagePool.length)return null;
-  if(!effect.unusedPool||effect.unusedPool.length===0){
-    effect.unusedPool=[...effect.imagePool];
-    for(let i=effect.unusedPool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[effect.unusedPool[i],effect.unusedPool[j]]=[effect.unusedPool[j],effect.unusedPool[i]]}
-  }
-  return effect.unusedPool.pop();
-}
-function initStars(){
-  starCanvas=document.getElementById('star-canvas');
-  starCtx=starCanvas.getContext('2d');
-  resizeStarCanvas();
-  window.addEventListener('resize',()=>{resizeStarCanvas();cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)})});
-  nextBaseSpawnAt=performance.now()+cfg.base.initialDelay;
-  cfg.effects.forEach(e=>{if(e.type==='bubble')computeBubbleMask(e)});
-  buildGui();
-  const active = getActiveEffect();
-  if (active && active.type === 'images' && !active.loaded) loadEffectImages(active);
-  requestAnimationFrame(starLoop);
-}
-function resizeStarCanvas(){
-  dpr=window.devicePixelRatio||1;
-  starCanvas.width=window.innerWidth*dpr;starCanvas.height=window.innerHeight*dpr;
-  starCanvas.style.width=window.innerWidth+'px';starCanvas.style.height=window.innerHeight+'px';
-  starCtx.setTransform(dpr,0,0,dpr,0,0);
-}
-function getSpawnPoint(effect){
-  const W=window.innerWidth,H=window.innerHeight;
-  if(effect&&effect.type==='bubble'&&effect.chars&&effect.chars.length&&effect.maskData&&effect.maskBounds){
-    const threshold=Number(effect.minStarsForBubble)||0;
-    const overThreshold=stars.length>=threshold;
-    if(overThreshold){
-      const b=effect.maskBounds;const w=b.maxX-b.minX,h=b.maxY-b.minY;
-      for(let t=0;t<40;t++){const x=b.minX+Math.random()*w;const y=b.minY+Math.random()*h;if(isInMask(effect,x,y))return{x,y}}
-      if(effect.spawnPoints&&effect.spawnPoints.length){const p=effect.spawnPoints[Math.floor(Math.random()*effect.spawnPoints.length)];return{x:p.x,y:p.y}}
-    } else if(effect.beforeThresholdMode==='avoid'){
-      for(let t=0;t<80;t++){const x=Math.random()*W;const y=Math.random()*H;if(!isInMask(effect,x,y))return{x,y}}
-    }
-  }
-  return{x:Math.random()*W,y:Math.random()*H};
-}
-function spawnStar(isBase){
-  const type=isBase?cfg.base:cfg.spawned;
-  const active=getActiveEffect();
-  const now=performance.now();
-  const pt=getSpawnPoint(active);
-  let imgUrl=null;
-  if(active&&active.type==='images'&&active.imagePool.length){
-    const threshold=Number(active.minStarsForImages)||0;
-    if(stars.length>=threshold) imgUrl=pickNextImage(active);
-  }
-  stars.push({x:pt.x,y:pt.y,isBase,birth:now,deathStart:now+type.lifespan*1000,nextTick:now+type.tickMs,imgUrl,rotation:type.randomRotation?Math.random()*360:0});
-}
-function starLoop(){
-  requestAnimationFrame(starLoop);
-  const now=performance.now();
-  const active=getActiveEffect();
-  const hasSpawned=stars.some(s=>!s.isBase);
-  if(hasSpawned){baseSpawnArmed=false}
-  else{
-    if(!baseSpawnArmed){baseSpawnArmed=true;const anyBase=stars.some(s=>s.isBase);nextBaseSpawnAt=now+(anyBase?0:cfg.base.initialDelay)}
-    if(cfg.base.enabled&&stars.length<cfg.global.maxStars&&now>=nextBaseSpawnAt){spawnStar(true);nextBaseSpawnAt=now+cfg.base.spawnInterval}
-  }
-  for(let i=stars.length-1;i>=0;i--){
-    const s=stars[i];const type=s.isBase?cfg.base:cfg.spawned;
-    if(now>=s.deathStart+type.fadeOut*1000){stars.splice(i,1);continue}
-    if(now<s.deathStart&&now>=s.nextTick){
-      s.nextTick=now+type.tickMs;
-      if(cfg.spawned.enabled&&stars.length<cfg.global.maxStars){if(Math.random()*100<type.reproChance)spawnStar(false)}
-    }
-  }
-  if(cfg.global.triggerEnabled&&stars.length>=cfg.global.maxStars){
-    flashScreen(active?active.flashColor:'#ffffff');
-    stars=[];baseSpawnArmed=false;nextBaseSpawnAt=now+cfg.base.initialDelay;
-  }
-  renderStars(now,active);
-  updateStarCount();
-}
-function renderStars(now,active){
-  const W=window.innerWidth,H=window.innerHeight;
-  starCtx.clearRect(0,0,W,H);
-  if(active&&active.type==='bubble'&&active.showOutline&&(active.outlineOpacity??0.5)>0&&active.chars){
-    starCtx.save();starCtx.strokeStyle=active.outlineColor;
-    starCtx.globalAlpha=Math.min(1,Math.max(0,active.outlineOpacity??0.5));
-    starCtx.lineWidth=active.outlineWidth;
-    active.chars.forEach(ch=>{
-      if(!ch.char)return;
-      starCtx.save();starCtx.translate(ch.x,ch.y);
-      if(ch.rotation)starCtx.rotate(ch.rotation*Math.PI/180);
-      starCtx.font=`900 ${ch.size}px 'Arial Black', Arial, sans-serif`;
-      starCtx.textAlign='center';starCtx.textBaseline='middle';
-      starCtx.strokeText(ch.char,0,0);starCtx.restore();
-    });
-    starCtx.restore();
-  }
-  for(const s of stars){
-    const type=s.isBase?cfg.base:cfg.spawned;
-    const fi=Math.max(1,type.fadeIn*1000),fo=Math.max(1,type.fadeOut*1000);
-    let alpha=1,size=type.size;
-    if(now<s.birth+fi)alpha=(now-s.birth)/fi;
-    else if(now>=s.deathStart){
-      const t=(now-s.deathStart)/fo;
-      if(type.flashOut){alpha=Math.pow(1-t,2);size=type.size*(1+t*2.5)}
-      else alpha=1-t;
-    }
-    if(alpha<=0)continue;
-    starCtx.globalAlpha=Math.min(1,alpha);
-    if(s.imgUrl&&imageCache[s.imgUrl]&&imageCache[s.imgUrl].complete){
-      const img=imageCache[s.imgUrl];
-      const sSize=(active&&active.exceptions&&active.exceptions[s.imgUrl])||(active?active.defaultSize:60);
-      const aspect=img.naturalWidth/img.naturalHeight;
-      let dw,dh;
-      if(aspect>1){dw=sSize;dh=sSize/aspect}else{dw=sSize*aspect;dh=sSize}
-      starCtx.save();starCtx.translate(s.x,s.y);
-      if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
-      starCtx.drawImage(img,-dw/2,-dh/2,dw,dh);starCtx.restore();
-    }else{
-      starCtx.save();starCtx.translate(s.x,s.y);
-      if(s.rotation)starCtx.rotate(s.rotation*Math.PI/180);
-      starCtx.fillStyle=type.color;
-      drawShape(starCtx,0,0,size,type.shape);starCtx.restore();
-    }
-  }
-  starCtx.globalAlpha=1;
-}
-function drawShape(ctx,x,y,s,shape){
-  const h=s/2;ctx.beginPath();
-  switch(shape){
-    case 'circle':ctx.arc(x,y,h,0,Math.PI*2);ctx.fill();return;
-    case 'square':ctx.fillRect(x-h,y-h,s,s);return;
-    case 'triangle':ctx.moveTo(x,y-s*0.62);ctx.lineTo(x+s*0.58,y+s*0.42);ctx.lineTo(x-s*0.58,y+s*0.42);ctx.closePath();ctx.fill();return;
-    case 'diamond':ctx.moveTo(x,y-s*0.65);ctx.lineTo(x+s*0.65,y);ctx.lineTo(x,y+s*0.65);ctx.lineTo(x-s*0.65,y);ctx.closePath();ctx.fill();return;
-    case 'star':
-      for(let i=0;i<10;i++){
-        const r=(i%2===0)?s*0.72:s*0.30;
-        const a=-Math.PI/2+i*Math.PI/5;
-        const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
-        if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-      }
-      ctx.closePath();ctx.fill();return;
-    case 'plus':{const t=Math.max(1,s*0.34);ctx.fillRect(x-t/2,y-h,t,s);ctx.fillRect(x-h,y-t/2,s,t);return}
-    default:ctx.fillRect(x-h,y-h,s,s);
-  }
-}
-let lastCount=-1;
-function updateStarCount(){
-  if(stars.length!==lastCount){
-    lastCount=stars.length;
-    const b=stars.filter(s=>s.isBase).length;
-    const sp=stars.length-b;
-    document.getElementById('star-count').textContent=`${stars.length}★ (${b}B / ${sp}S)`;
-  }
-}
-function flashScreen(c){const el=document.getElementById('flash-overlay');el.style.background=c||'#ffffff';el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}
-function resetStars(){stars=[];baseSpawnArmed=false;nextBaseSpawnAt=performance.now()+cfg.base.initialDelay}
+
+function initStars(){ /* legacy no-op — worker owns sim */ }
 
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
 function widget_numRange(labelText,obj,key,opts={}){
@@ -1439,29 +1369,29 @@ function buildEffectSettings(container,eff){
     eff.chars.forEach((ch,idx)=>{
       const row=el('div','char-row');
       const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
-      glyph.addEventListener('input',()=>{ch.char=glyph.value;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
+      glyph.addEventListener('input',()=>{ch.char=glyph.value;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const xin=el('input','mini');xin.type='number';xin.step='any';xin.value=Math.round(ch.x);
-      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
+      xin.addEventListener('input',()=>{ch.x=parseFloat(xin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const yin=el('input','mini');yin.type='number';yin.step='any';yin.value=Math.round(ch.y);
-      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
+      yin.addEventListener('input',()=>{ch.y=parseFloat(yin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const sin=el('input','mini');sin.type='number';sin.step='any';sin.value=Math.round(ch.size);
-      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
+      sin.addEventListener('input',()=>{ch.size=parseFloat(sin.value)||1;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
-      rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;computeBubbleMask(eff);updateCharDivByIndex(idx,ch);saveStarConfig()});
+      rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
-      del.addEventListener('click',()=>{eff.chars.splice(idx,1);computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+      del.addEventListener('click',()=>{eff.chars.splice(idx,1);postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
       row.appendChild(glyph);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(del);
       charsBox.appendChild(row);
     });
     container.appendChild(charsBox);
     const addCharBtn=el('button','gui-btn ghost');addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add character';
-    addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+    addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(addCharBtn);
     const reBtn=el('button','gui-btn ghost');reBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally';
-    reBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+    reBtn.addEventListener('click',()=>{eff.chars.forEach((ch,i)=>{const c=defaultCharFor(i,eff.chars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(reBtn);
     const crBtn=el('button','gui-btn ghost');crBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations';
-    crBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});computeBubbleMask(eff);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
+    crBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(crBtn);
     container.appendChild(el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>'));
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
@@ -1470,7 +1400,7 @@ function buildEffectSettings(container,eff){
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>'));
     container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
-    container.appendChild(el('div',null,`<span class="status-tag ok">Spawn area: ${eff.spawnPoints?eff.spawnPoints.length:0} sampled px</span>`));
+    container.appendChild(el('div',null,`<span class="status-tag ok">Mask computed in worker</span>`));
   }
   if(eff.type==='images'){
     container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{min:0,max:100000000,step:1}));
@@ -1482,7 +1412,8 @@ function buildEffectSettings(container,eff){
     const rb=el('button','gui-btn primary');rb.innerHTML='<i class="fa-solid fa-rotate mr-1"></i> Reload Images';
     rb.addEventListener('click',()=>loadEffectImages(eff));container.appendChild(rb);
     const status=el('div');
-    if(eff.loaded)status.innerHTML=`<span class="status-tag ok">Loaded ${eff.imagePool.length} images</span>`;
+    if(eff._loading)status.innerHTML=`<span class="status-tag loading">Loading…</span>`;
+    else if(eff.loaded)status.innerHTML=`<span class="status-tag ok">Loaded ${eff.imagePool.length} images</span>`;
     else if(eff.loadError)status.innerHTML=`<span class="status-tag err">${eff.loadError}</span>`;
     else status.innerHTML=`<span class="status-tag loading">Not loaded yet</span>`;
     container.appendChild(status);
@@ -1509,9 +1440,13 @@ function buildEffectSettings(container,eff){
 }
 function activateEffect(id){
   cfg.activeEffectId=id;const eff=getActiveEffect();if(!eff)return;
-  if(eff.type==='images'&&!eff.loaded)loadEffectImages(eff);
-  if(eff.type==='bubble')computeBubbleMask(eff);
-  resetStars();renderEffectList();rebuildBubbleEditor();saveStarConfig();
+  if(eff.type==='images' && (!eff.imagePool || !eff.imagePool.length)) loadEffectImages(eff);
+  if(eff.type==='bubble') postChars(true);
+  if(eff.type==='images') postImagePool();
+  postReset();
+  renderEffectList();
+  rebuildBubbleEditor();
+  saveStarConfig();
 }
 function deleteEffect(id){
   if(cfg.effects.length<=1){alert('Must keep at least one effect.');return}
@@ -1521,37 +1456,33 @@ function deleteEffect(id){
   if(wasActive){
     cfg.activeEffectId=cfg.effects[0].id;
     const f=getActiveEffect();
-    if(f&&f.type==='images'&&!f.loaded)loadEffectImages(f);
-    if(f&&f.type==='bubble')computeBubbleMask(f);
+    if(f&&f.type==='images' && (!f.imagePool || !f.imagePool.length)) loadEffectImages(f);
+    if(f&&f.type==='bubble') postChars(true);
+    postReset();
     rebuildBubbleEditor();
   }
   renderEffectList();saveStarConfig();
 }
 function toggleStarGui(){if(!isEditing)return;document.getElementById('star-gui').classList.toggle('hidden')}
+function resetStars(){postReset()}
+function flashScreen(c){const el2=document.getElementById('flash-overlay');el2.style.background=c||'#ffffff';el2.classList.remove('flash');void el2.offsetWidth;el2.classList.add('flash')}
 
 /* =========================================================
-   ███████  MP3 MODULE  ███████
+   MP3 MODULE
 ========================================================= */
-
-// ---------- State ----------
-let mp3Tracks = [];          // [{id, name, duration, source:'file'|'url', url?}]
-let mp3Labels = {};          // { [tokenIdx]: { trackId, time } }
-let mp3TokenSnapshot = [];   // snapshot of token strings at labelling time
-let mp3Cfg = {
-  highlightColor: '#fbbf24',
-  wordClickEnabled: true,
-  playbackRate: 1.0
-};
+let mp3Tracks = [];
+let mp3Labels = {};
+let mp3TokenSnapshot = [];
+let mp3Cfg = { highlightColor: '#fbbf24', wordClickEnabled: true, playbackRate: 1.0 };
 let mp3Audio = null;
 let mp3Playing = false;
 let mp3CurrentIdx = -1;
 let mp3PreviewUntil = -1;
 let mp3CurrentTrackId = null;
-let mp3NextIdxCounter = 0;   // used during wrapping
-let mp3FocusedIdx = -1;      // word focused in admin panel
-const mp3UrlCache = {};      // trackId -> objectURL (for file-sourced tracks)
+let mp3NextIdxCounter = 0;
+let mp3FocusedIdx = -1;
+const mp3UrlCache = {};
 
-// ---------- IndexedDB for MP3 blobs ----------
 const MP3_IDB_NAME = 'vn_mp3_blobs';
 const MP3_IDB_STORE = 'blobs';
 let mp3Db = null;
@@ -1588,16 +1519,7 @@ async function mp3IdbDel(key){
     tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error);
   });
 }
-async function mp3IdbKeys(){
-  const db = await mp3OpenDb();
-  return new Promise((res, rej) => {
-    const tx = db.transaction(MP3_IDB_STORE, 'readonly');
-    const req = tx.objectStore(MP3_IDB_STORE).getAllKeys();
-    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
-  });
-}
 
-// ---------- Storage ----------
 function mp3SaveTracks(){ try { localStorage.setItem(STORAGE.mp3_tracks, JSON.stringify(mp3Tracks)); } catch(e){} }
 function mp3SaveLabels(){ try { localStorage.setItem(STORAGE.mp3_labels, JSON.stringify({ tokens: mp3TokenSnapshot, labels: mp3Labels })); } catch(e){} }
 function mp3SaveCfg(){ try { localStorage.setItem(STORAGE.mp3_cfg, JSON.stringify(mp3Cfg)); } catch(e){} }
@@ -1609,7 +1531,6 @@ function mp3LoadState(){
     if (l) { const p = JSON.parse(l); mp3Labels = p.labels || {}; mp3TokenSnapshot = p.tokens || []; }
   } catch(e){}
   try { const c = localStorage.getItem(STORAGE.mp3_cfg); if (c) mp3Cfg = Object.assign(mp3Cfg, JSON.parse(c)); } catch(e){}
-  // From export
   if (window.__EXPORTED_MP3__ && typeof window.__EXPORTED_MP3__ === 'object') {
     const e = window.__EXPORTED_MP3__;
     if (!mp3Tracks.length && Array.isArray(e.tracks)) mp3Tracks = e.tracks;
@@ -1618,7 +1539,6 @@ function mp3LoadState(){
   }
 }
 
-// ---------- Utility ----------
 function fmtTime(s){
   if (!isFinite(s)) return '–:––';
   s = Math.max(0, s);
@@ -1629,7 +1549,6 @@ function fmtTime(s){
 function getTrack(id){ return mp3Tracks.find(t => t.id === id) || null; }
 function trackName(id){ const t = getTrack(id); return t ? t.name : '(missing)'; }
 
-// ---------- Tokenization ----------
 function mp3TokenizeText(text){
   const tokens = [];
   let i = 0;
@@ -1656,7 +1575,6 @@ function mp3TokenizeText(text){
   return tokens;
 }
 
-// ---------- Wrapping / Unwrapping ----------
 function mp3UnwrapWords(){
   document.querySelectorAll('.mp3-word').forEach(el => {
     const txt = el.textContent;
@@ -1665,9 +1583,8 @@ function mp3UnwrapWords(){
   document.querySelectorAll('#document-canvas .edit-block > *').forEach(e => e.normalize());
 }
 function mp3TokenizeAndWrap(){
-  // Must be called in visitor mode (no contenteditable).
   if (isEditing) return;
-  mp3UnwrapWords();  // just in case
+  mp3UnwrapWords();
   mp3NextIdxCounter = 0;
   const blocks = document.querySelectorAll('#document-canvas .edit-block');
   blocks.forEach(b => {
@@ -1696,16 +1613,13 @@ function mp3TokenizeAndWrap(){
       tn.parentNode.replaceChild(frag, tn);
     }
   });
-  // Snapshot
   mp3TokenSnapshot = [];
   document.querySelectorAll('.mp3-word').forEach(el => {
     mp3TokenSnapshot[parseInt(el.dataset.idx)] = el.textContent;
   });
-  // Apply highlight to current
   if (mp3CurrentIdx >= 0) mp3ApplyHighlight(mp3CurrentIdx);
 }
 
-// ---------- Audio ----------
 function mp3BootAudio(){
   if (mp3Audio) return;
   mp3Audio = document.createElement('audio');
@@ -1737,12 +1651,11 @@ async function mp3LoadTrack(trackId){
   if (!url) return false;
   mp3Audio.src = url;
   mp3CurrentTrackId = trackId;
-  // Wait for metadata
   await new Promise(res => {
     if (mp3Audio.readyState >= 1) return res();
     const h = () => { mp3Audio.removeEventListener('loadedmetadata', h); res(); };
     mp3Audio.addEventListener('loadedmetadata', h);
-    setTimeout(res, 2000); // fallback
+    setTimeout(res, 2000);
   });
   mp3ApplyPlaybackRate();
   return true;
@@ -1751,7 +1664,6 @@ function mp3ApplyPlaybackRate(){
   if (mp3Audio) mp3Audio.playbackRate = mp3Cfg.playbackRate;
 }
 
-// ---------- Playback engine ----------
 function mp3WordsOnTrack(trackId){
   const out = [];
   for (const k in mp3Labels) {
@@ -1774,12 +1686,6 @@ function mp3NextLabelIdx(fromIdx){
   const ks = Object.keys(mp3Labels).map(Number).sort((a, b) => a - b);
   for (const k of ks) if (k > fromIdx) return k;
   return -1;
-}
-function mp3PrevLabelIdx(fromIdx){
-  const ks = Object.keys(mp3Labels).map(Number).sort((a, b) => a - b);
-  let prev = -1;
-  for (const k of ks) { if (k >= fromIdx) break; prev = k; }
-  return prev;
 }
 
 async function mp3PlayFrom(idx){
@@ -1855,9 +1761,7 @@ function mp3OnTick(){
 }
 async function mp3OnEnded(){
   if (!mp3Playing) return;
-  // Preview mode — just stop
   if (mp3PreviewUntil >= 0) { mp3Pause(); return; }
-  // Advance to next labelled word
   const nextIdx = mp3NextLabelIdx(mp3CurrentIdx);
   if (nextIdx >= 0) {
     const nextLabel = mp3Labels[nextIdx];
@@ -1874,7 +1778,6 @@ function mp3Loop(){
   if (mp3Playing) requestAnimationFrame(mp3Loop);
 }
 
-// ---------- Highlight ----------
 function mp3ApplyHighlight(idx){
   document.querySelectorAll('.mp3-word.highlighted').forEach(el => el.classList.remove('highlighted'));
   if (idx < 0) return;
@@ -1882,7 +1785,6 @@ function mp3ApplyHighlight(idx){
   if (el) el.classList.add('highlighted');
 }
 
-// ---------- User controls ----------
 function mp3UpdatePlayBtn(){
   const btn = document.getElementById('mp3-play-btn');
   if (!btn) return;
@@ -1926,7 +1828,6 @@ function mp3InitControls(){
     mp3Cfg.wordClickEnabled = wc.checked;
     mp3SaveCfg();
   });
-  // Word click (visitor mode)
   document.addEventListener('click', e => {
     if (isEditing) return;
     if (!mp3Cfg.wordClickEnabled) return;
@@ -1939,7 +1840,6 @@ function mp3InitControls(){
   });
 }
 
-// ---------- Admin panel ----------
 function toggleMp3Panel(){
   if (!isEditing) return;
   const p = document.getElementById('mp3-panel');
@@ -1954,7 +1854,6 @@ function mp3RefreshPanelWordDisplay(){
     return;
   }
   big.textContent = mp3TokenSnapshot[mp3FocusedIdx] || '(empty)';
-  // Update word-list focused highlight
   document.querySelectorAll('.mp3-word-row').forEach(r => r.classList.remove('focused'));
   const row = document.querySelector(`.mp3-word-row[data-idx="${mp3FocusedIdx}"]`);
   if (row) { row.classList.add('focused'); row.scrollIntoView({ block: 'nearest' }); }
@@ -1965,12 +1864,46 @@ function mp3RenderPanel(){
   const prevScrollTop = body.scrollTop;
   body.innerHTML = '';
 
-  // ---- TRACKS ----
   const t = mp3MakeSection('Tracks', 'tracks');
   const imp = el('button', 'gui-btn primary');
   imp.innerHTML = '<i class="fa-solid fa-file-audio mr-1"></i> Import MP3 file(s)';
-  imp.addEventListener('click', () => document.getElementById('mp3-file-input').click());
+  imp.addEventListener('click', () => {
+    let fi = document.getElementById('mp3-file-input');
+    if (!fi) {
+      fi = el('input'); fi.type = 'file'; fi.accept = 'audio/*,.mp3'; fi.multiple = true;
+      fi.id = 'mp3-file-input'; fi.style.display = 'none';
+      document.body.appendChild(fi);
+    }
+    fi.click();
+  });
   t.body.appendChild(imp);
+
+  if (!document.getElementById('mp3-file-input')) {
+    const fi = el('input'); fi.type = 'file'; fi.accept = 'audio/*,.mp3'; fi.multiple = true;
+    fi.id = 'mp3-file-input'; fi.style.display = 'none';
+    fi.addEventListener('change', async e => {
+      const files = Array.from(e.target.files);
+      for (const file of files) {
+        const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+        try { await mp3IdbPut(id, file); }
+        catch(err) { alert('Could not store "' + file.name + '": ' + err.message); continue; }
+        const url = URL.createObjectURL(file);
+        mp3UrlCache[id] = url;
+        const duration = await new Promise(res => {
+          const a = new Audio();
+          a.preload = 'metadata';
+          a.src = url;
+          a.addEventListener('loadedmetadata', () => res(a.duration || 0));
+          a.addEventListener('error', () => res(0));
+          setTimeout(() => res(0), 3000);
+        });
+        mp3Tracks.push({ id, name: file.name, source: 'file', duration });
+      }
+      mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
+      e.target.value = '';
+    });
+    document.body.appendChild(fi);
+  }
 
   const urlBtn = el('button', 'gui-btn ghost');
   urlBtn.innerHTML = '<i class="fa-solid fa-link mr-1"></i> Add track by URL';
@@ -1979,7 +1912,6 @@ function mp3RenderPanel(){
     if (!url) return;
     const name = prompt('Display name for this track:', url.split('/').pop() || 'track.mp3') || 'track.mp3';
     const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-    // Probe duration
     const probe = new Audio();
     probe.preload = 'metadata';
     probe.src = url;
@@ -2003,17 +1935,8 @@ function mp3RenderPanel(){
     mp3Tracks.forEach(tr => {
       const row = el('div', 'mp3-track-item' + (tr.id === mp3CurrentTrackId ? ' active' : ''));
       const srcBadge = tr.source === 'url' ? '🔗' : '💾';
-      row.innerHTML = `
-        <span>${srcBadge}</span>
-        <span class="name">${tr.name}</span>
-        <span class="dur">${fmtTime(tr.duration)}</span>
-        <button class="sel">Select</button>
-        <button class="del">✕</button>
-      `;
-      row.querySelector('.sel').addEventListener('click', () => {
-        mp3CurrentTrackId = tr.id;
-        mp3RenderPanel();
-      });
+      row.innerHTML = `<span>${srcBadge}</span><span class="name">${tr.name}</span><span class="dur">${fmtTime(tr.duration)}</span><button class="sel">Select</button><button class="del">✕</button>`;
+      row.querySelector('.sel').addEventListener('click', () => { mp3CurrentTrackId = tr.id; mp3RenderPanel(); });
       row.querySelector('.del').addEventListener('click', () => {
         if (!confirm('Delete this track? Labels using it will be cleared.')) return;
         if (tr.source === 'file') mp3IdbDel(tr.id).catch(()=>{});
@@ -2029,41 +1952,10 @@ function mp3RenderPanel(){
   }
   body.appendChild(t.sec);
 
-  // ---- WORDS ----
   const w = mp3MakeSection('Words', 'words');
   const wordCount = mp3TokenSnapshot.length;
   const labelCount = Object.keys(mp3Labels).length;
   w.body.appendChild(el('div','mp3-hint',`${wordCount} tokens · ${labelCount} labelled`));
-
-  // Warning if text changed
-  if (mp3TokenSnapshot.length) {
-    const currentTokens = [];
-    // In edit mode, spans are unwrapped; but the panel is only open in edit mode.
-    // Rebuild a temporary token list from the current text.
-    const blocks = document.querySelectorAll('#document-canvas .edit-block');
-    let idx = 0;
-    blocks.forEach(b => {
-      const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, null);
-      let n;
-      while ((n = walker.nextNode())) {
-        const text = n.nodeValue;
-        if (!text || !text.trim()) continue;
-        const toks = mp3TokenizeText(text);
-        for (const tok of toks) if (tok.type !== 'sep') currentTokens[idx++] = tok.text;
-      }
-    });
-    let changed = false;
-    const maxLen = Math.max(currentTokens.length, mp3TokenSnapshot.length);
-    for (let i = 0; i < maxLen; i++) {
-      if (currentTokens[i] !== mp3TokenSnapshot[i]) { changed = true; break; }
-    }
-    if (changed) {
-      const warn = el('div');
-      warn.innerHTML = '<span class="mp3-tag warn">⚠ Text changed since labelling — labels may be off. Re-label or clear.</span>';
-      w.body.appendChild(warn);
-    }
-  }
-
   if (!wordCount) {
     w.body.appendChild(el('div','mp3-hint','No words tokenized yet.'));
   } else {
@@ -2078,10 +1970,7 @@ function mp3RenderPanel(){
       row.addEventListener('click', () => {
         mp3FocusedIdx = i;
         mp3RefreshPanelWordDisplay();
-        // Seek audio to that word if labelled
-        if (mp3Labels[i]) {
-          mp3SeekToFocused();
-        }
+        if (mp3Labels[i]) mp3SeekToFocused();
       });
       list.appendChild(row);
     }
@@ -2089,14 +1978,10 @@ function mp3RenderPanel(){
   }
   body.appendChild(w.sec);
 
-  // ---- LABELLING ----
   const l = mp3MakeSection('Labelling', 'labelling');
-
-  // Big current word
   const big = el('div','mp3-big-word'); big.id = 'mp3-big-word';
   l.body.appendChild(big);
 
-  // Nav row
   const nav = el('div','mp3-nav');
   const prevBtn = el('button'); prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left mr-1"></i> Prev';
   prevBtn.addEventListener('click', () => { if (mp3FocusedIdx > 0) { mp3FocusedIdx--; mp3RefreshPanelWordDisplay(); mp3SeekToFocused(); } });
@@ -2105,15 +1990,11 @@ function mp3RenderPanel(){
   nav.appendChild(prevBtn); nav.appendChild(nextBtn);
   l.body.appendChild(nav);
 
-  // Time input row
   const trow = el('div','mp3-time-row');
   const timeIn = el('input'); timeIn.type = 'number'; timeIn.step = '0.01'; timeIn.min = '0'; timeIn.id = 'mp3-time-input';
   const lab = mp3Labels[mp3FocusedIdx];
   timeIn.value = lab ? lab.time.toFixed(2) : '0.00';
-  if (lab) {
-    const tr = getTrack(lab.trackId);
-    if (tr && tr.duration) timeIn.max = tr.duration.toFixed(2);
-  }
+  if (lab) { const tr = getTrack(lab.trackId); if (tr && tr.duration) timeIn.max = tr.duration.toFixed(2); }
   trow.appendChild(timeIn);
   const useCurBtn = el('button'); useCurBtn.textContent = '⏱ Use current';
   useCurBtn.addEventListener('click', () => {
@@ -2123,7 +2004,6 @@ function mp3RenderPanel(){
   trow.appendChild(useCurBtn);
   l.body.appendChild(trow);
 
-  // Play from here
   const prow = el('div','mp3-nav');
   const playBtn = el('button'); playBtn.className = 'primary';
   playBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Play from here';
@@ -2146,11 +2026,9 @@ function mp3RenderPanel(){
   prow.appendChild(stopBtn);
   l.body.appendChild(prow);
 
-  // Audio position
   const pos = el('div','mp3-audio-pos'); pos.id = 'mp3-audio-pos-admin'; pos.textContent = '0:00.00 / 0:00.00';
   l.body.appendChild(pos);
 
-  // Save label button
   const saveBtn = el('button','gui-btn primary');
   saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Save label for this word';
   saveBtn.addEventListener('click', () => {
@@ -2160,7 +2038,6 @@ function mp3RenderPanel(){
     if (isNaN(tval) || tval < 0) return alert('Invalid time.');
     const tr = getTrack(mp3CurrentTrackId);
     if (tr && tr.duration && tval > tr.duration) return alert('Time exceeds track duration.');
-    // Duplicate check
     for (const k in mp3Labels) {
       const lb = mp3Labels[k];
       if (parseInt(k) !== mp3FocusedIdx && lb.trackId === mp3CurrentTrackId && Math.abs(lb.time - tval) < 0.005) {
@@ -2170,7 +2047,6 @@ function mp3RenderPanel(){
     mp3Labels[mp3FocusedIdx] = { trackId: mp3CurrentTrackId, time: tval };
     mp3SaveLabels();
     mp3RenderPanel();
-    // Advance to next word for efficiency
     if (mp3FocusedIdx < mp3TokenSnapshot.length - 1) {
       mp3FocusedIdx++;
       mp3RefreshPanelWordDisplay();
@@ -2182,14 +2058,11 @@ function mp3RenderPanel(){
     }
   });
   l.body.appendChild(saveBtn);
-
-  l.body.appendChild(el('div','mp3-hint','Tip: Play the track, then hit "Use current" to capture the audio\'s current position. Save, and it auto-advances to the next word.'));
+  l.body.appendChild(el('div','mp3-hint','Tip: Play the track, hit "Use current" to capture the audio position. Save, and it auto-advances to the next word.'));
 
   body.appendChild(l.sec);
 
-  // ---- PLAYBACK ----
   const pb = mp3MakeSection('Playback', 'playback');
-  // Speed
   const spRow = el('div','mp3-time-row');
   const spLabel = el('span',null,'Speed');
   spLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex-shrink:0;width:46px';
@@ -2206,7 +2079,6 @@ function mp3RenderPanel(){
   spRow.appendChild(spLabel); spRow.appendChild(spSlider); spRow.appendChild(spVal);
   pb.body.appendChild(spRow);
 
-  // Highlight colour
   const cRow = el('div','mp3-time-row');
   const cLabel = el('span',null,'Highlight colour');
   cLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
@@ -2220,7 +2092,6 @@ function mp3RenderPanel(){
   cRow.appendChild(cLabel); cRow.appendChild(cInp);
   pb.body.appendChild(cRow);
 
-  // Word click toggle
   const wcRow = el('div','mp3-time-row');
   const wcLabel = el('span',null,'Click words to play them (visitor)');
   wcLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
@@ -2232,10 +2103,8 @@ function mp3RenderPanel(){
   });
   wcRow.appendChild(wcLabel); wcRow.appendChild(wcSwitch);
   pb.body.appendChild(wcRow);
-
   body.appendChild(pb.sec);
 
-  // ---- DANGER ----
   const d = mp3MakeSection('Danger', 'danger');
   const clrLabels = el('button','gui-btn danger');
   clrLabels.innerHTML = '<i class="fa-solid fa-eraser mr-1"></i> Clear all word labels';
@@ -2248,9 +2117,7 @@ function mp3RenderPanel(){
   clrTracks.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Delete all tracks';
   clrTracks.addEventListener('click', async () => {
     if (!confirm('Delete ALL imported tracks and their labels?')) return;
-    for (const tr of mp3Tracks) {
-      if (tr.source === 'file') try { await mp3IdbDel(tr.id); } catch(e){}
-    }
+    for (const tr of mp3Tracks) { if (tr.source === 'file') try { await mp3IdbDel(tr.id); } catch(e){} }
     mp3Tracks = []; mp3Labels = {}; mp3CurrentTrackId = null;
     for (const k in mp3UrlCache) delete mp3UrlCache[k];
     mp3SaveTracks(); mp3SaveLabels(); mp3RenderPanel(); mp3RefreshControls();
@@ -2258,41 +2125,8 @@ function mp3RenderPanel(){
   d.body.appendChild(clrTracks);
   body.appendChild(d.sec);
 
-  // Hidden file input (one per panel build)
-  const fi = el('input'); fi.type = 'file'; fi.accept = 'audio/*,.mp3'; fi.multiple = true;
-  fi.id = 'mp3-file-input'; fi.style.display = 'none';
-  fi.addEventListener('change', async e => {
-    const files = Array.from(e.target.files);
-    for (const file of files) {
-      const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-      try {
-        await mp3IdbPut(id, file);
-      } catch(err) {
-        alert('Could not store "' + file.name + '": ' + err.message);
-        continue;
-      }
-      // Probe duration
-      const url = URL.createObjectURL(file);
-      mp3UrlCache[id] = url;
-      const duration = await new Promise(res => {
-        const a = new Audio();
-        a.preload = 'metadata';
-        a.src = url;
-        a.addEventListener('loadedmetadata', () => res(a.duration || 0));
-        a.addEventListener('error', () => res(0));
-        setTimeout(() => res(0), 3000);
-      });
-      mp3Tracks.push({ id, name: file.name, source: 'file', duration });
-    }
-    mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
-    e.target.value = '';
-  });
-  body.appendChild(fi);
-
-  // Restore scroll
   body.scrollTop = prevScrollTop;
 
-  // Init word focus
   if (mp3FocusedIdx < 0 && mp3TokenSnapshot.length) mp3FocusedIdx = 0;
   mp3RefreshPanelWordDisplay();
 }
@@ -2313,26 +2147,23 @@ async function mp3SeekToFocused(){
   if (!ok) return;
   mp3Audio.currentTime = Math.max(0, lab.time);
   mp3UpdateAudioPos();
-  // Update time input
   const t = document.getElementById('mp3-time-input');
   if (t) t.value = lab.time.toFixed(2);
   mp3CurrentIdx = mp3FocusedIdx;
   mp3ApplyHighlight(mp3FocusedIdx);
 }
 
-// ---------- Boot ----------
 async function mp3Boot(){
   mp3LoadState();
   document.documentElement.style.setProperty('--mp3-highlight', mp3Cfg.highlightColor);
   mp3BootAudio();
   mp3InitControls();
-  // Tokenize (in visitor mode — the page boots in visitor mode)
   mp3TokenizeAndWrap();
   mp3RefreshControls();
 }
 
 /* =========================================================
-   EXPORT
+   EXPORT  (FIXED)
 ========================================================= */
 async function exportHTML(){
   const modal = document.getElementById('export-modal');
@@ -2360,6 +2191,7 @@ async function exportHTML(){
     };
 
     const safe = (str) => str.replace(/</g, '\\u003c');
+
     const bakedBlock = `<!-- BAKED_CONFIG_START -->
 <script id="baked-config">
 window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
@@ -2371,6 +2203,7 @@ window.__EXPORTED_MP3__ = ${safe(JSON.stringify(mp3Export))};
 <!-- BAKED_CONFIG_END -->`;
 
     source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
+
     if (source.includes('</head>')) source = source.replace('</head>', bakedBlock + '\n</head>');
     else throw new Error('Could not find </head> in source');
 
