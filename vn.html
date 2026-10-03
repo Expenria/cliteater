@@ -2801,10 +2801,17 @@ async function exportHTML(){
 
     const safe = (str) => str.replace(/</g, '\\u003c');
 
-    const bakedBlock = ``;
+    const bakedBlock = `<!-- BAKED_CONFIG_START -->
+<script id="baked-config">
+window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
+window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};
+window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
+window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
+window.__EXPORTED_MP3__ = ${safe(JSON.stringify(mp3Export))};
+<\/script>
+<!-- BAKED_CONFIG_END -->`;
 
-    // Idempotent: strip any previous baked block
-    source = source.replace(/\s*/g, '');
+    source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
 
     if (source.includes('</head>')) {
       source = source.replace('</head>', bakedBlock + '\n</head>');
