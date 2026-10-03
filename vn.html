@@ -801,9 +801,11 @@ function disableEditing(){
   document.getElementById('mp3-panel').classList.remove('open');
   canvasEl.querySelectorAll('.block-del').forEach(b=>b.remove());
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
-    const e = blockContentEl(b);
-    if (e) e.removeAttribute('contenteditable');
-  });
+  for (const child of b.children) {
+    if (child.classList.contains('block-del')) continue;
+    child.removeAttribute('contenteditable');
+  }
+});
   document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'));
   document.getElementById('bubble-editor-layer').innerHTML='';
   document.getElementById('cue-editor-layer').innerHTML='';
@@ -846,10 +848,17 @@ function attachBlockDel(block){
 }
 function makeBlocksEditable(){
   canvasEl.querySelectorAll('.edit-block').forEach(b=>{
-    const e = blockContentEl(b);
-    if(e){
-      e.contentEditable="true";
-      if (!e.dataset.hasInputListener) { e.addEventListener('input', autoSave); e.dataset.hasInputListener = '1'; }
+    // The browser can split a block into multiple sibling fragments if the
+    // stored HTML contains invalid nesting (e.g. <div> inside <p> from a
+    // Google Docs paste). Mark every direct child (except the delete
+    // button) as editable so all fragments are interactive.
+    for (const child of b.children) {
+      if (child.classList.contains('block-del')) continue;
+      child.contentEditable = "true";
+      if (!child.dataset.hasInputListener) {
+        child.addEventListener('input', autoSave);
+        child.dataset.hasInputListener = '1';
+      }
     }
     attachBlockDel(b);
   });
