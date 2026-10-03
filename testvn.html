@@ -1109,15 +1109,7 @@ function buildChartsPicker() {
     cell.appendChild(thumbWrap);
     cell.appendChild(name);
     cell.onclick = () => {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      createImageElement({
-        src: url,
-        x: Math.round(vw/2 - 160 + (Math.random()*80 - 40)),
-        y: Math.round(vh/2 - 120 + (Math.random()*80 - 40)),
-        width: 320,
-        height: 240
-      });
-      saveImages();
+      insertChartImageIntoDoc(url);
       overlay.remove();
     };
     grid.appendChild(cell);
@@ -1142,6 +1134,45 @@ async function triggerImageFromCharts() {
     await loadChartsManifest();
   }
   buildChartsPicker();
+}
+
+function insertChartImageIntoDoc(url) {
+  // Insert an <img> into the document at the caret, or at the end of the last edit-block
+  const imgTag = `<img src="${url}" alt="${url.split('/').pop()}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);margin:12px 0;display:block;" data-chart-src="${url}">`;
+
+  // 1) If the user has a caret inside an editable block, insert there
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    let container = range.startContainer;
+    while (container && container.nodeType !== 1) container = container.parentNode;
+    const editable = container && container.closest && container.closest('.edit-block');
+    if (editable) {
+      // Insert the image as a sibling block right after the current block
+      const newBlock = document.createElement('div');
+      newBlock.className = 'edit-block group relative';
+      newBlock.innerHTML = `<p class="text-base text-zinc-400 font-light leading-relaxed" contenteditable="true" data-has-input-listener="1">${imgTag}</p>`;
+      editable.parentNode.insertBefore(newBlock, editable.nextSibling);
+      // Wire up the editable
+      const p = newBlock.querySelector('p');
+      p.addEventListener('input', autoSave);
+      attachBlockDel(newBlock);
+      autoSave();
+      scheduleViewInfo();
+      return;
+    }
+  }
+
+  // 2) No caret — append a new block at the bottom of the document
+  const newBlock = document.createElement('div');
+  newBlock.className = 'edit-block group relative';
+  newBlock.innerHTML = `<p class="text-base text-zinc-400 font-light leading-relaxed" contenteditable="true" data-has-input-listener="1">${imgTag}</p>`;
+  canvasEl.appendChild(newBlock);
+  const p = newBlock.querySelector('p');
+  p.addEventListener('input', autoSave);
+  attachBlockDel(newBlock);
+  autoSave();
+  scheduleViewInfo();
 }
 document.addEventListener('mousedown',e=>{
   if(!e.target.closest('.draggable-img'))document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'))
