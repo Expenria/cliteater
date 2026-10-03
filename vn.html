@@ -33,6 +33,11 @@ body.is-editing .edit-block:focus-within > .block-del{display:flex}
 #bubble-editor-layer .char-rotate-handle:active{cursor:grabbing}
 #bubble-editor-layer .char-label{position:absolute;top:-18px;left:0;font-size:9px;color:#a5b4fc;font-family:ui-monospace,monospace;background:#1a1938;padding:1px 4px;border-radius:3px;pointer-events:none}
 #bubble-editor-layer .char-editor[data-mode="pinned"] .char-label{color:#fbbf24;background:#3a2a04}
+#cue-editor-layer{position:fixed;inset:0;z-index:24;pointer-events:none}
+#cue-editor-layer .cue-box{position:absolute;border:1px dashed rgba(251,191,36,.7);background:rgba(251,191,36,.04);cursor:move;pointer-events:auto;box-sizing:border-box;transition:border-color .15s, background .15s}
+#cue-editor-layer .cue-box:hover{border-color:#fbbf24;background:rgba(251,191,36,.10)}
+#cue-editor-layer .cue-label{position:absolute;top:-18px;left:0;font-size:9px;color:#fbbf24;font-family:ui-monospace,monospace;background:#3a2a04;padding:1px 4px;border-radius:3px;pointer-events:none;white-space:nowrap}
+#cue-editor-layer .cue-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:11px;font-family:ui-monospace,monospace}
 #flash-overlay{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:200}
 #flash-overlay.flash{animation:flashAnim 700ms ease-out}
 @keyframes flashAnim{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
@@ -166,7 +171,7 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 #mp3-controls .mp3-sep{width:1px;height:18px;background:#27272a}
 #mp3-controls label{display:flex;align-items:center;gap:4px;cursor:pointer}
 #mp3-controls .mp3-time{font-family:ui-monospace,monospace;color:#a5b4fc;min-width:92px;text-align:center}
-#mp3-panel{position:fixed;top:80px;right:16px;width:460px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:62;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:none}
+#mp3-panel{position:fixed;top:80px;right:16px;width:480px;max-height:calc(100vh - 100px);overflow-y:auto;background:#18181b;border:1px solid #27272a;border-radius:14px;z-index:62;font-size:11px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:none}
 #mp3-panel.open{display:block}
 #mp3-panel .mp3-head{padding:12px 14px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#18181b;z-index:3;border-radius:14px 14px 0 0}
 #mp3-panel .mp3-body{padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px}
@@ -175,6 +180,7 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 .mp3-sect-head.tracks{color:#6ee7b7}
 .mp3-sect-head.words{color:#f0abfc}
 .mp3-sect-head.labelling{color:#a5b4fc}
+.mp3-sect-head.cues{color:#fbbf24}
 .mp3-sect-head.playback{color:#fbbf24}
 .mp3-sect-head.danger{color:#fca5a5}
 .mp3-sect-body{padding:10px;display:flex;flex-direction:column;gap:9px;background:#161619}
@@ -206,12 +212,38 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
 .mp3-hint{font-size:10px;color:#71717a;line-height:1.4}
 .mp3-tag{font-size:9.5px;padding:2px 6px;border-radius:4px;display:inline-block}
 .mp3-tag.warn{background:#422006;color:#fbbf24}
+.mp3-tag.ok{background:#052e16;color:#86efac}
+.mp3-tag.err{background:#450a0a;color:#fca5a5}
+.cue-row{display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:#0f0f11;border:1px solid #27272a;border-radius:6px;font-size:10.5px}
+.cue-row.selected{border-color:#fbbf24;background:#1a1203}
+.cue-row-main{display:flex;align-items:center;gap:6px}
+.cue-row-main select{flex:1;background:#0a0a0c;border:1px solid #27272a;border-radius:4px;padding:3px 5px;color:#e4e4e7;font-size:10px;font-family:ui-monospace,monospace}
+.cue-row-main button{background:#27272a;color:#d4d4d8;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer}
+.cue-row-main button:hover{background:#3f3f46}
+.cue-row-main button.del:hover{background:#7f1d1d;color:#fecaca}
+.cue-row-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:4px}
+.cue-field{display:flex;flex-direction:column;gap:1px}
+.cue-field label{color:#71717a;font-size:9px;text-transform:uppercase;letter-spacing:.05em;text-align:center}
+.cue-field input{width:100%;background:#0a0a0c;border:1px solid #27272a;border-radius:3px;padding:2px 4px;color:#a5b4fc;font-size:10px;text-align:center;font-family:ui-monospace,monospace;box-sizing:border-box}
+.cue-field input:focus{outline:none;border-color:#fbbf24}
+.cue-row-sub{display:flex;gap:4px;align-items:center;font-size:10px;color:#71717a}
+#mp3-scrubber{width:100%;accent-color:#fbbf24;height:6px}
 </style>
+<!-- BAKED_CONFIG_START -->
+<script id="baked-config">
+window.__EXPORTED_CFG__ = {"global":{"maxStars":10000,"triggerEnabled":false},"base":{"enabled":true,"initialDelay":800,"spawnInterval":400,"reproChance":3,"tickMs":500,"lifespan":5,"color":"#ff0000","shape":"plus","size":0.004,"fadeIn":0.4,"fadeOut":0.5,"flashOut":true,"randomRotation":true},"spawned":{"enabled":true,"reproChance":3,"tickMs":16,"lifespan":1,"color":"#002aff","shape":"square","size":0.004,"fadeIn":0.4,"fadeOut":0.5,"flashOut":true,"randomRotation":false},"effects":[{"id":"eff_1_lrt91","type":"none","name":"Plain Stars","flashColor":"#ffffff"},{"id":"eff_2_l5tiw","type":"bubble","name":"Bubble Text","minStarsForBubble":107,"beforeThresholdMode":"avoid","outlineWidth":0.005,"outlineColor":"#6366f1","outlineOpacity":0.5,"showOutline":false,"showHandles":true,"flashColor":"#ffffff","chars":[{"char":"J","x":0.14908854166666666,"y":0.420863309352518,"size":0.4,"rotation":19.83395888615165}],"maskBounds":null,"maskScale":1},{"id":"eff_2_rfrmj","type":"bubble","name":"Bubble Text","minStarsForBubble":0,"beforeThresholdMode":"avoid","outlineWidth":0.005,"outlineColor":"#6366f1","outlineOpacity":0.5,"showOutline":false,"showHandles":true,"flashColor":"#c000ff","chars":[],"maskBounds":null,"maskScale":1,"scrollBuffer":1,"catchUpBurst":50}],"activeEffectId":"eff_2_rfrmj"};
+window.__EXPORTED_DOC__ = "\n    \u003cdiv class=\"edit-block group relative\">\u003ch1 class=\"text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight\" data-has-input-listener=\"1\" contenteditable=\"true\">SeventhoftheTenthoftheTwenty-SixthyearoftheSecondMillenia\u003c/h1>\u003c/div>\n    \u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-lg text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">Wallahi I'm not ready to start typing this shit🙏\u003c/p>\u003c/div>\n    \u003cdiv class=\"edit-block group relative\">\u003cblockquote class=\"border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300\" data-has-input-listener=\"1\" contenteditable=\"true\">or read it because this is the version where I actually voice what's on the page....😭 idk why I did this to myself\u003c/blockquote>\u003c/div>\n  \u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">\u003cbr>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">OKAY IM GONNA GIVE YOU A COMPREHENSION AND YOU'RE GONNA ANSWER QUESTIONS GO\u003cdiv>(I'll read out the extract ofc)\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">\u003cbr>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">Once upon a time, a black yute born in the most united kingdom traversed the Mediterranean Sea to pursue his studies in Kenya. Uh that's the end of the story comprehension time. Answer them in our messages (ONNNNMESSAGESSSSS)\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">\u003cdiv>One Markers:\u003c/div>\u003cdiv>\u003cbr>\u003c/div>Question 1: What is this yute's first name?&nbsp;\u003cdiv>Question 2: If the yute had a maiden what would her name be?\u003c/div>\u003cdiv>Question 3: Assuming the yute had a favourite colour what would that be?\u003c/div>\u003cdiv>Question 4: Does the yute and his maiden share a favourite colour?\u003c/div>\u003cdiv>Question 5: What school does this yute study in?\u003c/div>\u003cdiv>Question 6: Upon what address did this yute previously reside?\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Six Markers:\u003c/div>\u003cdiv>Question 7: State two effects of this yute traversing to Kenya to pursue his studies?\u003c/div>\u003cdiv>Question 8: State two features of this yute travelling to Kenya to pursue his studies?\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">Source A: (A letter from yute to maiden.)\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Source B: (Sample texts between yute and maiden.)\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">Eight Marker:\u003cdiv>Question 9:&nbsp;\u003cspan style=\"font-size: 1rem;\">Study the two sources. How far does Source B support Source A? Explain your answer using details from both sources.\u003c/span>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" style=\"color: rgb(191, 0, 255);\" contenteditable=\"true\">\u003cdiv>\u003cfont face=\"Arial, sans-serif, Noto Color Emoji\">Sixteen Marker: \u003cb>(Exemplar Answer)\u003c/b>\u003c/font>\u003c/div>\u003cspan class=\"rQesXe MPyX\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"tP2kf#s32ZS\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1l\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 700; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-weight: 700; margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">\"The most significant event in October 2026 is Joanna's Birthday\"\u003c!--TgQPHd|||[]-->\u003c/span>\u003cbr jsaction=\"\" jscontroller=\"iO7NKc#B4oRN\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1m\" data-sfc-pl=\"|||[]\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">How far do you agree? Explain your answer.\u003cdiv>\u003cdiv class=\"n6owBd awi2gc\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"TDBkbc#Ml18Xb\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1k\" data-hveid=\"CAIIAAgACA4QAg\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px 0px 16px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; margin: 0px 0px 16px; border-bottom: 0px rgb(238, 240, 255);\">\u003cem class=\"zhvwWe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"LFsGHb#ycPkjf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1o\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">(You may use the following in your answer:)\u003c!--TgQPHd|||[]-->\u003c/em>\u003c!--TgQPHd|||[]-->\u003c/div>\u003cul class=\"KsbFXc U6u95\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"mPWODf#NS0kde\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1p\" data-ved=\"2ahUKEwiptOqtxJuXAxWhTKQEHZIWLt0Q-7AUegoIAggACAAIDhAD\" data-hveid=\"CAIIAAgACA4QAw\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 12px 0px 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; margin: 12px 0px 0px; border-bottom: 0px rgb(238, 240, 255);\">\u003cli class=\"Z1qcYe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"oSLmPe#HokZ0d\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1q\" data-hveid=\"CAIIAAgACA4QBA\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px 0px 12px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px 0px 12px; border-bottom: 0px rgb(238, 240, 255);\">\u003cspan class=\"iNqyIf\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"KdQfFc#d5Qebf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1r\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">\u003cem class=\"zhvwWe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"LFsGHb#ycPkjf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1s\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">Joanna's Birthday\u003c!--TgQPHd|||[]-->\u003c/em>\u003c!--TgQPHd|||[]-->\u003c/span>\u003c!--TgQPHd|||[]-->\u003c/li>\u003cli class=\"Z1qcYe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"oSLmPe#HokZ0d\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1t\" data-hveid=\"CAIIAAgACA4QBQ\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px 0px 12px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px 0px 12px; border-bottom: 0px rgb(238, 240, 255);\">\u003cspan class=\"iNqyIf\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"KdQfFc#d5Qebf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1u\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">\u003cem class=\"zhvwWe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"LFsGHb#ycPkjf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1v\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">Half Term\u003c/em>\u003c/span>\u003c/li>\u003cli class=\"Z1qcYe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"oSLmPe#HokZ0d\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1t\" data-hveid=\"CAIIAAgACA4QBQ\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px 0px 12px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px 0px 12px; border-bottom: 0px rgb(238, 240, 255);\">\u003cspan class=\"iNqyIf\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"KdQfFc#d5Qebf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1u\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">\u003ci>\u003cbr jsaction=\"\" jscontroller=\"iO7NKc#B4oRN\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1w\" data-sfc-pl=\"|||[]\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">\u003c/i>\u003cem class=\"zhvwWe\" data-sfc-cp=\"\" jsaction=\"\" jscontroller=\"LFsGHb#ycPkjf\" data-sfc-root=\"ep\" jsuid=\"b4or7c_1x\" data-copy-service-computed-style=\"font-family: Arial, sans-serif, &quot;Noto Color Emoji&quot;; font-size: 16px; font-weight: 400; margin: 0px; text-decoration: none; border-bottom: 0px rgb(238, 240, 255);\" style=\"margin: 0px; border-bottom: 0px rgb(238, 240, 255);\">(You must also include information of your own.)\u003c/em>\u003c/span>\u003c/li>\u003c/ul>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" style=\"color: rgb(0, 194, 94);\" contenteditable=\"true\">I fully agree with the notion that the most significant event in October 2026 is Joanna's Birthday; although other events such as the upcoming half term along with my return to England present themselves as quite significant events, relative to the rarity of Joanna's Birthday they are almost negligible.\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Joanna's Birthday, which falls on the 7th of October, is an annual event with the intention of celebrating the milestone of the length of Joanna's life. I believe this event is the most significant this October for a plethora of reasons. \u003cfont color=\"#00ffaa\">Those being the rarity, and the symbolism\u003c/font>. Joanna Mariam Viju's birthday only being one day a year compared to the other events such as Half Term (which we have 3 times a year) and my return to England (also 3 times a year) immediately elevates its perceived value due to less supply. On top of the rarity of JMV's birthday is the symbolism. Rather than it representing a random day of the year for pointless celebration such as Halloween (31st October), JMV's birthday is the one time a year the people in her life can reasonably show unproportionate amounts of love toward her (including myself). Due to Joanna's position of high value in my life as my friend and my romantic partner it's important I present my feelings toward her. Moreso than any other conceivable event within the next 24 days. Whereas the date for half term can be moved or forged mid way through school if&nbsp; desperate, the same can not be done for Joanna's birthday. \u003cfont color=\"#ffff00\">The inflexibility and symbolistic characteristics of Joanna's birthday opposed to every other date and/or event in October clearly presents it as the undeniably most significant event this October.\u003c/font>\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Some may say the upcoming half term holds more value than the 7th of October \u003cfont color=\"#00ffaa\">due to me getting my braces done and simultaneously using tretinoin\u003c/font>, placing it as the most pivotal decision I've made regarding my own looks since I decided to grow my hair out. The choice to get braces this half term makes the half term, in itself a memorable/significant event in the future as servitude for a new beginning. On top of tretinoin (a powerful, prescription-strength topical retinoid derived from vitamin A that speeds up skin cell turnover and boosts collagen production) presents the half term as a long-term significant period of my life, and if I were to look back at this year's October the most memorable event would be this half term, where I made those two decisions. In addition to those two factors, the half term is also significant as it's my first and only half term spent in Kenya over Uganda. \u003cfont color=\"#ffff00\">The rarity of all these opportunities in addition to the significance of these decisions later in my life point toward how this half term could be considered the most significant event this October.\u003c/font>\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Nearer to the end of October grants my return to England. Although short-lived the return comes with 2 sixth forms I'll be visiting. This may be seen as the most significant event in October 2026 \u003cfont color=\"#00ffaa\">due to it's domino effect on my future\u003c/font>. Despite the seemingly insignificant act of just checking out a school, the connections and effect my Sixth Form has on my University and consequently the job market I manage to find my way into is what creates the value in my return to England (through allowing me to attend the open days). On top of this my return to England allows me to visit Joanna. Although seeing Joanna once as a result of my return to England in itself isn't as significant as the open days I'll attend as a result of my return to England, it does still add onto the perceived value and opportunity generated, \u003cfont color=\"#ffff00\">hence why my return to England may be considered the most significant event this October.\u003c/font>\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>In conclusion, although my half term and my return to England by the end of the half term hold long term value and importance in my future, the most immediate and likely most reflected on event \u003cfont color=\"#ffff00\">(Joanna's 16th Birthday) still stands out as the most significant event this October due to it's measurable value and quantifiable significance amongst in my, and her life this October.\u003c/font>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">I hope you liked my exemplar answer,🙄 I love you. I'm bare tired asw you know like I don't know why I decided to start this on the 1st of October I have a whole lot of typing to do man😭 not even typing I have to do more than that too cos I gotta find time to voice all this shit. Hopefully it doesn't take that long anyway.\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Happy birthday Joanne. I asked to go back to England by Saturday so I could actually go see you on your birthday. Unfortunately that didn't happen. I think I had the option to anyway but I was too tired and I thought it was inconsiderate to make my parents pay 1000 pounds to send me back just to like kiss and hug and hump my girlfriend yk😭. To be fair I think it's worth it I actually js cba to explain why I wanted to go home early to my mum💔 So I'm sorry I don't get to see you on your birthday I'll make an attempt to see you in the week or two I'll be in England.&nbsp;\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Also about the tretinoin thing I actually started it before the half term I just needed an extra point wallahi. The first proper week of tret starts in the half term that's why I said that though. By inventory I actually need like very specific products to use it😭 the first thing to arrive was the tretinoin. As of todayyy I need the moisturiser and facial wash smh. This order costs like 25 pounds total btw it's not the worst cos ignoring the price it will fix 100% of my skin issues😭 plus 25 pounds is cheap for smth that valuable soooo? idk sounds worth it.\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>By the way do you like the star thing😔 imaaaa addddd more features to them what ur seeing rn is js like the base like this is just the default setting (also the stars are not a video they're like actually being loaded in and stuff so if ur device is lagging ykw im sorry😭)\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">\u003cfont color=\"#ffffff\">I reallly wantttt to be in England to see you unfortunately that's like not possible I promise if my parent's and my teachers didn't drag this shit soooo much I would've gone back to see u i can show u the receipt of me askingsmh. This reminds me of how I asked to stay home over the Christmas break and I really hope that happens cos if if it does then we can haveeee the coziest Christmas yk🙃 like ofc ur probably spending Christmas with ur family but like over the winter holidays we can chill togetherrrrrrrr and we can like watch a movie in my house or smth😔.&nbsp;\u003c/font>\u003cdiv>\u003cfont color=\"#ffffff\">\u003cbr>\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#ffffff\">Although my TV is admittedly small😭 smh or i think it's small ykw i can't remember I haven't been home in a while. Or if we don't watch a movie we could cuddle togetherrr anda sleep and chill and eat and we could js spend the day there and u could like go shopping with me or something😔 wtv wtv wtv wtv wtv.\u003c/font>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">Ok back to the main point, happy birthday? You know what I don't know if you can be thatttt happy if I'm not there😔 I wonder if you like value sweet 16 or something that seems more like an American thing but if it matters to you then sweet 16 cos ik 16 as a like age is a milestone of some sort. Fortunately I'm not American though cos then I'd have to put in MOREEEE WORKKKKKKKKKK OMDDDDDDDDDDDDD\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">Let's take a quick moment to look back on the 8 months between my birthday and your birthday and see what's changed hmmmmm?\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>QUICKKK SUMMARY TIMEEE:\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>not much is the answer😔 nothing easy to measure\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>However ofcourse per usual I love you more than before\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>And my I've gotten more comfortable with u compared to before\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>And I've gotten more stressed as ur birthday approaches😭\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>And I think the quality of each individual date we've gone on has increased yk😭 I don't have a chart for that one but like each individual date has had like more happen than before it's like we increased quality and quantity.\u003c/div>\u003cdiv>Like imagineee we went like 4 new places this holiday that's FOURRR NEW PLACES YOUKNOW like on a proper date/voyage. I want to include maidenhead but yk we went there the first time in the easter holidays so🙄\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>READING\u003c/div>\u003cdiv>JUMP GIANTS\u003c/div>\u003cdiv>HOUNSLOW\u003c/div>\u003cdiv>STAINES\u003c/div>\u003cdiv>ooooohhhh shiiiii we also went to ascot which counts as a new place cos its US yk?\u003c/div>\u003cdiv>ASCOT.\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>and then in the Easter Holidays&nbsp;\u003c/div>\u003cdiv>MAIDENHEAD\u003c/div>\u003cdiv>BEDFONT LAKESS\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>which ykw we have hella good memories in maidenhead idk I love it personally🙄 I love it cos I'm with you tho you're the one who makes it special.\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">I just forgot that like entire paragraph to write it in my speaking style and not in my writing style so it's gonna be a pain to read that omddd (im reading this after reading the paragraph tho so I guess I must've succeed someway)\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Alsoooooo I REALLY WISH I COUDL'VE ORDERED YOU LIEK FUCKING GIFTS MAN BUT YKW I HAVE A CRISP £17 POUNDS ON MY CARD SO THERE IS NO WAY I CAN SPEND THAT😭. You have to survive off the last gifts I gave u smhh I'm SORRYYY I swear I love you so much I'm sorry though I would've if I could.💔\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>I haven't filled up this page with enough useless text yet so lets play a game... I'll ask gemini to give me like 20 questions about my girlfriend that I'll copy paste here then I'll like give my answers and you can mark them😭 DO NOT WORRY THERE WILL BE WORTHWHILE STUFF IN A MINUTE\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" style=\"color: rgb(255, 174, 0);\" contenteditable=\"true\" data-has-input-listener=\"1\">\u003cdiv>\u003cdiv>1.What is her full name, including any middle names?\u003c/div>\u003cdiv>2.When is her birthday, and what is her star sign?\u003c/div>\u003cdiv>3.What is her favorite color?\u003c/div>\u003cdiv>4.What is her absolute favorite dish or go-to comfort food?\u003c/div>\u003cdiv>5.How does she take her coffee or tea? (Or what is her standard drink order?)\u003c/div>\u003cdiv>6.What is her favorite movie, or a show she can rewatch endlessly?\u003c/div>\u003cdiv>7.What type of music or who are her favorite musical artists?\u003c/div>\u003cdiv>8.(a) What is her shoe size? (b) What is her clothing size?\u003c/div>\u003cdiv>9.What is her favorite animal, and does she have any pets?\u003c/div>\u003cdiv>10.What is her biggest pet peeve or something that instantly annoys her?\u003c/div>\u003cdiv>11.What is her exact height?\u003c/div>\u003cdiv>12.(a) What is her dream travel destination? (b) What is her favorite place the two of you have visited together so far?\u003c/div>\u003cdiv>13.What is her main hobby, passion, or favorite way to spend a free afternoon?\u003c/div>\u003cdiv>14.What is her favorite sweet treat or candy?\u003c/div>\u003cdiv>15.What is something she is irrationally afraid of or particularly anxious about?\u003c/div>\u003cdiv>16.(a) What is her preferred scent, perfume, or flower? (b) Is she allergic to anything?\u003c/div>\u003cdiv>17.What is her current daily routine or occupation/course of study?\u003c/div>\u003cdiv>18.Who is her closest best friend, and how long have they known each other?\u003c/div>\u003cdiv>19.What is her favorite season of the year and why?\u003c/div>\u003cdiv>20.(a) What was her first impression of you when you first met? (b) What is her favorite memory of the two of you together?\u003c/div>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">Okay so wallahi I'm finished I do not know some of this irrelevant information 😭 like man said star sign bro wtf who knows this shit.\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>Anyway I'll try do it anyway this will be an embarassing attempt\u003c/div>\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>1. Joanna Mariam Viju\u003c/div>\u003cdiv>2. 07/10/2026 and stfu\u003c/div>\u003cdiv>3. \u003cfont color=\"#ee00ff\">Purple\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">4. my dick wallahi\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">5. You know what I don't know a simple answer to this but I do know you don't drink tea as much as u did before cos u drank it a lot when u were younger and now it isn't made the same or smth. so like? yeah ig idk what \"how ushe takes her coffee\" means but coffee is the only option so uh yeah.\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">6. we've never spoken about that tbh but I think I'm the answer (or I hope)😔\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">7. you listen to everything💔 my voice tho&nbsp;\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">8. a) DAMNNN wait I think you're a size 6 in feet&nbsp; b) I'd imagine cos im size 31 trousers i think ur size likee 27 but idk how women's clothes work fr\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">9. I feel like I should definitely know this one last time we spoke about his I think it was a giraffe and if we were to have pets I think you'd want a cat\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">10. I won't even try guess🙏\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">11. I believe 5'5\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">12. a) My bedroom [on a serious note I'm not sure I think you have manyy? perhaps south america tho or that's mine atleast] b) OOOOHHH YOU KNOW I DONT KNOW THIS. I wanna say Jump giants but like we didn't do as much as I would've wanted there it could still be your favourite place tho. I loved Bedfont lakes like it was chill and fun ykkk. perhaps perhaps perhaps perhaps uhhh i wanna say maidenhead cos we had the best times there. like both our longest dates were in maidenhead smh I loved it so much I hope you love it was well I'll say maidenhead but I think there are other contenders you know?\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">13. Damn I don't know this. I know it's probably not something you do often but I remember one time where u said u wouldn't text me and you like drew a frog or something and showed me. Maybe you draw more often but like don't tell me about it. I don't ask you this often most the time you're js on tiktok or atleast that's what I know. Not sure tbh this is something I'll figure out if we get to go on holiday together next winter tho igggg.\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">14. I think it's them Nikos ykw idk tho\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">15. Insertion or me going crazy or something I remember being offended u just believed I'd like switch up randomly but tbf it's not entirely irrational so😭. Okay neither of those are irrational I didn't read that till now but assume those are for particularly anxious.\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">16.a) wallahi my sweat b) not that I know of?\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">17. Daily routine involves wake up bla bla prepare for school bla bla school bla bla return home then it's either tuition sometimes or you study from like 6 to smth or its work. yah\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">18.I really wanna say me😭 but let's assume it's not. A while back I said Anika I think it's still her but idk we haven't spoken of in a decent amount of time. Hmmm probably like I mean atleast longer than 2 years cos that's how long I've know u for atp. letss sayyyy 2 and a half years I think that's fair?\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">19. Winter because it's cold and snow and we can cuddle and argagaggsga\u003c/font>\u003c/div>\u003cdiv>\u003cfont color=\"#a0a0a9\">20.a) i got no fuckin idea probably that i wa sugly wallah b) I'm not sure cos mine is us defo on top of that rock in maidenhead idk it's so chill to look back on.🥹 We did a couple new things this holiday so it could be one of those which if it is you haven't said it but I'll go on like a whim and assume it's the ducks at bedfont lakes.\u003c/font>\u003c/div>\u003c/p>\u003c/div>\u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-base text-zinc-400 font-light leading-relaxed\" contenteditable=\"true\" data-has-input-listener=\"1\">You can tell me how I did ik i fumbled allat tho😭💔. Lets assume 1 mark per question and 2 for any a+b question. uh help me with my corrections tho.\u003cdiv>\u003cbr>\u003c/div>\u003cdiv>I promised there would be worthwhile stuff in a minute. There is not. Do not believe the man in the black hat. For he is evil\u003c/div>\u003c/p>\u003c/div>";
+window.__EXPORTED_IMAGES__ = [];
+window.__EXPORTED_TEXTBOXES__ = [];
+window.__EXPORTED_MP3__ = {"tracks":[],"labels":{"tokens":["SeventhoftheTenthoftheTwenty-SixthyearoftheSecondMillenia","Wallahi","I'm","not","ready","to","start","typing","this","shit🙏","or","read","it","because","this","is","the","version","where","I","actually","voice","what's","on","the","page",".",".",".",".","😭","idk","why","I","did","this","to","myself","OKAY","IM","GONNA","GIVE","YOU","A","COMPREHENSION","AND","YOU'RE","GONNA","ANSWER","QUESTIONS","GO","(I'll","read","out","the","extract","ofc)","Once","upon","a","time,","a","black","yute","born","in","the","most","united","kingdom","traversed","the","Mediterranean","Sea","to","pursue","his","studies","in","Kenya",".","Uh","that's","the","end","of","the","story","comprehension","time",".","Answer","them","in","our","messages","(ONNNNMESSAGESSSSS)","One","Markers:","Question","1:","What","is","this","yute's","first","name?","Question","2:","If","the","yute","had","a","maiden","what","would","her","name","be?","Question","3:","Assuming","the","yute","had","a","favourite","colour","what","would","that","be?","Question","4:","Does","the","yute","and","his","maiden","share","a","favourite","colour?","Question","5:","What","school","does","this","yute","study","in?","Question","6:","Upon","what","address","did","this","yute","previously","reside?","Six","Markers:","Question","7:","State","two","effects","of","this","yute","traversing","to","Kenya","to","pursue","his","studies?","Question","8:","State","two","features","of","this","yute","travelling","to","Kenya","to","pursue","his","studies?","Source","A:","(A","letter","from","yute","to","maiden",".",")","Source","B:","(Sample","texts","between","yute","and","maiden",".",")","Eight","Marker:","Question","9:","Study","the","two","sources",".","How","far","does","Source","B","support","Source","A?","Explain","your","answer","using","details","from","both","sources",".","Sixteen","Marker:","(Exemplar","Answer)","\"The","most","significant","event","in","October","2026","is","Joanna's","Birthday\"","How","far","do","you","agree?","Explain","your","answer",".","(You","may","use","the","following","in","your","answer:)","Joanna's","Birthday","Half","Term","(You","must","also","include","information","of","your","own",".",")","I","fully","agree","with","the","notion","that","the","most","significant","event","in","October","2026","is","Joanna's","Birthday;","although","other","events","such","as","the","upcoming","half","term","along","with","my","return","to","England","present","themselves","as","quite","significant","events,","relative","to","the","rarity","of","Joanna's","Birthday","they","are","almost","negligible",".","Joanna's","Birthday,","which","falls","on","the","7th","of","October,","is","an","annual","event","with","the","intention","of","celebrating","the","milestone","of","the","length","of","Joanna's","life",".","I","believe","this","event","is","the","most","significant","this","October","for","a","plethora","of","reasons",".","Those","being","the","rarity,","and","the","symbolism",".","Joanna","Mariam","Viju's","birthday","only","being","one","day","a","year","compared","to","the","other","events","such","as","Half","Term","(which","we","have","3","times","a","year)","and","my","return","to","England","(also","3","times","a","year)","immediately","elevates","its","perceived","value","due","to","less","supply",".","On","top","of","the","rarity","of","JMV's","birthday","is","the","symbolism",".","Rather","than","it","representing","a","random","day","of","the","year","for","pointless","celebration","such","as","Halloween","(31st","October),","JMV's","birthday","is","the","one","time","a","year","the","people","in","her","life","can","reasonably","show","unproportionate","amounts","of","love","toward","her","(including","myself)",".","Due","to","Joanna's","position","of","high","value","in","my","life","as","my","friend","and","my","romantic","partner","it's","important","I","present","my","feelings","toward","her",".","Moreso","than","any","other","conceivable","event","within","the","next","24","days",".","Whereas","the","date","for","half","term","can","be","moved","or","forged","mid","way","through","school","if","desperate,","the","same","can","not","be","done","for","Joanna's","birthday",".","The","inflexibility","and","symbolistic","characteristics","of","Joanna's","birthday","opposed","to","every","other","date","and/or","event","in","October","clearly","presents","it","as","the","undeniably","most","significant","event","this","October",".","Some","may","say","the","upcoming","half","term","holds","more","value","than","the","7th","of","October","due","to","me","getting","my","braces","done","and","simultaneously","using","tretinoin",",","placing","it","as","the","most","pivotal","decision","I've","made","regarding","my","own","looks","since","I","decided","to","grow","my","hair","out",".","The","choice","to","get","braces","this","half","term","makes","the","half","term,","in","itself","a","memorable/significant","event","in","the","future","as","servitude","for","a","new","beginning",".","On","top","of","tretinoin","(a","powerful,","prescription-strength","topical","retinoid","derived","from","vitamin","A","that","speeds","up","skin","cell","turnover","and","boosts","collagen","production)","presents","the","half","term","as","a","long-term","significant","period","of","my","life,","and","if","I","were","to","look","back","at","this","year's","October","the","most","memorable","event","would","be","this","half","term,","where","I","made","those","two","decisions",".","In","addition","to","those","two","factors,","the","half","term","is","also","significant","as","it's","my","first","and","only","half","term","spent","in","Kenya","over","Uganda",".","The","rarity","of","all","these","opportunities","in","addition","to","the","significance","of","these","decisions","later","in","my","life","point","toward","how","this","half","term","could","be","considered","the","most","significant","event","this","October",".","Nearer","to","the","end","of","October","grants","my","return","to","England",".","Although","short-lived","the","return","comes","with","2","sixth","forms","I'll","be","visiting",".","This","may","be","seen","as","the","most","significant","event","in","October","2026","due","to","it's","domino","effect","on","my","future",".","Despite","the","seemingly","insignificant","act","of","just","checking","out","a","school,","the","connections","and","effect","my","Sixth","Form","has","on","my","University","and","consequently","the","job","market","I","manage","to","find","my","way","into","is","what","creates","the","value","in","my","return","to","England","(through","allowing","me","to","attend","the","open","days)",".","On","top","of","this","my","return","to","England","allows","me","to","visit","Joanna",".","Although","seeing","Joanna","once","as","a","result","of","my","return","to","England","in","itself","isn't","as","significant","as","the","open","days","I'll","attend","as","a","result","of","my","return","to","England,","it","does","still","add","onto","the","perceived","value","and","opportunity","generated,","hence","why","my","return","to","England","may","be","considered","the","most","significant","event","this","October",".","In","conclusion,","although","my","half","term","and","my","return","to","England","by","the","end","of","the","half","term","hold","long","term","value","and","importance","in","my","future,","the","most","immediate","and","likely","most","reflected","on","event","(Joanna's","16th","Birthday)","still","stands","out","as","the","most","significant","event","this","October","due","to","it's","measurable","value","and","quantifiable","significance","amongst","in","my,","and","her","life","this","October",".","I","hope","you","liked","my","exemplar","answer,🙄","I","love","you",".","I'm","bare","tired","asw","you","know","like","I","don't","know","why","I","decided","to","start","this","on","the","1st","of","October","I","have","a","whole","lot","of","typing","to","do","man😭","not","even","typing","I","have","to","do","more","than","that","too","cos","I","gotta","find","time","to","voice","all","this","shit",".","Hopefully","it","doesn't","take","that","long","anyway",".","Happy","birthday","Joanne",".","I","asked","to","go","back","to","England","by","Saturday","so","I","could","actually","go","see","you","on","your","birthday",".","Unfortunately","that","didn't","happen",".","I","think","I","had","the","option","to","anyway","but","I","was","too","tired","and","I","thought","it","was","inconsiderate","to","make","my","parents","pay","1000","pounds","to","send","me","back","just","to","like","kiss","and","hug","and","hump","my","girlfriend","yk😭",".","To","be","fair","I","think","it's","worth","it","I","actually","js","cba","to","explain","why","I","wanted","to","go","home","early","to","my","mum💔","So","I'm","sorry","I","don't","get","to","see","you","on","your","birthday","I'll","make","an","attempt","to","see","you","in","the","week","or","two","I'll","be","in","England",".","Also","about","the","tretinoin","thing","I","actually","started","it","before","the","half","term","I","just","needed","an","extra","point","wallahi",".","The","first","proper","week","of","tret","starts","in","the","half","term","that's","why","I","said","that","though",".","By","inventory","I","actually","need","like","very","specific","products","to","use","it😭","the","first","thing","to","arrive","was","the","tretinoin",".","As","of","todayyy","I","need","the","moisturiser","and","facial","wash","smh",".","This","order","costs","like","25","pounds","total","btw","it's","not","the","worst","cos","ignoring","the","price","it","will","fix","100%","of","my","skin","issues😭","plus","25","pounds","is","cheap","for","smth","that","valuable","soooo?","idk","sounds","worth","it",".","By","the","way","do","you","like","the","star","thing😔","imaaaa","addddd","more","features","to","them","what","ur","seeing","rn","is","js","like","the","base","like","this","is","just","the","default","setting","(also","the","stars","are","not","a","video","they're","like","actually","being","loaded","in","and","stuff","so","if","ur","device","is","lagging","ykw","im","sorry😭)","I","reallly","wantttt","to","be","in","England","to","see","you","unfortunately","that's","like","not","possible","I","promise","if","my","parent's","and","my","teachers","didn't","drag","this","shit","soooo","much","I","would've","gone","back","to","see","u","i","can","show","u","the","receipt","of","me","askingsmh",".","This","reminds","me","of","how","I","asked","to","stay","home","over","the","Christmas","break","and","I","really","hope","that","happens","cos","if","if","it","does","then","we","can","haveeee","the","coziest","Christmas","yk🙃","like","ofc","ur","probably","spending","Christmas","with","ur","family","but","like","over","the","winter","holidays","we","can","chill","togetherrrrrrrr","and","we","can","like","watch","a","movie","in","my","house","or","smth😔",".","Although","my","TV","is","admittedly","small😭","smh","or","i","think","it's","small","ykw","i","can't","remember","I","haven't","been","home","in","a","while",".","Or","if","we","don't","watch","a","movie","we","could","cuddle","togetherrr","anda","sleep","and","chill","and","eat","and","we","could","js","spend","the","day","there","and","u","could","like","go","shopping","with","me","or","something😔","wtv","wtv","wtv","wtv","wtv",".","Ok","back","to","the","main","point,","happy","birthday?","You","know","what","I","don't","know","if","you","can","be","thatttt","happy","if","I'm","not","there😔","I","wonder","if","you","like","value","sweet","16","or","something","that","seems","more","like","an","American","thing","but","if","it","matters","to","you","then","sweet","16","cos","ik","16","as","a","like","age","is","a","milestone","of","some","sort",".","Fortunately","I'm","not","American","though","cos","then","I'd","have","to","put","in","MOREEEE","WORKKKKKKKKKK","OMDDDDDDDDDDDDD","Let's","take","a","quick","moment","to","look","back","on","the","8","months","between","my","birthday","and","your","birthday","and","see","what's","changed","hmmmmm?","QUICKKK","SUMMARY","TIMEEE:","not","much","is","the","answer😔","nothing","easy","to","measure","However","ofcourse","per","usual","I","love","you","more","than","before","And","my","I've","gotten","more","comfortable","with","u","compared","to","before","And","I've","gotten","more","stressed","as","ur","birthday","approaches😭","And","I","think","the","quality","of","each","individual","date","we've","gone","on","has","increased","yk😭","I","don't","have","a","chart","for","that","one","but","like","each","individual","date","has","had","like","more","happen","than","before","it's","like","we","increased","quality","and","quantity",".","Like","imagineee","we","went","like","4","new","places","this","holiday","that's","FOURRR","NEW","PLACES","YOUKNOW","like","on","a","proper","date/voyage",".","I","want","to","include","maidenhead","but","yk","we","went","there","the","first","time","in","the","easter","holidays","so🙄","READING","JUMP","GIANTS","HOUNSLOW","STAINES","ooooohhhh","shiiiii","we","also","went","to","ascot","which","counts","as","a","new","place","cos","its","US","yk?","ASCOT",".","and","then","in","the","Easter","Holidays","MAIDENHEAD","BEDFONT","LAKESS","which","ykw","we","have","hella","good","memories","in","maidenhead","idk","I","love","it","personally🙄","I","love","it","cos","I'm","with","you","tho","you're","the","one","who","makes","it","special",".","I","just","forgot","that","like","entire","paragraph","to","write","it","in","my","speaking","style","and","not","in","my","writing","style","so","it's","gonna","be","a","pain","to","read","that","omddd","(im","reading","this","after","reading","the","paragraph","tho","so","I","guess","I","must've","succeed","someway)","Alsoooooo","I","REALLY","WISH","I","COUDL'VE","ORDERED","YOU","LIEK","FUCKING","GIFTS","MAN","BUT","YKW","I","HAVE","A","CRISP","£17","POUNDS","ON","MY","CARD","SO","THERE","IS","NO","WAY","I","CAN","SPEND","THAT😭",".","You","have","to","survive","off","the","last","gifts","I","gave","u","smhh","I'm","SORRYYY","I","swear","I","love","you","so","much","I'm","sorry","though","I","would've","if","I","could",".","💔","I","haven't","filled","up","this","page","with","enough","useless","text","yet","so","lets","play","a","game",".",".",".","I'll","ask","gemini","to","give","me","like","20","questions","about","my","girlfriend","that","I'll","copy","paste","here","then","I'll","like","give","my","answers","and","you","can","mark","them😭","DO","NOT","WORRY","THERE","WILL","BE","WORTHWHILE","STUFF","IN","A","MINUTE","1",".","What","is","her","full","name,","including","any","middle","names?","2",".","When","is","her","birthday,","and","what","is","her","star","sign?","3",".","What","is","her","favorite","color?","4",".","What","is","her","absolute","favorite","dish","or","go-to","comfort","food?","5",".","How","does","she","take","her","coffee","or","tea?","(Or","what","is","her","standard","drink","order?)","6",".","What","is","her","favorite","movie,","or","a","show","she","can","rewatch","endlessly?","7",".","What","type","of","music","or","who","are","her","favorite","musical","artists?","8",".","(a)","What","is","her","shoe","size?","(b)","What","is","her","clothing","size?","9",".","What","is","her","favorite","animal,","and","does","she","have","any","pets?","10",".","What","is","her","biggest","pet","peeve","or","something","that","instantly","annoys","her?","11",".","What","is","her","exact","height?","12",".","(a)","What","is","her","dream","travel","destination?","(b)","What","is","her","favorite","place","the","two","of","you","have","visited","together","so","far?","13",".","What","is","her","main","hobby,","passion,","or","favorite","way","to","spend","a","free","afternoon?","14",".","What","is","her","favorite","sweet","treat","or","candy?","15",".","What","is","something","she","is","irrationally","afraid","of","or","particularly","anxious","about?","16",".","(a)","What","is","her","preferred","scent,","perfume,","or","flower?","(b)","Is","she","allergic","to","anything?","17",".","What","is","her","current","daily","routine","or","occupation/course","of","study?","18",".","Who","is","her","closest","best","friend,","and","how","long","have","they","known","each","other?","19",".","What","is","her","favorite","season","of","the","year","and","why?","20",".","(a)","What","was","her","first","impression","of","you","when","you","first","met?","(b)","What","is","her","favorite","memory","of","the","two","of","you","together?","Okay","so","wallahi","I'm","finished","I","do","not","know","some","of","this","irrelevant","information","😭","like","man","said","star","sign","bro","wtf","who","knows","this","shit",".","Anyway","I'll","try","do","it","anyway","this","will","be","an","embarassing","attempt","1",".","Joanna","Mariam","Viju","2",".","07/10/2026","and","stfu","3",".","Purple","4",".","my","dick","wallahi","5",".","You","know","what","I","don't","know","a","simple","answer","to","this","but","I","do","know","you","don't","drink","tea","as","much","as","u","did","before","cos","u","drank","it","a","lot","when","u","were","younger","and","now","it","isn't","made","the","same","or","smth",".","so","like?","yeah","ig","idk","what","\"how","ushe","takes","her","coffee\"","means","but","coffee","is","the","only","option","so","uh","yeah",".","6",".","we've","never","spoken","about","that","tbh","but","I","think","I'm","the","answer","(or","I","hope)😔","7",".","you","listen","to","everything💔","my","voice","tho","8",".","a)","DAMNNN","wait","I","think","you're","a","size","6","in","feet","b)","I'd","imagine","cos","im","size","31","trousers","i","think","ur","size","likee","27","but","idk","how","women's","clothes","work","fr","9",".","I","feel","like","I","should","definitely","know","this","one","last","time","we","spoke","about","his","I","think","it","was","a","giraffe","and","if","we","were","to","have","pets","I","think","you'd","want","a","cat","10",".","I","won't","even","try","guess🙏","11",".","I","believe","5'5","12",".","a)","My","bedroom","[on","a","serious","note","I'm","not","sure","I","think","you","have","manyy?","perhaps","south","america","tho","or","that's","mine","atleast]","b)","OOOOHHH","YOU","KNOW","I","DONT","KNOW","THIS",".","I","wanna","say","Jump","giants","but","like","we","didn't","do","as","much","as","I","would've","wanted","there","it","could","still","be","your","favourite","place","tho",".","I","loved","Bedfont","lakes","like","it","was","chill","and","fun","ykkk",".","perhaps","perhaps","perhaps","perhaps","uhhh","i","wanna","say","maidenhead","cos","we","had","the","best","times","there",".","like","both","our","longest","dates","were","in","maidenhead","smh","I","loved","it","so","much","I","hope","you","love","it","was","well","I'll","say","maidenhead","but","I","think","there","are","other","contenders","you","know?","13",".","Damn","I","don't","know","this",".","I","know","it's","probably","not","something","you","do","often","but","I","remember","one","time","where","u","said","u","wouldn't","text","me","and","you","like","drew","a","frog","or","something","and","showed","me",".","Maybe","you","draw","more","often","but","like","don't","tell","me","about","it",".","I","don't","ask","you","this","often","most","the","time","you're","js","on","tiktok","or","atleast","that's","what","I","know",".","Not","sure","tbh","this","is","something","I'll","figure","out","if","we","get","to","go","on","holiday","together","next","winter","tho","igggg",".","14",".","I","think","it's","them","Nikos","ykw","idk","tho","15",".","Insertion","or","me","going","crazy","or","something","I","remember","being","offended","u","just","believed","I'd","like","switch","up","randomly","but","tbf","it's","not","entirely","irrational","so😭",".","Okay","neither","of","those","are","irrational","I","didn't","read","that","till","now","but","assume","those","are","for","particularly","anxious",".","16",".","a)","wallahi","my","sweat","b)","not","that","I","know","of?","17",".","Daily","routine","involves","wake","up","bla","bla","prepare","for","school","bla","bla","school","bla","bla","return","home","then","it's","either","tuition","sometimes","or","you","study","from","like","6","to","smth","or","its","work",".","yah","18",".","I","really","wanna","say","me😭","but","let's","assume","it's","not",".","A","while","back","I","said","Anika","I","think","it's","still","her","but","idk","we","haven't","spoken","of","in","a","decent","amount","of","time",".","Hmmm","probably","like","I","mean","atleast","longer","than","2","years","cos","that's","how","long","I've","know","u","for","atp",".","letss","sayyyy","2","and","a","half","years","I","think","that's","fair?","19",".","Winter","because","it's","cold","and","snow","and","we","can","cuddle","and","argagaggsga","20",".","a)","i","got","no","fuckin","idea","probably","that","i","wa","sugly","wallah","b)","I'm","not","sure","cos","mine","is","us","defo","on","top","of","that","rock","in","maidenhead","idk","it's","so","chill","to","look","back","on",".","🥹","We","did","a","couple","new","things","this","holiday","so","it","could","be","one","of","those","which","if","it","is","you","haven't","said","it","but","I'll","go","on","like","a","whim","and","assume","it's","the","ducks","at","bedfont","lakes",".","You","can","tell","me","how","I","did","ik","i","fumbled","allat","tho😭💔",".","Lets","assume","1","mark","per","question","and","2","for","any","a+b","question",".","uh","help","me","with","my","corrections","tho",".","I","promised","there","would","be","worthwhile","stuff","in","a","minute",".","There","is","not",".","Do","not","believe","the","man","in","the","black","hat",".","For","he","is","evil"],"labels":{}},"config":{"highlightColor":"#fbbf24","wordClickEnabled":true,"playbackRate":1}};
+</script>
+<!-- BAKED_CONFIG_END -->
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
 <canvas id="star-canvas"></canvas>
 <div id="bubble-editor-layer"></div>
+<div id="cue-editor-layer"></div>
 <div id="textbox-layer"></div>
 <div id="snap-guides"></div>
 <div id="flash-overlay"></div>
@@ -327,7 +359,7 @@ body.is-editing .mp3-word{cursor:inherit;background-color:transparent !important
       <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-code text-indigo-400 mr-2"></i>Export Page</h3>
       <button onclick="closeExportModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, star settings, and MP3 labels baked in. MP3 audio files are <em>not</em> baked — re-import them or use URL sources.</p>
+    <p class="text-xs text-zinc-400">Full page with text, images, text boxes, star settings, MP3 labels, and cues baked in. MP3 audio files are <em>not</em> baked — re-import them or use URL sources.</p>
     <div id="export-status" class="hidden text-xs"></div>
     <textarea id="export-textarea" readonly class="w-full h-64 bg-[#0f0f11] border border-zinc-800 rounded-xl p-4 font-mono text-xs text-zinc-300 focus:outline-none resize-none" placeholder="Generating..."></textarea>
     <div class="flex justify-end gap-3">
@@ -360,7 +392,9 @@ const STORAGE = {
   snap:      `canvas_snap_enabled__${PAGE_NS}`,
   mp3_tracks:`vn_mp3_tracks__${PAGE_NS}`,
   mp3_labels:`vn_mp3_labels__${PAGE_NS}`,
-  mp3_cfg:   `vn_mp3_cfg__${PAGE_NS}`
+  mp3_cfg:   `vn_mp3_cfg__${PAGE_NS}`,
+  mp3_cues:  `vn_mp3_cues__${PAGE_NS}`,
+  selected_track: `vn_mp3_selected_track__${PAGE_NS}`
 };
 
 /* =========================================================
@@ -383,10 +417,6 @@ const imageUploadInput=document.getElementById('image-upload');
 const starGuiBtn=document.getElementById('star-gui-btn');
 const mp3PanelBtn=document.getElementById('mp3-panel-btn');
 
-// Coordinate system: positions/sizes are fractions.
-//   x: fraction of viewport width (== document width)
-//   y: fraction of viewport height (floating) OR fraction of document height (pinned)
-//   size-like values: fraction of MIN(viewport w, h)
 const MIN_DIM = () => Math.min(window.innerWidth, window.innerHeight);
 const pxFromSize = (frac) => frac * MIN_DIM();
 const sizeFromPx = (px) => px / MIN_DIM();
@@ -432,6 +462,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   buildGui();
 
   await mp3Boot();
+  loadPixagesManifest();
 
   document.getElementById('text-color-input').addEventListener('input', e => {
     if (!isEditing) return;
@@ -474,7 +505,6 @@ function initStarWorker(){
   starWorker.postMessage({ type: 'canvas', canvas: offscreen, w, h, dpr }, [offscreen]);
   starWorker.postMessage({ type: 'init', cfg: fullCfgForWorker() });
 
-  // Send initial view-info on next frame (after worker processes init)
   requestAnimationFrame(sendViewInfo);
 
   window.addEventListener('resize', () => {
@@ -482,12 +512,20 @@ function initStarWorker(){
     const dpr = window.devicePixelRatio || 1;
     if (starWorker) starWorker.postMessage({ type: 'resize', w, h, dpr });
     scheduleViewInfo();
-    if (isEditing) rebuildBubbleEditor();
+    if (isEditing) {
+      rebuildBubbleEditor();
+      rebuildCueEditor();
+    }
   });
 
-  window.addEventListener('scroll', scheduleViewInfo, { passive: true });
+  window.addEventListener('scroll', () => {
+    scheduleViewInfo();
+    if (isEditing) {
+      rebuildBubbleEditor();
+      rebuildCueEditor();
+    }
+  }, { passive: true });
 
-  // Watch document height changes (from editing)
   const ro = new ResizeObserver(() => scheduleViewInfo());
   ro.observe(document.body);
   ro.observe(document.documentElement);
@@ -530,6 +568,16 @@ function handleWorkerMessage(ev){
         const gui = document.getElementById('star-gui');
         if (gui && !gui.classList.contains('hidden')) renderEffectList();
       }
+      break;
+    }
+    case 'pixage-status': {
+      pixageStatus.set(m.url, { loaded: m.loaded, w: m.w, h: m.h, error: m.error });
+      const panel = document.getElementById('mp3-panel');
+      if (panel && panel.classList.contains('open')) mp3RenderPanel();
+      break;
+    }
+    case 'cue-active': {
+      // ids of currently active cues (for admin highlight)
       break;
     }
   }
@@ -580,6 +628,40 @@ function postImagePool(){
     exceptions: eff.exceptions || {},
     defaultSize: eff.defaultSize || 0.086
   });
+}
+
+// ----- Cue messages -----
+function postCues(){
+  if (!starWorker) return;
+  const tid = mp3CurrentTrackId;
+  const list = tid ? (mp3Cues[tid] || []) : [];
+  // Normalize into what the worker expects
+  const out = list.map(c => ({
+    id: c.id,
+    imageUrl: c.imageUrl,
+    startTime: c.startTime,
+    endTime: c.endTime,
+    x: c.x,
+    y: c.y,
+    fade: c.fade,
+    cellPx: c.cellPx,
+    fadeSpeed: c.fadeSpeed,
+    targetResolution: c.targetResolution
+  }));
+  starWorker.postMessage({ type: 'cues', cues: out });
+}
+
+function postMp3Time(t){
+  if (!starWorker) return;
+  starWorker.postMessage({ type: 'mp3-time', t });
+}
+
+function postPreviewCue(cue){
+  if (!starWorker) return;
+  starWorker.postMessage({ type: 'preview-cue', cue: cue ? {
+    id: cue.id, imageUrl: cue.imageUrl,
+    x: cue.x, y: cue.y, cellPx: cue.cellPx, targetResolution: cue.targetResolution
+  } : null });
 }
 
 /* =========================================================
@@ -694,6 +776,7 @@ function enableEditing(){
   mp3PanelBtn.classList.remove('hidden');
   makeBlocksEditable();
   rebuildBubbleEditor();
+  rebuildCueEditor();
   mp3RenderPanel();
 }
 function disableEditing(){
@@ -715,6 +798,9 @@ function disableEditing(){
   });
   document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'));
   document.getElementById('bubble-editor-layer').innerHTML='';
+  document.getElementById('cue-editor-layer').innerHTML='';
+  selectedCueId = null;
+  postPreviewCue(null);
   closeTbSettings();
   deselectAllTextBoxes();
   mp3TokenizeAndWrap();
@@ -781,7 +867,7 @@ function autoSave(){ try{ localStorage.setItem(STORAGE.doc, getCleanDocHTML()); 
 function execCmd(cmd){if(!isEditing)return;document.execCommand(cmd,false,null);autoSave()}
 function resetCanvas(){
   if(confirm(`Reset ALL content on this page (${PAGE_NS})?\n\nPage text, images, text boxes, star settings, AND MP3 sync data will be wiped.`)){
-    [STORAGE.doc,STORAGE.images,STORAGE.textboxes,STORAGE.star,STORAGE.mp3_tracks,STORAGE.mp3_labels,STORAGE.mp3_cfg]
+    [STORAGE.doc,STORAGE.images,STORAGE.textboxes,STORAGE.star,STORAGE.mp3_tracks,STORAGE.mp3_labels,STORAGE.mp3_cfg,STORAGE.mp3_cues,STORAGE.selected_track]
       .forEach(k=>localStorage.removeItem(k));
     location.reload();
   }
@@ -914,7 +1000,7 @@ document.addEventListener('mousedown',e=>{
 });
 
 /* =========================================================
-   TEXT BOXES (unchanged)
+   TEXT BOXES
 ========================================================= */
 const TB_DEFAULTS = {
   text: 'Your text here',
@@ -1169,7 +1255,7 @@ function tbSelect(label, obj, key, options, onChange){
 }
 
 /* =========================================================
-   EFFECTS — GUI + config only, sim lives in worker
+   EFFECTS
 ========================================================= */
 let effectCounter=0;
 function newEffectId(){return 'eff_'+(++effectCounter)+'_'+Math.random().toString(36).slice(2,7)}
@@ -1219,8 +1305,6 @@ function getCharBounds(ch){
   else{h=sizePx*1.1}
   return {w,h:Math.max(h,8)};
 }
-
-// Screen position of a char (top-left of its bounding box)
 function charScreenPos(ch){
   const xPx = ch.x * window.innerWidth;
   let yPx;
@@ -1231,7 +1315,6 @@ function charScreenPos(ch){
   }
   return { xPx, yPx };
 }
-
 function rebuildBubbleEditor(){
   const layer=document.getElementById('bubble-editor-layer');
   layer.innerHTML='';
@@ -1243,7 +1326,6 @@ function rebuildBubbleEditor(){
   eff.chars.forEach((ch,idx)=>{
     const b=getCharBounds(ch);
     const pos=charScreenPos(ch);
-    // Skip pinned letters that are off-screen (allow some padding)
     if (ch.mode === 'pinned' && (pos.yPx < -200 || pos.yPx > window.innerHeight + 200)) return;
     const div=document.createElement('div');
     div.className='char-editor';
@@ -1311,17 +1393,11 @@ function updateCharDivByIndex(idx,ch){
   const div=layer.querySelector(`.char-editor[data-idx="${idx}"]`);
   if(div)updateCharDiv(div,ch);
 }
-window.addEventListener('resize',()=>{if(isEditing)rebuildBubbleEditor()});
-window.addEventListener('scroll',()=>{if(isEditing)rebuildBubbleEditor()},{passive:true});
 
 async function loadEffectImages(effect){
   if(!effect || effect.type !== 'images') return;
-  effect.loadError=null;
-  effect.loaded=false;
-  effect.imagePool=[];
-  effect._loading=true;
+  effect.loadError=null; effect.loaded=false; effect.imagePool=[]; effect._loading=true;
   renderEffectList();
-
   let filenames=[];
   if(effect.explicitList&&effect.explicitList.trim()){filenames=effect.explicitList.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
   if(!filenames.length){
@@ -1330,21 +1406,12 @@ async function loadEffectImages(effect){
   if(!filenames.length){
     try{const r=await fetch(effect.folder+'/',{cache:'no-store'});if(r.ok){const html=await r.text();const re=/href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;let m;while((m=re.exec(html))!==null)filenames.push(m[1])}}catch(e){}
   }
-  if(!filenames.length){
-    effect.loadError='No images found in "'+effect.folder+'/"';
-    effect._loading=false;
-    renderEffectList();
-    return;
-  }
+  if(!filenames.length){effect.loadError='No images found in "'+effect.folder+'/"';effect._loading=false;renderEffectList();return;}
   const urls=filenames.map(f=>/^https?:\/\//.test(f)||f.startsWith('/')?f:effect.folder+'/'+f);
-  effect.imagePool=urls;
-  effect._loading=false;
-  postImagePool();
-  renderEffectList();
+  effect.imagePool=urls;effect._loading=false;postImagePool();renderEffectList();
 }
 
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d}
-
 function widget_numRange(labelText,obj,key,opts={}){
   const row=el('div','row');
   const min=opts.min??0,max=opts.max??100,step=opts.step??1;
@@ -1359,27 +1426,21 @@ function widget_numRange(labelText,obj,key,opts={}){
   rng.addEventListener('input',()=>apply(rng.value,true));
   return row;
 }
-
 function widget_numRangeFractionPx(labelText,obj,key,opts={}){
-  const row=el('div','row');
-  const wrap=el('label');
-  const txt=el('span','lbl-text',labelText);
+  const row=el('div','row');const wrap=el('label');const txt=el('span','lbl-text',labelText);
   const num=el('input');num.type='number';num.className='num-inline';num.step='any';
   num.value = Math.round((obj[key]||0) * MIN_DIM());
-  wrap.appendChild(txt);wrap.appendChild(num);
-  row.appendChild(wrap);
+  wrap.appendChild(txt);wrap.appendChild(num);row.appendChild(wrap);
   const sliderMax = opts.sliderMaxPx ?? 200;
   const rng=el('input');rng.type='range';rng.min=opts.minPx??0;rng.max=sliderMax;rng.step=opts.stepPx??1;
   rng.value = Math.min(Math.max(num.value, rng.min), rng.max);
   row.appendChild(rng);
   const apply=(v,fromSlider)=>{
-    let pxVal = parseFloat(v);
-    if(isNaN(pxVal))return;
+    let pxVal = parseFloat(v); if(isNaN(pxVal))return;
     if(fromSlider) pxVal = Math.min(Math.max(pxVal, rng.min), rng.max);
     obj[key] = sizeFromPx(pxVal);
     const roundTrip = Math.round(obj[key] * MIN_DIM());
-    num.value = roundTrip;
-    rng.value = Math.min(Math.max(roundTrip, rng.min), rng.max);
+    num.value = roundTrip; rng.value = Math.min(Math.max(roundTrip, rng.min), rng.max);
     if(opts.onChange)opts.onChange();
     saveStarConfig();
   };
@@ -1388,7 +1449,6 @@ function widget_numRangeFractionPx(labelText,obj,key,opts={}){
   rng.addEventListener('input',()=>apply(rng.value,true));
   return row;
 }
-
 function widget_color(labelText,obj,key,onChange){
   const row=el('div','row');const wrap=el('label');wrap.appendChild(el('span','lbl-text',labelText));
   const inp=el('input');inp.type='color';inp.value=obj[key];
@@ -1497,30 +1557,22 @@ function buildEffectSettings(container,eff){
   if(eff.type==='bubble'){
     container.appendChild(widget_numRange('Stars needed before entering bubble',eff,'minStarsForBubble',{min:0,max:100000000,step:1}));
     container.appendChild(widget_select('Before threshold, stars:',eff,'beforeThresholdMode',[{value:'avoid',label:'Avoid the letters'},{value:'allow',label:'Ignore letters'}]));
-
-    // ---- Pinned letters global settings ----
     const pinnedHdr = el('div',null,'<span style="color:#fbbf24;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">📌 Pinned Letters</span>');
     container.appendChild(pinnedHdr);
     if (typeof eff.scrollBuffer !== 'number') eff.scrollBuffer = 1;
     if (typeof eff.catchUpBurst !== 'number') eff.catchUpBurst = 50;
     container.appendChild(widget_numRange('Scroll buffer (viewport-heights above/below)',eff,'scrollBuffer',{min:0,max:4,step:0.25,onChange:()=>{postCfg();}}));
     container.appendChild(widget_numRange('Catch-up burst size',eff,'catchUpBurst',{min:0,max:500,step:10,onChange:()=>{postCfg();}}));
-
-    // ---- Characters ----
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Characters</span>'));
     container.appendChild(el('div','char-header-row',`<span>Char</span><span>Mode</span><span>X</span><span>Y</span><span>Size</span><span>Rot</span><span>Rate</span><span></span>`));
     const charsBox=el('div');
     charsBox.style.cssText='display:flex;flex-direction:column;max-height:340px;overflow-y:auto;padding:4px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
-
     eff.chars.forEach((ch,idx)=>{
       if (!ch.mode) ch.mode = 'floating';
       if (typeof ch.spawnIntervalMs !== 'number') ch.spawnIntervalMs = 200;
-
       const row=el('div','char-row');
-
       const glyph=el('input','mini char-glyph');glyph.type='text';glyph.value=ch.char;glyph.maxLength=3;
       glyph.addEventListener('input',()=>{ch.char=glyph.value;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
-
       const modeSel=el('select','mode-sel');
       const optF = el('option',null,'Flt'); optF.value='floating';
       const optP = el('option',null,'Pin'); optP.value='pinned';
@@ -1530,112 +1582,55 @@ function buildEffectSettings(container,eff){
       modeSel.addEventListener('change',()=>{
         ch.mode = modeSel.value;
         modeSel.classList.toggle('pinned', ch.mode === 'pinned');
-        // When switching modes, reset y to something sensible:
-        // floating default = 0.5 (middle of viewport), pinned default = current scroll fraction
-        if (ch.mode === 'pinned') {
-          ch.y = ((window.scrollY + window.innerHeight / 2) / getDocHeight());
-        } else {
-          ch.y = 0.5;
-        }
-        postChars(true);
-        renderEffectList();
-        rebuildBubbleEditor();
-        saveStarConfig();
+        if (ch.mode === 'pinned') { ch.y = ((window.scrollY + window.innerHeight / 2) / getDocHeight()); }
+        else { ch.y = 0.5; }
+        postChars(true); renderEffectList(); rebuildBubbleEditor(); saveStarConfig();
       });
-
-      // X: display px, store fraction of W (same in both modes)
       const xin=el('input','mini');xin.type='number';xin.step='any';
       xin.value = Math.round(ch.x * window.innerWidth);
-      xin.addEventListener('input',()=>{
-        const val = parseFloat(xin.value);
-        if(isNaN(val)) return;
-        ch.x = val / window.innerWidth;
-        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
-      });
-
-      // Y: display px, store fraction of H (floating) or docHeight (pinned)
+      xin.addEventListener('input',()=>{const val = parseFloat(xin.value);if(isNaN(val)) return;ch.x = val / window.innerWidth;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();});
       const yin=el('input','mini');yin.type='number';yin.step='any';
-      yin.value = ch.mode === 'pinned'
-        ? Math.round(ch.y * getDocHeight())
-        : Math.round(ch.y * window.innerHeight);
-      yin.addEventListener('input',()=>{
-        const val = parseFloat(yin.value);
-        if(isNaN(val)) return;
-        ch.y = ch.mode === 'pinned' ? val / getDocHeight() : val / window.innerHeight;
-        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
-      });
-
-      // Size
+      yin.value = ch.mode === 'pinned' ? Math.round(ch.y * getDocHeight()) : Math.round(ch.y * window.innerHeight);
+      yin.addEventListener('input',()=>{const val = parseFloat(yin.value);if(isNaN(val)) return;ch.y = ch.mode === 'pinned' ? val / getDocHeight() : val / window.innerHeight;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();});
       const sin=el('input','mini');sin.type='number';sin.step='any';
       sin.value = Math.round(ch.size * MIN_DIM());
-      sin.addEventListener('input',()=>{
-        const val = parseFloat(sin.value);
-        if(isNaN(val)) return;
-        ch.size = val / MIN_DIM();
-        postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();
-      });
-
-      // Rotation
+      sin.addEventListener('input',()=>{const val = parseFloat(sin.value);if(isNaN(val)) return;ch.size = val / MIN_DIM();postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig();});
       const rin=el('input','mini');rin.type='number';rin.step='any';rin.value=Math.round(ch.rotation||0);
       rin.addEventListener('input',()=>{ch.rotation=parseFloat(rin.value)||0;postChars(true);updateCharDivByIndex(idx,ch);saveStarConfig()});
-
-      // Spawn interval (only for pinned)
       const rateIn=el('input','mini');rateIn.type='number';rateIn.step='any';
       rateIn.value = ch.spawnIntervalMs;
       rateIn.disabled = ch.mode !== 'pinned';
       rateIn.title = 'Spawn interval (ms) — only used in Pinned mode';
-      rateIn.addEventListener('input',()=>{
-        const val = parseFloat(rateIn.value);
-        if(isNaN(val) || val < 20) return;
-        ch.spawnIntervalMs = val;
-        postChars(true);saveStarConfig();
-      });
-
+      rateIn.addEventListener('input',()=>{const val = parseFloat(rateIn.value);if(isNaN(val) || val < 20) return;ch.spawnIntervalMs = val;postChars(true);saveStarConfig();});
       const del=el('button','char-del');del.innerHTML='<i class="fa-solid fa-xmark"></i>';
       del.addEventListener('click',()=>{eff.chars.splice(idx,1);postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
       row.appendChild(glyph);row.appendChild(modeSel);row.appendChild(xin);row.appendChild(yin);row.appendChild(sin);row.appendChild(rin);row.appendChild(rateIn);row.appendChild(del);
       charsBox.appendChild(row);
     });
     container.appendChild(charsBox);
-
     const addCharBtn=el('button','gui-btn ghost');addCharBtn.innerHTML='<i class="fa-solid fa-plus mr-1"></i> Add floating character';
     addCharBtn.addEventListener('click',()=>{eff.chars.push(defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1)));postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(addCharBtn);
-
     const addPinnedBtn=el('button','gui-btn ghost');addPinnedBtn.innerHTML='<i class="fa-solid fa-thumbtack mr-1"></i> Add pinned character';
     addPinnedBtn.addEventListener('click',()=>{
       const c = defaultCharFor(eff.chars.length,Math.max(1,eff.chars.length+1));
-      c.mode = 'pinned';
-      c.y = (window.scrollY + window.innerHeight / 2) / getDocHeight();
-      eff.chars.push(c);
-      postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();
+      c.mode = 'pinned'; c.y = (window.scrollY + window.innerHeight / 2) / getDocHeight();
+      eff.chars.push(c); postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();
     });
     container.appendChild(addPinnedBtn);
-
     const reBtn=el('button','gui-btn ghost');reBtn.innerHTML='<i class="fa-solid fa-arrows-left-right mr-1"></i> Re-space horizontally (floating only)';
-    reBtn.addEventListener('click',()=>{
-      const floatingChars = eff.chars.filter(c => c.mode !== 'pinned');
-      floatingChars.forEach((ch,i)=>{
-        const c=defaultCharFor(i,floatingChars.length);
-        ch.x=c.x;ch.y=c.y;ch.rotation=0;
-      });
-      postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();
-    });
+    reBtn.addEventListener('click',()=>{const floatingChars = eff.chars.filter(c => c.mode !== 'pinned');floatingChars.forEach((ch,i)=>{const c=defaultCharFor(i,floatingChars.length);ch.x=c.x;ch.y=c.y;ch.rotation=0;});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig();});
     container.appendChild(reBtn);
-
     const crBtn=el('button','gui-btn ghost');crBtn.innerHTML='<i class="fa-solid fa-rotate-left mr-1"></i> Reset all rotations';
     crBtn.addEventListener('click',()=>{eff.chars.forEach(ch=>{ch.rotation=0});postChars(true);renderEffectList();rebuildBubbleEditor();saveStarConfig()});
     container.appendChild(crBtn);
-
     container.appendChild(el('div',null,'<span style="color:#6366f1;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Outline guide</span>'));
     container.appendChild(widget_toggle('Show outline guide',eff,'showOutline'));
     container.appendChild(widget_numRange('Outline opacity',eff,'outlineOpacity',{min:0,max:1,step:0.01}));
     container.appendChild(widget_numRangeFractionPx('Outline width (px)',eff,'outlineWidth',{sliderMaxPx:40}));
     container.appendChild(widget_color('Outline colour',eff,'outlineColor'));
-
     container.appendChild(el('div',null,'<span style="color:#f0abfc;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Canvas drag handles</span>'));
     container.appendChild(widget_toggle('Show drag handles on canvas',eff,'showHandles',()=>rebuildBubbleEditor()));
-    container.appendChild(el('div',null,`<span class="status-tag ok">Mask computed in worker</span>`));
   }
   if(eff.type==='images'){
     container.appendChild(widget_numRange('Stars needed before switching to images',eff,'minStarsForImages',{min:0,max:100000000,step:1}));
@@ -1652,44 +1647,6 @@ function buildEffectSettings(container,eff){
     else if(eff.loadError)status.innerHTML=`<span class="status-tag err">${eff.loadError}</span>`;
     else status.innerHTML=`<span class="status-tag loading">Not loaded yet</span>`;
     container.appendChild(status);
-    if(eff.imagePool&&eff.imagePool.length){
-      const exH=el('div',null,'<span style="color:#a1a1aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;">Exceptions (custom sizes)</span>');
-      container.appendChild(exH);
-      const exBox=el('div');
-      exBox.style.cssText='max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:6px;background:#0f0f11;border-radius:6px;border:1px solid #27272a';
-      eff.imagePool.forEach(url=>{
-        const fn=url.split('/').pop();
-        const r=el('div');r.style.cssText='display:flex;align-items:center;gap:6px;font-size:10.5px';
-        const isEx=eff.exceptions[url]!==undefined;
-        const tog=el('input');tog.type='checkbox';tog.checked=isEx;tog.style.accentColor='#6366f1';
-        const lbl=el('span',null,fn);lbl.style.cssText='flex:1;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-        const num=el('input');num.type='number';num.className='num-inline';num.step='any';
-        num.value = Math.round((isEx ? eff.exceptions[url] : eff.defaultSize) * MIN_DIM());
-        num.min=2; num.max=2000; num.disabled=!isEx;
-        tog.addEventListener('change',()=>{
-          if(tog.checked){
-            eff.exceptions[url] = sizeFromPx(parseFloat(num.value) || pxFromSize(eff.defaultSize));
-            num.disabled=false;
-          } else {
-            delete eff.exceptions[url];
-            num.disabled=true;
-          }
-          postImagePool();
-          saveStarConfig();
-        });
-        num.addEventListener('input',()=>{
-          if(tog.checked){
-            const val = parseFloat(num.value);
-            if(isNaN(val))return;
-            eff.exceptions[url] = sizeFromPx(val);
-            postImagePool();
-            saveStarConfig();
-          }
-        });
-        r.appendChild(tog);r.appendChild(lbl);r.appendChild(num);exBox.appendChild(r);
-      });
-      container.appendChild(exBox);
-    }
   }
   if(eff.type==='none'){container.appendChild(el('div',null,'<span class="status-tag ok">Plain star spawning — no special behaviour</span>'));}
 }
@@ -1699,9 +1656,7 @@ function activateEffect(id){
   if(eff.type==='bubble') postChars(true);
   if(eff.type==='images') postImagePool();
   postReset();
-  renderEffectList();
-  rebuildBubbleEditor();
-  saveStarConfig();
+  renderEffectList(); rebuildBubbleEditor(); saveStarConfig();
 }
 function deleteEffect(id){
   if(cfg.effects.length<=1){alert('Must keep at least one effect.');return}
@@ -1713,8 +1668,7 @@ function deleteEffect(id){
     const f=getActiveEffect();
     if(f&&f.type==='images' && (!f.imagePool || !f.imagePool.length)) loadEffectImages(f);
     if(f&&f.type==='bubble') postChars(true);
-    postReset();
-    rebuildBubbleEditor();
+    postReset(); rebuildBubbleEditor();
   }
   renderEffectList();saveStarConfig();
 }
@@ -1723,7 +1677,7 @@ function resetStars(){postReset()}
 function flashScreen(c){const el2=document.getElementById('flash-overlay');el2.style.background=c||'#ffffff';el2.classList.remove('flash');void el2.offsetWidth;el2.classList.add('flash')}
 
 /* =========================================================
-   MP3 MODULE (unchanged)
+   MP3 MODULE + CUES
 ========================================================= */
 let mp3Tracks = [];
 let mp3Labels = {};
@@ -1737,6 +1691,15 @@ let mp3CurrentTrackId = null;
 let mp3NextIdxCounter = 0;
 let mp3FocusedIdx = -1;
 const mp3UrlCache = {};
+
+// Cues
+let mp3Cues = {};              // trackId -> [cue, ...]
+let selectedCueId = null;
+let pixagesManifest = [];      // ['pixages/alien.png', ...]
+const pixageStatus = new Map(); // url -> { loaded, w, h, error }
+const pixageDims = new Map();   // url -> { w, h } (probed on main thread)
+
+let scrubListenWhileDragging = false;
 
 const MP3_IDB_NAME = 'vn_mp3_blobs';
 const MP3_IDB_STORE = 'blobs';
@@ -1778,6 +1741,8 @@ async function mp3IdbDel(key){
 function mp3SaveTracks(){ try { localStorage.setItem(STORAGE.mp3_tracks, JSON.stringify(mp3Tracks)); } catch(e){} }
 function mp3SaveLabels(){ try { localStorage.setItem(STORAGE.mp3_labels, JSON.stringify({ tokens: mp3TokenSnapshot, labels: mp3Labels })); } catch(e){} }
 function mp3SaveCfg(){ try { localStorage.setItem(STORAGE.mp3_cfg, JSON.stringify(mp3Cfg)); } catch(e){} }
+function mp3SaveCues(){ try { localStorage.setItem(STORAGE.mp3_cues, JSON.stringify(mp3Cues)); } catch(e){} }
+function mp3SaveSelectedTrack(){ try { localStorage.setItem(STORAGE.selected_track, mp3CurrentTrackId || ''); } catch(e){} }
 
 function mp3LoadState(){
   try { const t = localStorage.getItem(STORAGE.mp3_tracks); if (t) mp3Tracks = JSON.parse(t); } catch(e){}
@@ -1786,12 +1751,54 @@ function mp3LoadState(){
     if (l) { const p = JSON.parse(l); mp3Labels = p.labels || {}; mp3TokenSnapshot = p.tokens || []; }
   } catch(e){}
   try { const c = localStorage.getItem(STORAGE.mp3_cfg); if (c) mp3Cfg = Object.assign(mp3Cfg, JSON.parse(c)); } catch(e){}
+  try { const cu = localStorage.getItem(STORAGE.mp3_cues); if (cu) mp3Cues = JSON.parse(cu) || {}; } catch(e){}
+  try { const st = localStorage.getItem(STORAGE.selected_track); if (st) mp3CurrentTrackId = st; } catch(e){}
   if (window.__EXPORTED_MP3__ && typeof window.__EXPORTED_MP3__ === 'object') {
     const e = window.__EXPORTED_MP3__;
     if (!mp3Tracks.length && Array.isArray(e.tracks)) mp3Tracks = e.tracks;
     if (!Object.keys(mp3Labels).length && e.labels && e.labels.labels) { mp3Labels = e.labels.labels; mp3TokenSnapshot = e.labels.tokens || []; }
     if (e.config) mp3Cfg = Object.assign(mp3Cfg, e.config);
+    if (!Object.keys(mp3Cues).length && e.cues) mp3Cues = e.cues;
   }
+}
+
+async function loadPixagesManifest(){
+  let files = [];
+  try {
+    const r = await fetch('pixages/manifest.json', { cache: 'no-store' });
+    if (r.ok) { const j = await r.json(); if (Array.isArray(j)) files = j; }
+  } catch(e) {}
+  if (!files.length) {
+    try {
+      const r = await fetch('pixages/', { cache: 'no-store' });
+      if (r.ok) {
+        const html = await r.text();
+        const re = /href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;
+        let m;
+        while ((m = re.exec(html)) !== null) files.push(m[1]);
+      }
+    } catch(e) {}
+  }
+  pixagesManifest = files
+    .filter(f => !/^https?:/.test(f) || true) // keep all
+    .map(f => /^https?:\/\//.test(f) || f.startsWith('/') ? f : 'pixages/' + f);
+  // Also mark that pixages folder might be empty
+  const panel = document.getElementById('mp3-panel');
+  if (panel && panel.classList.contains('open')) mp3RenderPanel();
+}
+
+function probePixageDims(url){
+  return new Promise(resolve => {
+    if (pixageDims.has(url)) return resolve(pixageDims.get(url));
+    const img = new Image();
+    img.onload = () => {
+      const d = { w: img.naturalWidth, h: img.naturalHeight };
+      pixageDims.set(url, d);
+      resolve(d);
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 }
 
 function fmtTime(s){
@@ -1829,7 +1836,6 @@ function mp3TokenizeText(text){
   }
   return tokens;
 }
-
 function mp3UnwrapWords(){
   document.querySelectorAll('.mp3-word').forEach(el => {
     const txt = el.textContent;
@@ -1964,10 +1970,7 @@ async function mp3Resume(){
     if (mp3CurrentTrackId === label.trackId && mp3Audio.src && mp3Audio.currentTime >= label.time - 0.15) {
       mp3ApplyPlaybackRate();
       try { await mp3Audio.play(); } catch(e){}
-      mp3Playing = true;
-      mp3PreviewUntil = -1;
-      mp3UpdatePlayBtn();
-      mp3Loop();
+      mp3Playing = true; mp3PreviewUntil = -1; mp3UpdatePlayBtn(); mp3Loop();
       return;
     }
     await mp3PlayFrom(mp3CurrentIdx);
@@ -1979,9 +1982,7 @@ async function mp3Resume(){
 }
 function mp3Pause(){
   if (mp3Audio) mp3Audio.pause();
-  mp3Playing = false;
-  mp3PreviewUntil = -1;
-  mp3UpdatePlayBtn();
+  mp3Playing = false; mp3PreviewUntil = -1; mp3UpdatePlayBtn();
 }
 async function mp3PreviewWord(idx){
   const label = mp3Labels[idx];
@@ -1995,13 +1996,14 @@ async function mp3PreviewWord(idx){
   const next = list.find(w => w.time > label.time);
   mp3PreviewUntil = next ? next.time : -1;
   try { await mp3Audio.play(); } catch(e){}
-  mp3Playing = true;
-  mp3CurrentIdx = idx;
-  mp3ApplyHighlight(idx);
-  mp3UpdatePlayBtn();
-  mp3Loop();
+  mp3Playing = true; mp3CurrentIdx = idx; mp3ApplyHighlight(idx); mp3UpdatePlayBtn(); mp3Loop();
 }
 function mp3OnTick(){
+  // Always feed time to worker (for cues)
+  if (mp3Audio) postMp3Time(mp3Audio.currentTime || 0);
+  // Update scrubber live position if not being dragged
+  updateScrubberFromAudio();
+
   if (!mp3Playing) return;
   const t = mp3Audio.currentTime;
   if (mp3PreviewUntil >= 0 && t >= mp3PreviewUntil) { mp3Pause(); return; }
@@ -2020,10 +2022,7 @@ async function mp3OnEnded(){
   const nextIdx = mp3NextLabelIdx(mp3CurrentIdx);
   if (nextIdx >= 0) {
     const nextLabel = mp3Labels[nextIdx];
-    if (nextLabel.trackId !== mp3CurrentTrackId) {
-      await mp3PlayFrom(nextIdx);
-      return;
-    }
+    if (nextLabel.trackId !== mp3CurrentTrackId) { await mp3PlayFrom(nextIdx); return; }
   }
   mp3Pause();
 }
@@ -2039,7 +2038,6 @@ function mp3ApplyHighlight(idx){
   const el = document.querySelector(`.mp3-word[data-idx="${idx}"]`);
   if (el) el.classList.add('highlighted');
 }
-
 function mp3UpdatePlayBtn(){
   const btn = document.getElementById('mp3-play-btn');
   if (!btn) return;
@@ -2075,13 +2073,11 @@ function mp3InitControls(){
   slider.addEventListener('input', () => {
     mp3Cfg.playbackRate = parseFloat(slider.value) || 1;
     label.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
-    mp3ApplyPlaybackRate();
-    mp3SaveCfg();
+    mp3ApplyPlaybackRate(); mp3SaveCfg();
   });
   const wc = document.getElementById('mp3-wordclick-toggle');
   wc.addEventListener('change', () => {
-    mp3Cfg.wordClickEnabled = wc.checked;
-    mp3SaveCfg();
+    mp3Cfg.wordClickEnabled = wc.checked; mp3SaveCfg();
   });
   document.addEventListener('click', e => {
     if (isEditing) return;
@@ -2122,12 +2118,168 @@ function mp3MakeSection(title, cls){
   sec.appendChild(head); sec.appendChild(body);
   return { sec, body };
 }
+
+function updateScrubberFromAudio(){
+  const slider = document.getElementById('mp3-scrubber');
+  const numIn = document.getElementById('mp3-scrub-input');
+  if (!slider || !mp3Audio) return;
+  if (slider.dataset.dragging === '1') return;
+  const t = mp3Audio.currentTime || 0;
+  const dur = mp3Audio.duration || 0;
+  if (dur > 0) {
+    slider.max = dur.toFixed(2);
+    slider.value = Math.min(t, dur);
+    if (numIn && document.activeElement !== numIn) {
+      numIn.value = t.toFixed(2);
+    }
+  }
+}
+
+function newCueId(){ return 'cue_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function addCue(){
+  if (!mp3CurrentTrackId) { alert('Select a track first.'); return; }
+  const tr = getTrack(mp3CurrentTrackId);
+  const dur = tr && tr.duration ? tr.duration : 60;
+  const cue = {
+    id: newCueId(),
+    imageUrl: pixagesManifest[0] || '',
+    startTime: 0,
+    endTime: Math.min(dur, 5),
+    x: 0.5, y: 0.5,
+    fade: true,
+    cellPx: 20,
+    fadeSpeed: 500,
+    targetResolution: 128
+  };
+  if (!mp3Cues[mp3CurrentTrackId]) mp3Cues[mp3CurrentTrackId] = [];
+  mp3Cues[mp3CurrentTrackId].push(cue);
+  mp3SaveCues();
+  selectedCueId = cue.id;
+  mp3RenderPanel();
+  postCues();
+  rebuildCueEditor();
+  updatePreviewCue();
+}
+
+function deleteCue(id){
+  if (!mp3CurrentTrackId) return;
+  if (!confirm('Delete this cue?')) return;
+  mp3Cues[mp3CurrentTrackId] = (mp3Cues[mp3CurrentTrackId] || []).filter(c => c.id !== id);
+  if (selectedCueId === id) selectedCueId = null;
+  mp3SaveCues();
+  mp3RenderPanel();
+  postCues();
+  rebuildCueEditor();
+  updatePreviewCue();
+}
+
+function selectCue(id){
+  selectedCueId = id;
+  mp3RenderPanel();
+  rebuildCueEditor();
+  updatePreviewCue();
+}
+
+function updatePreviewCue(){
+  if (!selectedCueId) { postPreviewCue(null); return; }
+  const list = mp3Cues[mp3CurrentTrackId] || [];
+  const cue = list.find(c => c.id === selectedCueId);
+  postPreviewCue(cue || null);
+}
+
+function rebuildCueEditor(){
+  const layer = document.getElementById('cue-editor-layer');
+  layer.innerHTML = '';
+  if (!isEditing) return;
+  if (!selectedCueId) return;
+  const list = mp3Cues[mp3CurrentTrackId] || [];
+  const cue = list.find(c => c.id === selectedCueId);
+  if (!cue) return;
+
+  const box = document.createElement('div');
+  box.className = 'cue-box';
+
+  const label = document.createElement('div');
+  label.className = 'cue-label';
+  label.textContent = `🎬 ${cue.imageUrl.split('/').pop() || '(no image)'}  ${cue.startTime.toFixed(2)}–${cue.endTime.toFixed(2)}s`;
+  box.appendChild(label);
+
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'cue-loading';
+  loadingEl.textContent = 'Loading dimensions…';
+  box.appendChild(loadingEl);
+
+  const W = window.innerWidth, H = window.innerHeight;
+  const cxPx = cue.x * W;
+  const cyPx = cue.y * H;
+
+  const render = (dims) => {
+    if (!dims) {
+      // fallback small box
+      box.style.width = '200px'; box.style.height = '150px';
+      box.style.left = (cxPx - 100) + 'px';
+      box.style.top = (cyPx - 75) + 'px';
+      loadingEl.textContent = 'No image dims';
+      return;
+    }
+    const w = dims.w * (cue.cellPx || 20);
+    const h = dims.h * (cue.cellPx || 20);
+    box.style.width = w + 'px';
+    box.style.height = h + 'px';
+    box.style.left = (cxPx - w / 2) + 'px';
+    box.style.top = (cyPx - h / 2) + 'px';
+    loadingEl.textContent = `${dims.w}×${dims.h} cells × ${cue.cellPx}px`;
+  };
+
+  if (cue.imageUrl) {
+    probePixageDims(cue.imageUrl).then(render);
+  } else {
+    render(null);
+  }
+
+  let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+  box.addEventListener('mousedown', e => {
+    if (e.target === label || e.target === loadingEl) {} // allow, we want drag on box
+    e.preventDefault();
+    dragging = true;
+    sx = e.clientX; sy = e.clientY;
+    ox = cue.x; oy = cue.y;
+    const mv = ev => {
+      if (!dragging) return;
+      cue.x = ox + (ev.clientX - sx) / W;
+      cue.y = oy + (ev.clientY - sy) / H;
+      // Clamp 0..1
+      cue.x = Math.max(0, Math.min(1, cue.x));
+      cue.y = Math.max(0, Math.min(1, cue.y));
+      const cxPx2 = cue.x * W;
+      const cyPx2 = cue.y * H;
+      box.style.left = (cxPx2 - box.offsetWidth / 2) + 'px';
+      box.style.top = (cyPx2 - box.offsetHeight / 2) + 'px';
+      updatePreviewCue();
+    };
+    const up = () => {
+      dragging = false;
+      document.removeEventListener('mousemove', mv);
+      document.removeEventListener('mouseup', up);
+      mp3SaveCues();
+      postCues();
+      mp3RenderPanel();
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+  });
+
+  layer.appendChild(box);
+}
+
 function mp3RenderPanel(){
   const body = document.getElementById('mp3-body');
   if (!body) return;
   const prevScrollTop = body.scrollTop;
   body.innerHTML = '';
 
+  // ----- TRACKS -----
   const t = mp3MakeSection('Tracks', 'tracks');
   const imp = el('button', 'gui-btn primary');
   imp.innerHTML = '<i class="fa-solid fa-file-audio mr-1"></i> Import MP3 file(s)';
@@ -2177,8 +2329,7 @@ function mp3RenderPanel(){
     const name = prompt('Display name for this track:', url.split('/').pop() || 'track.mp3') || 'track.mp3';
     const id = 'trk_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const probe = new Audio();
-    probe.preload = 'metadata';
-    probe.src = url;
+    probe.preload = 'metadata'; probe.src = url;
     probe.addEventListener('loadedmetadata', () => {
       mp3Tracks.push({ id, name, source: 'url', url, duration: probe.duration || 0 });
       mp3SaveTracks(); mp3RenderPanel(); mp3RefreshControls();
@@ -2200,15 +2351,25 @@ function mp3RenderPanel(){
       const row = el('div', 'mp3-track-item' + (tr.id === mp3CurrentTrackId ? ' active' : ''));
       const srcBadge = tr.source === 'url' ? '🔗' : '💾';
       row.innerHTML = `<span>${srcBadge}</span><span class="name">${tr.name}</span><span class="dur">${fmtTime(tr.duration)}</span><button class="sel">Select</button><button class="del">✕</button>`;
-      row.querySelector('.sel').addEventListener('click', () => { mp3CurrentTrackId = tr.id; mp3RenderPanel(); });
+      row.querySelector('.sel').addEventListener('click', () => {
+        mp3CurrentTrackId = tr.id;
+        mp3SaveSelectedTrack();
+        mp3RenderPanel();
+        postCues();
+        rebuildCueEditor();
+        selectedCueId = null;
+        updatePreviewCue();
+      });
       row.querySelector('.del').addEventListener('click', () => {
-        if (!confirm('Delete this track? Labels using it will be cleared.')) return;
+        if (!confirm('Delete this track? Labels and cues using it will be cleared.')) return;
         if (tr.source === 'file') mp3IdbDel(tr.id).catch(()=>{});
         delete mp3UrlCache[tr.id];
         mp3Tracks = mp3Tracks.filter(x => x.id !== tr.id);
         for (const k in mp3Labels) if (mp3Labels[k].trackId === tr.id) delete mp3Labels[k];
-        if (mp3CurrentTrackId === tr.id) mp3CurrentTrackId = null;
-        mp3SaveTracks(); mp3SaveLabels(); mp3RenderPanel(); mp3RefreshControls();
+        delete mp3Cues[tr.id];
+        if (mp3CurrentTrackId === tr.id) { mp3CurrentTrackId = null; mp3SaveSelectedTrack(); }
+        mp3SaveTracks(); mp3SaveLabels(); mp3SaveCues(); mp3RenderPanel(); mp3RefreshControls();
+        postCues();
       });
       list.appendChild(row);
     });
@@ -2216,6 +2377,7 @@ function mp3RenderPanel(){
   }
   body.appendChild(t.sec);
 
+  // ----- WORDS -----
   const w = mp3MakeSection('Words', 'words');
   const wordCount = mp3TokenSnapshot.length;
   const labelCount = Object.keys(mp3Labels).length;
@@ -2242,10 +2404,10 @@ function mp3RenderPanel(){
   }
   body.appendChild(w.sec);
 
+  // ----- LABELLING -----
   const l = mp3MakeSection('Labelling', 'labelling');
   const big = el('div','mp3-big-word'); big.id = 'mp3-big-word';
   l.body.appendChild(big);
-
   const nav = el('div','mp3-nav');
   const prevBtn = el('button'); prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left mr-1"></i> Prev';
   prevBtn.addEventListener('click', () => { if (mp3FocusedIdx > 0) { mp3FocusedIdx--; mp3RefreshPanelWordDisplay(); mp3SeekToFocused(); } });
@@ -2253,7 +2415,6 @@ function mp3RenderPanel(){
   nextBtn.addEventListener('click', () => { if (mp3FocusedIdx < mp3TokenSnapshot.length - 1) { mp3FocusedIdx++; mp3RefreshPanelWordDisplay(); mp3SeekToFocused(); } });
   nav.appendChild(prevBtn); nav.appendChild(nextBtn);
   l.body.appendChild(nav);
-
   const trow = el('div','mp3-time-row');
   const timeIn = el('input'); timeIn.type = 'number'; timeIn.step = '0.01'; timeIn.min = '0'; timeIn.id = 'mp3-time-input';
   const lab = mp3Labels[mp3FocusedIdx];
@@ -2267,7 +2428,6 @@ function mp3RenderPanel(){
   });
   trow.appendChild(useCurBtn);
   l.body.appendChild(trow);
-
   const prow = el('div','mp3-nav');
   const playBtn = el('button'); playBtn.className = 'primary';
   playBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Play from here';
@@ -2279,20 +2439,15 @@ function mp3RenderPanel(){
     mp3Audio.currentTime = Math.max(0, Math.min(tval, (mp3Audio.duration || 0) - 0.01));
     mp3ApplyPlaybackRate();
     try { await mp3Audio.play(); } catch(e){}
-    mp3Playing = true;
-    mp3PreviewUntil = -1;
-    mp3UpdatePlayBtn();
-    mp3Loop();
+    mp3Playing = true; mp3PreviewUntil = -1; mp3UpdatePlayBtn(); mp3Loop();
   });
   prow.appendChild(playBtn);
   const stopBtn = el('button'); stopBtn.innerHTML = '<i class="fa-solid fa-stop mr-1"></i> Stop';
   stopBtn.addEventListener('click', () => mp3Pause());
   prow.appendChild(stopBtn);
   l.body.appendChild(prow);
-
   const pos = el('div','mp3-audio-pos'); pos.id = 'mp3-audio-pos-admin'; pos.textContent = '0:00.00 / 0:00.00';
   l.body.appendChild(pos);
-
   const saveBtn = el('button','gui-btn primary');
   saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> Save label for this word';
   saveBtn.addEventListener('click', () => {
@@ -2309,8 +2464,7 @@ function mp3RenderPanel(){
       }
     }
     mp3Labels[mp3FocusedIdx] = { trackId: mp3CurrentTrackId, time: tval };
-    mp3SaveLabels();
-    mp3RenderPanel();
+    mp3SaveLabels(); mp3RenderPanel();
     if (mp3FocusedIdx < mp3TokenSnapshot.length - 1) {
       mp3FocusedIdx++;
       mp3RefreshPanelWordDisplay();
@@ -2323,9 +2477,184 @@ function mp3RenderPanel(){
   });
   l.body.appendChild(saveBtn);
   l.body.appendChild(el('div','mp3-hint','Tip: Play the track, hit "Use current" to capture the audio position. Save, and it auto-advances.'));
-
   body.appendChild(l.sec);
 
+  // ----- CUES -----
+  const cu = mp3MakeSection('Cues', 'cues');
+  cu.body.appendChild(el('div','mp3-hint', `Pixel-art images from pixages/ · ${pixagesManifest.length} file${pixagesManifest.length===1?'':'s'} found`));
+
+  // Scrubber
+  const scrubRow = el('div'); scrubRow.style.cssText='display:flex;flex-direction:column;gap:4px';
+  const scrubTop = el('div'); scrubTop.style.cssText='display:flex;gap:6px;align-items:center';
+  const scrubSlider = el('input'); scrubSlider.type='range'; scrubSlider.id='mp3-scrubber';
+  scrubSlider.min='0'; scrubSlider.max='60'; scrubSlider.step='0.01'; scrubSlider.value='0';
+  scrubSlider.style.flex='1';
+  scrubTop.appendChild(scrubSlider);
+  const scrubNum = el('input'); scrubNum.type='number'; scrubNum.id='mp3-scrub-input'; scrubNum.step='0.01'; scrubNum.min='0';
+  scrubNum.value = '0.00';
+  scrubNum.style.cssText='width:90px;background:#0f0f11;border:1px solid #27272a;border-radius:6px;padding:5px 7px;color:#a5b4fc;font-family:ui-monospace,monospace;font-size:11px;text-align:right';
+  scrubTop.appendChild(scrubNum);
+  scrubRow.appendChild(scrubTop);
+  const scrubBottom = el('div'); scrubBottom.style.cssText='display:flex;gap:8px;align-items:center;font-size:10.5px;color:#a1a1aa';
+  const listenLbl = document.createElement('label'); listenLbl.style.cssText='display:flex;align-items:center;gap:4px;cursor:pointer';
+  const listenChk = document.createElement('input'); listenChk.type='checkbox'; listenChk.id='mp3-scrub-listen';
+  listenChk.checked = scrubListenWhileDragging;
+  listenChk.addEventListener('change', () => { scrubListenWhileDragging = listenChk.checked; });
+  listenLbl.appendChild(listenChk);
+  listenLbl.appendChild(document.createTextNode('Listen while dragging'));
+  scrubBottom.appendChild(listenLbl);
+
+  const applyScrub = (t, resumeOnRelease) => {
+    if (!mp3Audio) return;
+    if (!mp3CurrentTrackId) {
+      // Still send time to worker so cues preview even without audio
+      postMp3Time(t);
+      return;
+    }
+    if (!mp3Playing) {
+      // paused, don't autoplay
+    }
+    const dur = mp3Audio.duration || 0;
+    const clamped = Math.max(0, Math.min(t, dur || t));
+    mp3Audio.pause();
+    mp3Playing = false;
+    mp3Audio.currentTime = clamped;
+    postMp3Time(clamped);
+    mp3UpdatePlayBtn();
+    if (resumeOnRelease && scrubListenWhileDragging) {
+      mp3Audio.play().then(() => { mp3Playing = true; mp3UpdatePlayBtn(); mp3Loop(); }).catch(()=>{});
+    }
+  };
+
+  scrubSlider.addEventListener('input', () => {
+    scrubSlider.dataset.dragging = '1';
+    const t = parseFloat(scrubSlider.value) || 0;
+    scrubNum.value = t.toFixed(2);
+    applyScrub(t, false);
+  });
+  scrubSlider.addEventListener('change', () => {
+    scrubSlider.dataset.dragging = '0';
+    const t = parseFloat(scrubSlider.value) || 0;
+    applyScrub(t, true);
+  });
+  scrubNum.addEventListener('change', () => {
+    const t = parseFloat(scrubNum.value) || 0;
+    scrubSlider.value = t;
+    applyScrub(t, true);
+  });
+  cu.body.appendChild(scrubRow);
+
+  // List of cues for the selected track
+  const trackCues = mp3CurrentTrackId ? (mp3Cues[mp3CurrentTrackId] || []) : [];
+
+  if (!mp3CurrentTrackId) {
+    cu.body.appendChild(el('div','mp3-hint','Select a track above to edit its cues.'));
+  } else if (!trackCues.length) {
+    cu.body.appendChild(el('div','mp3-hint','No cues yet. Add one below.'));
+  } else {
+    trackCues.sort((a,b) => a.startTime - b.startTime).forEach(cue => {
+      const row = el('div', 'cue-row' + (cue.id === selectedCueId ? ' selected' : ''));
+
+      const main = el('div','cue-row-main');
+      const imgSel = el('select');
+      const emptyOpt = el('option', null, pixagesManifest.length ? '— pick image —' : '(no pixages found)');
+      emptyOpt.value = '';
+      imgSel.appendChild(emptyOpt);
+      pixagesManifest.forEach(u => {
+        const o = el('option', null, u.split('/').pop());
+        o.value = u;
+        if (u === cue.imageUrl) o.selected = true;
+        imgSel.appendChild(o);
+      });
+      imgSel.addEventListener('change', () => {
+        cue.imageUrl = imgSel.value;
+        mp3SaveCues(); postCues(); rebuildCueEditor(); updatePreviewCue();
+        probePixageDims(cue.imageUrl);
+      });
+      main.appendChild(imgSel);
+
+      const selBtn = el('button', null, cue.id === selectedCueId ? '✓' : '◎');
+      selBtn.title = 'Select for preview / drag on canvas';
+      selBtn.addEventListener('click', () => selectCue(cue.id));
+      main.appendChild(selBtn);
+
+      const delBtn = el('button', 'del', '✕');
+      delBtn.addEventListener('click', () => deleteCue(cue.id));
+      main.appendChild(delBtn);
+      row.appendChild(main);
+
+      const fields = el('div','cue-row-fields');
+      const mkField = (lbl, val, step, onChange) => {
+        const f = el('div','cue-field');
+        const l = el('label', null, lbl);
+        const i = el('input'); i.type='number'; i.step = step || '0.01'; i.value = val;
+        i.addEventListener('change', () => onChange(parseFloat(i.value)));
+        f.appendChild(l); f.appendChild(i);
+        return { field: f, input: i };
+      };
+      fields.appendChild(mkField('Start', cue.startTime.toFixed(2), '0.01', v => {
+        if (isNaN(v)) return;
+        if (v < 0) v = 0;
+        if (v >= cue.endTime) { alert('Start must be before end.'); return; }
+        cue.startTime = v; mp3SaveCues(); postCues(); rebuildCueEditor();
+      }).field);
+      fields.appendChild(mkField('End', cue.endTime.toFixed(2), '0.01', v => {
+        if (isNaN(v)) return;
+        if (v <= cue.startTime) { alert('End must be after start.'); return; }
+        cue.endTime = v; mp3SaveCues(); postCues(); rebuildCueEditor();
+      }).field);
+      fields.appendChild(mkField('Cell px', cue.cellPx, '1', v => {
+        if (isNaN(v) || v < 2) return;
+        cue.cellPx = v; mp3SaveCues(); postCues(); rebuildCueEditor(); updatePreviewCue();
+      }).field);
+      fields.appendChild(mkField('Fade/s', cue.fadeSpeed, '10', v => {
+        if (isNaN(v) || v < 1) return;
+        cue.fadeSpeed = v; mp3SaveCues(); postCues();
+      }).field);
+      fields.appendChild(mkField('Res', cue.targetResolution, '1', v => {
+        if (isNaN(v) || v < 8) return;
+        cue.targetResolution = v; mp3SaveCues(); postCues();
+      }).field);
+      row.appendChild(fields);
+
+      const sub = el('div','cue-row-sub');
+      const fadeLbl = document.createElement('label');
+      fadeLbl.style.cssText='display:flex;align-items:center;gap:4px;cursor:pointer';
+      const fadeChk = document.createElement('input');
+      fadeChk.type = 'checkbox'; fadeChk.checked = !!cue.fade;
+      fadeChk.addEventListener('change', () => {
+        cue.fade = fadeChk.checked; mp3SaveCues(); postCues(); updatePreviewCue();
+      });
+      fadeLbl.appendChild(fadeChk);
+      fadeLbl.appendChild(document.createTextNode('Fade (vs Snap)'));
+      sub.appendChild(fadeLbl);
+
+      const posNote = document.createElement('span');
+      posNote.style.cssText='color:#52525b';
+      posNote.textContent = `· x ${(cue.x*100).toFixed(1)}% y ${(cue.y*100).toFixed(1)}%`;
+      sub.appendChild(posNote);
+
+      row.appendChild(sub);
+
+      cu.body.appendChild(row);
+    });
+  }
+
+  const addCueBtn = el('button','gui-btn primary');
+  addCueBtn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Add cue';
+  addCueBtn.addEventListener('click', addCue);
+  if (!mp3CurrentTrackId) addCueBtn.disabled = true;
+  cu.body.appendChild(addCueBtn);
+
+  if (!pixagesManifest.length) {
+    const warn = el('div');
+    warn.innerHTML = '<span class="mp3-tag warn">No images found in pixages/ — add PNG files or a manifest.json</span>';
+    cu.body.appendChild(warn);
+  }
+
+  body.appendChild(cu.sec);
+
+  // ----- PLAYBACK -----
   const pb = mp3MakeSection('Playback', 'playback');
   const spRow = el('div','mp3-time-row');
   const spLabel = el('span',null,'Speed');
@@ -2336,13 +2665,10 @@ function mp3RenderPanel(){
   spSlider.addEventListener('input', () => {
     mp3Cfg.playbackRate = parseFloat(spSlider.value) || 1;
     spVal.textContent = mp3Cfg.playbackRate.toFixed(2) + '×';
-    mp3ApplyPlaybackRate();
-    mp3SaveCfg();
-    mp3RefreshControls();
+    mp3ApplyPlaybackRate(); mp3SaveCfg(); mp3RefreshControls();
   });
   spRow.appendChild(spLabel); spRow.appendChild(spSlider); spRow.appendChild(spVal);
   pb.body.appendChild(spRow);
-
   const cRow = el('div','mp3-time-row');
   const cLabel = el('span',null,'Highlight colour');
   cLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
@@ -2355,7 +2681,6 @@ function mp3RenderPanel(){
   });
   cRow.appendChild(cLabel); cRow.appendChild(cInp);
   pb.body.appendChild(cRow);
-
   const wcRow = el('div','mp3-time-row');
   const wcLabel = el('span',null,'Click words to play them (visitor)');
   wcLabel.style.cssText = 'color:#a1a1aa;font-size:11px;flex:1';
@@ -2369,6 +2694,7 @@ function mp3RenderPanel(){
   pb.body.appendChild(wcRow);
   body.appendChild(pb.sec);
 
+  // ----- DANGER -----
   const d = mp3MakeSection('Danger', 'danger');
   const clrLabels = el('button','gui-btn danger');
   clrLabels.innerHTML = '<i class="fa-solid fa-eraser mr-1"></i> Clear all word labels';
@@ -2382,18 +2708,20 @@ function mp3RenderPanel(){
   clrTracks.addEventListener('click', async () => {
     if (!confirm('Delete ALL imported tracks and their labels?')) return;
     for (const tr of mp3Tracks) { if (tr.source === 'file') try { await mp3IdbDel(tr.id); } catch(e){} }
-    mp3Tracks = []; mp3Labels = {}; mp3CurrentTrackId = null;
+    mp3Tracks = []; mp3Labels = {}; mp3Cues = {}; mp3CurrentTrackId = null;
     for (const k in mp3UrlCache) delete mp3UrlCache[k];
-    mp3SaveTracks(); mp3SaveLabels(); mp3RenderPanel(); mp3RefreshControls();
+    mp3SaveTracks(); mp3SaveLabels(); mp3SaveCues(); mp3SaveSelectedTrack(); mp3RenderPanel(); mp3RefreshControls();
+    postCues();
   });
   d.body.appendChild(clrTracks);
   body.appendChild(d.sec);
 
   body.scrollTop = prevScrollTop;
-
   if (mp3FocusedIdx < 0 && mp3TokenSnapshot.length) mp3FocusedIdx = 0;
   mp3RefreshPanelWordDisplay();
+  updateScrubberFromAudio();
 }
+
 async function mp3SeekToFocused(){
   if (mp3FocusedIdx < 0) return;
   const lab = mp3Labels[mp3FocusedIdx];
@@ -2414,10 +2742,12 @@ async function mp3Boot(){
   mp3InitControls();
   mp3TokenizeAndWrap();
   mp3RefreshControls();
+  // If selected track exists, kick the worker
+  if (mp3CurrentTrackId) postCues();
 }
 
 /* =========================================================
-   EXPORT
+   EXPORT (FIXED)
 ========================================================= */
 async function exportHTML(){
   const modal = document.getElementById('export-modal');
@@ -2441,7 +2771,8 @@ async function exportHTML(){
     const mp3Export = {
       tracks: mp3Tracks.map(t => ({ id: t.id, name: t.name, source: t.source, url: t.url || null, duration: t.duration || 0 })),
       labels: { tokens: mp3TokenSnapshot, labels: mp3Labels },
-      config: mp3Cfg
+      config: mp3Cfg,
+      cues: mp3Cues
     };
 
     const safe = (str) => str.replace(/</g, '\\u003c');
@@ -2456,14 +2787,19 @@ window.__EXPORTED_MP3__ = ${safe(JSON.stringify(mp3Export))};
 <\/script>
 <!-- BAKED_CONFIG_END -->`;
 
+    // Idempotent: strip any previous baked block
     source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
 
-    if (source.includes('</head>')) source = source.replace('</head>', bakedBlock + '\n</head>');
-    else throw new Error('Could not find </head> in source');
+    if (source.includes('</head>')) {
+      source = source.replace('</head>', bakedBlock + '\n</head>');
+    } else {
+      throw new Error('Could not find </head> in source');
+    }
 
     ta.value = source; ta.placeholder = '';
     statusEl.className = 'text-xs';
-    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} img · ${textboxes.length} tb · ${cfg.effects.length} eff · ${mp3Tracks.length} mp3 trk · ${Object.keys(mp3Labels).length} labels</span>`;
+    const cueCount = Object.values(mp3Cues).reduce((a, b) => a + b.length, 0);
+    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} img · ${textboxes.length} tb · ${cfg.effects.length} eff · ${mp3Tracks.length} mp3 trk · ${Object.keys(mp3Labels).length} labels · ${cueCount} cues</span>`;
     statusEl.classList.remove('hidden');
   } catch (e) {
     ta.placeholder = 'Export failed.';
