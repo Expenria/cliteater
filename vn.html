@@ -2799,7 +2799,7 @@ async function exportHTML(){
       cues: mp3Cues
     };
 
-    const safe = (str) => str.replace(/</g, '\\u003c');
+    const safe = (str) => str.replace(/</g, '\\u003c').replace(/<\/script/gi, '<\\/script');
 
     const bakedBlock = `<!-- BAKED_CONFIG_START -->
 <script id="baked-config">
