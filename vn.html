@@ -472,10 +472,18 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   document.addEventListener('mousedown', e => {
     const panel = document.getElementById('tb-settings');
     if (panel.classList.contains('open') && !e.target.closest('#tb-settings') && !e.target.closest('.text-box')) {
-      closeTbSettings();
-      deselectAllTextBoxes();
+        closeTbSettings();
+        deselectAllTextBoxes();
     }
-  });
+    // Deselect cue when clicking outside the cue box and outside the MP3 panel
+    if (isEditing && selectedCueId) {
+        if (!e.target.closest('#cue-editor-layer') && !e.target.closest('#mp3-panel')) {
+        selectedCueId = null;
+        postPreviewCue(null);
+        rebuildCueEditor();
+        }
+    }
+    });
 });
 
 /* =========================================================
@@ -2095,7 +2103,14 @@ function toggleMp3Panel(){
   if (!isEditing) return;
   const p = document.getElementById('mp3-panel');
   p.classList.toggle('open');
-  if (p.classList.contains('open')) mp3RenderPanel();
+  if (p.classList.contains('open')) {
+    mp3RenderPanel();
+  } else {
+    // Closing the panel deselects the cue so its editor box stops blocking the canvas
+    selectedCueId = null;
+    postPreviewCue(null);
+    rebuildCueEditor();
+  }
 }
 function mp3RefreshPanelWordDisplay(){
   const big = document.getElementById('mp3-big-word');
