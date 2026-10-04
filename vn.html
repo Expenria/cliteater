@@ -283,6 +283,7 @@ window.__EXPORTED_MP3__ = {"tracks":[],"labels":{"tokens":["SeventhoftheTenthoft
   <button onclick="execCmd('justifyCenter')" class="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"><i class="fa-solid fa-align-center"></i></button>
   <div class="h-4 w-[1px] bg-zinc-700 mx-1"></div>
   <button onclick="triggerImageUpload()" class="p-2 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded-lg flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-image"></i> Add Image</button>
+  <button onclick="triggerImageFromCharts()" class="p-2 text-emerald-400 hover:text-white hover:bg-emerald-600 rounded-lg flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-folder-open"></i> From Charts</button>
   <button onclick="addTextBox()" class="p-2 text-fuchsia-400 hover:text-white hover:bg-fuchsia-600 rounded-lg flex items-center gap-1.5 text-xs font-medium px-3"><i class="fa-solid fa-font"></i> Add Text Box</button>
   <input type="file" id="image-upload" accept="image/*" multiple class="hidden">
 </div>
@@ -443,15 +444,33 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   loadStarConfig();
 
   const si = localStorage.getItem(STORAGE.images);
-  if (si) { try{JSON.parse(si).forEach(img=>createImageElement(img))}catch(e){} }
-  else if (window.__EXPORTED_IMAGES__ && Array.isArray(window.__EXPORTED_IMAGES__)) {
-    window.__EXPORTED_IMAGES__.forEach(img=>createImageElement(img));
+  let imagesLoaded = false;
+  if (si) {
+    try {
+      const arr = JSON.parse(si);
+      if (Array.isArray(arr) && arr.length > 0) {
+        arr.forEach(img => createImageElement(img));
+        imagesLoaded = true;
+      }
+    } catch(e) {}
+  }
+  if (!imagesLoaded && window.__EXPORTED_IMAGES__ && Array.isArray(window.__EXPORTED_IMAGES__)) {
+    window.__EXPORTED_IMAGES__.forEach(img => createImageElement(img));
   }
 
   const stb = localStorage.getItem(STORAGE.textboxes);
-  if (stb) { try{JSON.parse(stb).forEach(tb=>createTextBox(tb))}catch(e){} }
-  else if (window.__EXPORTED_TEXTBOXES__ && Array.isArray(window.__EXPORTED_TEXTBOXES__)) {
-    window.__EXPORTED_TEXTBOXES__.forEach(tb=>createTextBox(tb));
+  let tbsLoaded = false;
+  if (stb) {
+    try {
+      const arr = JSON.parse(stb);
+      if (Array.isArray(arr) && arr.length > 0) {
+        arr.forEach(tb => createTextBox(tb));
+        tbsLoaded = true;
+      }
+    } catch(e) {}
+  }
+  if (!tbsLoaded && window.__EXPORTED_TEXTBOXES__ && Array.isArray(window.__EXPORTED_TEXTBOXES__)) {
+    window.__EXPORTED_TEXTBOXES__.forEach(tb => createTextBox(tb));
   }
 
   const snapPref = localStorage.getItem(STORAGE.snap);
@@ -463,6 +482,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 
   await mp3Boot();
   loadPixagesManifest();
+  loadChartsManifest();
 
   document.getElementById('text-color-input').addEventListener('input', e => {
     if (!isEditing) return;
@@ -1011,6 +1031,148 @@ function saveImages(){
     width:w.offsetWidth,height:w.offsetHeight
   }));
   try{localStorage.setItem(STORAGE.images,JSON.stringify(imgs))}catch(e){alert('Storage full — try smaller images.')}
+}
+/* =========================================================
+   CHART IMAGES (from /charts folder)
+========================================================= */
+let chartsManifest = [];
+const chartDimsCache = new Map();
+
+async function loadChartsManifest() {
+  let files = [];
+  try {
+    const r = await fetch('charts/manifest.json', { cache: 'no-store' });
+    if (r.ok) { const j = await r.json(); if (Array.isArray(j)) files = j; }
+  } catch(e) {}
+  if (!files.length) {
+    try {
+      const r = await fetch('charts/', { cache: 'no-store' });
+      if (r.ok) {
+        const html = await r.text();
+        const re = /href="([^"\/?]+\.(?:png|jpe?g|gif|webp|svg|bmp|avif))"/gi;
+        let m; while ((m = re.exec(html)) !== null) files.push(m[1]);
+      }
+    } catch(e) {}
+  }
+  chartsManifest = files.map(f =>
+    /^https?:\/\//.test(f) || f.startsWith('/') ? f : 'charts/' + f
+  );
+  console.log('[charts] ' + chartsManifest.length + ' image(s) found');
+  return chartsManifest;
+}
+
+function buildChartsPicker() {
+  const old = document.getElementById('charts-picker');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'charts-picker';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
+
+  const panel = document.createElement('div');
+  panel.style.cssText = 'background:#18181b;border:1px solid #27272a;border-radius:14px;width:720px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.7);overflow:hidden;';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'padding:12px 14px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:#e4e4e7;text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;';
+  header.innerHTML = '<span><i class="fa-solid fa-folder-open" style="color:#6ee7b7;margin-right:6px"></i>Pick from charts/ (' + chartsManifest.length + ')</span>';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'background:none;border:none;color:#71717a;font-size:14px;cursor:pointer;padding:4px 8px;border-radius:6px';
+  closeBtn.onmouseover = () => closeBtn.style.color = '#fff';
+  closeBtn.onmouseout = () => closeBtn.style.color = '#71717a';
+  closeBtn.onclick = () => overlay.remove();
+  header.appendChild(closeBtn);
+  panel.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'padding:14px;display:grid;gap:10px;overflow-y:auto;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));';
+
+  chartsManifest.forEach(url => {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'border:1px solid #27272a;border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;background:#0f0f11;display:flex;flex-direction:column;';
+    cell.onmouseover = () => { cell.style.borderColor = '#6ee7b7'; cell.style.transform = 'scale(1.02)'; };
+    cell.onmouseout = () => { cell.style.borderColor = '#27272a'; cell.style.transform = 'scale(1)'; };
+
+    const thumbWrap = document.createElement('div');
+    thumbWrap.style.cssText = 'width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#0a0a0c;padding:6px';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated';
+    img.onerror = () => { thumbWrap.innerHTML = '<span style="color:#7f1d1d;font-size:11px">load error</span>'; };
+    thumbWrap.appendChild(img);
+
+    const name = document.createElement('div');
+    name.textContent = url.split('/').pop();
+    name.style.cssText = 'padding:6px 8px;font-size:10.5px;color:#a1a1aa;font-family:ui-monospace,monospace;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid #27272a;';
+
+    cell.appendChild(thumbWrap);
+    cell.appendChild(name);
+    cell.onclick = () => {
+      insertChartImageIntoDoc(url);
+      overlay.remove();
+    };
+    grid.appendChild(cell);
+  });
+
+  if (!chartsManifest.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'grid-column:1/-1;padding:40px;text-align:center;color:#71717a;font-size:12px;line-height:1.6';
+    empty.innerHTML = 'No images found in <code style="color:#6ee7b7">charts/</code>.<br>Create the folder in your repo and add some PNG/JPG/WebP files,<br>or add a <code style="color:#6ee7b7">charts/manifest.json</code> listing them.';
+    grid.appendChild(empty);
+  }
+
+  panel.appendChild(grid);
+  overlay.appendChild(panel);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+async function triggerImageFromCharts() {
+  if (!isEditing) return;
+  if (!chartsManifest.length) {
+    await loadChartsManifest();
+  }
+  buildChartsPicker();
+}
+
+function insertChartImageIntoDoc(url) {
+  // Insert an <img> into the document at the caret, or at the end of the last edit-block
+  const imgTag = `<img src="${url}" alt="${url.split('/').pop()}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);margin:12px 0;display:block;" data-chart-src="${url}">`;
+
+  // 1) If the user has a caret inside an editable block, insert there
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    let container = range.startContainer;
+    while (container && container.nodeType !== 1) container = container.parentNode;
+    const editable = container && container.closest && container.closest('.edit-block');
+    if (editable) {
+      // Insert the image as a sibling block right after the current block
+      const newBlock = document.createElement('div');
+      newBlock.className = 'edit-block group relative';
+      newBlock.innerHTML = `<p class="text-base text-zinc-400 font-light leading-relaxed" contenteditable="true" data-has-input-listener="1">${imgTag}</p>`;
+      editable.parentNode.insertBefore(newBlock, editable.nextSibling);
+      // Wire up the editable
+      const p = newBlock.querySelector('p');
+      p.addEventListener('input', autoSave);
+      attachBlockDel(newBlock);
+      autoSave();
+      scheduleViewInfo();
+      return;
+    }
+  }
+
+  // 2) No caret — append a new block at the bottom of the document
+  const newBlock = document.createElement('div');
+  newBlock.className = 'edit-block group relative';
+  newBlock.innerHTML = `<p class="text-base text-zinc-400 font-light leading-relaxed" contenteditable="true" data-has-input-listener="1">${imgTag}</p>`;
+  canvasEl.appendChild(newBlock);
+  const p = newBlock.querySelector('p');
+  p.addEventListener('input', autoSave);
+  attachBlockDel(newBlock);
+  autoSave();
+  scheduleViewInfo();
 }
 document.addEventListener('mousedown',e=>{
   if(!e.target.closest('.draggable-img'))document.querySelectorAll('.draggable-img').forEach(d=>d.classList.remove('selected'))
