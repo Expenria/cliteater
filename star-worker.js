@@ -105,6 +105,7 @@ self.onmessage = function (ev) {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       clearSpriteCache();
       postMsg({ type: 'canvas-ready', W, H, DPR, cw: canvas.width, ch: canvas.height });
+      postMsg({ type: 'ready' });
       if (!rafActive) {
         rafActive = true;
         lastFrameAt = performance.now();
