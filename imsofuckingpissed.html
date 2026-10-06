@@ -2922,6 +2922,27 @@ async function mp3SeekToFocused(){
   mp3CurrentIdx = mp3FocusedIdx;
   mp3ApplyHighlight(mp3FocusedIdx);
 }
+function startCueHandshake(){
+  // Try to send cues repeatedly until the worker acknowledges.
+  // Gives up after 10 seconds.
+  if (!mp3CurrentTrackId) return;
+  const startedAt = Date.now();
+  let attempts = 0;
+  const tryOnce = () => {
+    attempts++;
+    if (starWorker) {
+      postCues();
+      console.log('[cues] sent on attempt', attempts, 'after', Date.now() - startedAt, 'ms');
+      return;
+    }
+    if (Date.now() - startedAt > 10000) {
+      console.warn('[cues] gave up waiting for starWorker after', attempts, 'attempts');
+      return;
+    }
+    setTimeout(tryOnce, 100);
+  };
+  tryOnce();
+}
 async function mp3Boot(){
   mp3LoadState();
   document.documentElement.style.setProperty('--mp3-highlight', mp3Cfg.highlightColor);
@@ -2930,7 +2951,7 @@ async function mp3Boot(){
   mp3TokenizeAndWrap();
   mp3RefreshControls();
   // If selected track exists, kick the worker
-  if (mp3CurrentTrackId) postCues();
+  startCueHandshake();
 }
 
 /* =========================================================
