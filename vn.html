@@ -586,9 +586,7 @@ function handleWorkerMessage(ev){
     }
     case 'flash': flashScreen(m.color); break;
     case 'canvas-ready': console.log('[star-worker] canvas ready:', m); break;
-    case 'ready':
-        if (mp3CurrentTrackId) postCues();
-        break;
+    case 'ready': if (mp3CurrentTrackId) postCues(); break;
     case 'error': console.error('[star-worker]', m.message); break;
     case 'image-status': {
       const eff = getActiveEffect();
