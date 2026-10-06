@@ -662,21 +662,26 @@ function postImagePool(){
 // ----- Cue messages -----
 function postCues(){
   if (!starWorker) return;
-  const tid = mp3CurrentTrackId;
-  const list = tid ? (mp3Cues[tid] || []) : [];
-  // Normalize into what the worker expects
+
+  const CUE_TRACK = 'trk_muu1u78q7mzi'; // s+b track
+
+  // Only send cues if the currently playing track is the cue track,
+  // OR nothing is playing yet (so they're queued and ready).
+  const playing = mp3CurrentTrackId;
+  let list = [];
+  if (playing === null || playing === CUE_TRACK) {
+    list = mp3Cues[CUE_TRACK] || [];
+  }
+
   const out = list.map(c => ({
-    id: c.id,
-    imageUrl: c.imageUrl,
-    startTime: c.startTime,
-    endTime: c.endTime,
-    x: c.x,
-    y: c.y,
-    fade: c.fade,
-    cellPx: c.cellPx,
-    fadeSpeed: c.fadeSpeed,
+    id: c.id, imageUrl: c.imageUrl,
+    startTime: c.startTime, endTime: c.endTime,
+    x: c.x, y: c.y, fade: c.fade,
+    cellPx: c.cellPx, fadeSpeed: c.fadeSpeed,
     targetResolution: c.targetResolution
   }));
+
+  console.log('[cues] posting', out.length, 'cues (playing track:', playing, ')');
   starWorker.postMessage({ type: 'cues', cues: out });
 }
 
@@ -2140,6 +2145,7 @@ async function mp3PlayFrom(idx){
   mp3Playing = true;
   mp3PreviewUntil = -1;
   mp3CurrentIdx = idx;
+  postCues();
   mp3ApplyHighlight(idx);
   mp3UpdatePlayBtn();
   mp3Loop();
@@ -2151,6 +2157,7 @@ async function mp3Resume(){
       mp3ApplyPlaybackRate();
       try { await mp3Audio.play(); } catch(e){}
       mp3Playing = true; mp3PreviewUntil = -1; mp3UpdatePlayBtn(); mp3Loop();
+      postCues();
       return;
     }
     await mp3PlayFrom(mp3CurrentIdx);
@@ -2923,22 +2930,12 @@ async function mp3SeekToFocused(){
   mp3ApplyHighlight(mp3FocusedIdx);
 }
 function startCueHandshake(){
-  // Try to send cues repeatedly until the worker acknowledges.
-  // Gives up after 10 seconds.
-  if (!mp3CurrentTrackId) return;
   const startedAt = Date.now();
   let attempts = 0;
   const tryOnce = () => {
     attempts++;
-    if (starWorker) {
-      postCues();
-      console.log('[cues] sent on attempt', attempts, 'after', Date.now() - startedAt, 'ms');
-      return;
-    }
-    if (Date.now() - startedAt > 10000) {
-      console.warn('[cues] gave up waiting for starWorker after', attempts, 'attempts');
-      return;
-    }
+    if (starWorker) { postCues(); return; }
+    if (Date.now() - startedAt > 10000) return;
     setTimeout(tryOnce, 100);
   };
   tryOnce();
