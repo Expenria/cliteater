@@ -1729,10 +1729,8 @@ async function exportHTML(){
   const ta = document.getElementById('export-textarea');
   const statusEl = document.getElementById('export-status');
   modal.classList.remove('hidden');
-  ta.value = '';
-  ta.placeholder = 'Generating export...';
+  ta.value = ''; ta.placeholder = 'Generating export...';
   statusEl.classList.add('hidden');
-
   try {
     const res = await fetch(window.location.href, { cache: 'no-store' });
     if (!res.ok) throw new Error('Could not fetch page source (' + res.status + ')');
@@ -1745,12 +1743,33 @@ async function exportHTML(){
       width: w.offsetWidth, height: w.offsetHeight
     }));
     const textboxes = getTextBoxesData();
+    const mp3Export = {
+      tracks: mp3Tracks.map(t => ({ id: t.id, name: t.name, source: t.source, url: t.url || null, duration: t.duration || 0 })),
+      labels: { tokens: mp3TokenSnapshot, labels: mp3Labels },
+      config: mp3Cfg,
+      cues: mp3Cues
+    };
 
-    const safe = (str) => str.replace(/</g, '\\u003c');
+    // Escape for safe embedding inside a <script> block.
+    const safe = (str) => String(str)
+      .replace(/</g, '\\u003c')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
 
-    const bakedBlock = ``;
+    const CLOSE_SCRIPT = '<' + '/script>';   // avoids terminating the host <script>
+    const bakedBlock = [
+      '<!-- BAKED_CONFIG_START -->',
+      '<script id="baked-config">',
+      `window.__EXPORTED_CFG__ = ${safe(cfgJSON)};`,
+      `window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};`,
+      `window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};`,
+      `window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};`,
+      `window.__EXPORTED_MP3__ = ${safe(JSON.stringify(mp3Export))};`,
+      CLOSE_SCRIPT,
+      '<!-- BAKED_CONFIG_END -->'
+    ].join('\n');
 
-    source = source.replace(/\s*/g, '');
+    source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
 
     if (source.includes('</head>')) {
       source = source.replace('</head>', bakedBlock + '\n</head>');
@@ -1758,10 +1777,10 @@ async function exportHTML(){
       throw new Error('Could not find </head> in source');
     }
 
-    ta.value = source;
-    ta.placeholder = '';
+    ta.value = source; ta.placeholder = '';
     statusEl.className = 'text-xs';
-    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} image${imgs.length===1?'':'s'} · ${textboxes.length} text box${textboxes.length===1?'':'es'} · ${cfg.effects.length} effect${cfg.effects.length===1?'':'s'}</span>`;
+    const cueCount = Object.values(mp3Cues).reduce((a, b) => a + b.length, 0);
+    statusEl.innerHTML = `<span class="status-tag ok">Ready — ${(source.length/1024).toFixed(1)} KB · ${imgs.length} img · ${textboxes.length} tb · ${cfg.effects.length} eff · ${mp3Tracks.length} mp3 trk · ${Object.keys(mp3Labels).length} labels · ${cueCount} cues</span>`;
     statusEl.classList.remove('hidden');
   } catch (e) {
     ta.placeholder = 'Export failed.';
