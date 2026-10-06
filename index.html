@@ -158,6 +158,14 @@ select{width:100%;background:#0f0f11;border:1px solid #27272a;border-radius:6px;
 #effect-picker button{text-align:left;padding:8px 10px;border-radius:6px;background:#27272a;color:#e4e4e7;font-size:11px;cursor:pointer;border:none;transition:background .15s}
 #effect-picker button:hover{background:#3f3f46}
 </style>
+<!-- BAKED_CONFIG_START -->
+<script id="baked-config">
+window.__EXPORTED_CFG__ = {"global":{"maxStars":6000,"triggerEnabled":false},"base":{"enabled":true,"initialDelay":800,"spawnInterval":400,"reproChance":3,"tickMs":200,"lifespan":5,"color":"#ff0000","shape":"star","size":14,"fadeIn":0.4,"fadeOut":0.5,"flashOut":true,"randomRotation":true},"spawned":{"enabled":true,"reproChance":3,"tickMs":13,"lifespan":1,"color":"#c005ff","shape":"diamond","size":3,"fadeIn":0.4,"fadeOut":0.5,"flashOut":true,"randomRotation":true},"effects":[{"id":"eff_1_ykbsi","type":"none","name":"Plain Stars","flashColor":"#ffffff"},{"id":"eff_2_lvwtj","type":"bubble","name":"JOANNE","minStarsForBubble":2000,"beforeThresholdMode":"avoid","outlineWidth":4,"outlineColor":"#6366f1","outlineOpacity":0.5,"showOutline":false,"showHandles":true,"flashColor":"#0400ff","chars":[{"char":"J","x":72,"y":138.5,"size":300,"rotation":60},{"char":"O","x":240.60000000000002,"y":565.5,"size":300,"rotation":15},{"char":"A","x":579.2,"y":182.5,"size":300,"rotation":25},{"char":"N","x":889.8,"y":578.5,"size":300,"rotation":-25},{"char":"N","x":1218.4,"y":185.5,"size":300,"rotation":-14.703920016579914},{"char":"E","x":1435,"y":606.5,"size":300,"rotation":-60}],"maskScale":0.5,"maskBounds":{"minX":0,"minY":32,"maxX":1528,"maxY":688}}],"activeEffectId":"eff_2_lvwtj"};
+window.__EXPORTED_DOC__ = "\n    \u003cdiv class=\"edit-block group relative\">\u003ch1 class=\"text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight\" data-has-input-listener=\"1\" contenteditable=\"true\">07/10/26 or silencio\u003c/h1>\u003c/div>\n    \u003cdiv class=\"edit-block group relative\">\u003cp class=\"text-lg text-zinc-400 font-light leading-relaxed\" data-has-input-listener=\"1\" contenteditable=\"true\">Ofcourse this is just the variant where I don't speak which is why its other name is Silencio and in the version where I speak (the button that says blablabla it lets u come back here tey also have diff content cos like? Idk im making this after I finished blablabla or seventhofthetenth bla bla bla\u003c/p>\u003c/div>\n    \u003cdiv class=\"edit-block group relative\">\u003cblockquote class=\"border-l-2 border-indigo-500 pl-4 py-1 italic text-zinc-300\" data-has-input-listener=\"1\" contenteditable=\"true\">\"Stars seed the field. Effects reshape it.\"\u003c/blockquote>\u003c/div>\n  ";
+window.__EXPORTED_IMAGES__ = [];
+window.__EXPORTED_TEXTBOXES__ = [];
+</script>
+<!-- BAKED_CONFIG_END -->
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
@@ -1740,16 +1748,9 @@ async function exportHTML(){
 
     const safe = (str) => str.replace(/</g, '\\u003c');
 
-    const bakedBlock = `<!-- BAKED_CONFIG_START -->
-<script id="baked-config">
-window.__EXPORTED_CFG__ = ${safe(cfgJSON)};
-window.__EXPORTED_DOC__ = ${safe(JSON.stringify(docContent))};
-window.__EXPORTED_IMAGES__ = ${safe(JSON.stringify(imgs))};
-window.__EXPORTED_TEXTBOXES__ = ${safe(JSON.stringify(textboxes))};
-<\/script>
-<!-- BAKED_CONFIG_END -->`;
+    const bakedBlock = ``;
 
-    source = source.replace(/<!-- BAKED_CONFIG_START -->[\s\S]*?<!-- BAKED_CONFIG_END -->\s*/g, '');
+    source = source.replace(/\s*/g, '');
 
     if (source.includes('</head>')) {
       source = source.replace('</head>', bakedBlock + '\n</head>');
